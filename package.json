@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/Valkyr-JS/StashReels/issues"
   },
-  "homepage": "https://github.com/Valkyr-JS/StashReels#readme"
+  "homepage": "https://github.com/Valkyr-JS/StashReels#readme",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
 }
