@@ -1,0 +1,7 @@
+name: Stash Reels
+description: TikTok for Stash.
+url: https://github.com/Valkyr-JS/StashReels
+version: 0.1.0
+ui:
+  assets:
+    /: .
