@@ -1,0 +1,19 @@
+{
+  "name": "stashreels",
+  "version": "0.1.0",
+  "description": "TikTok for Stash.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Valkyr-JS/StashReels.git"
+  },
+  "author": "Valkyr-JS",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Valkyr-JS/StashReels/issues"
+  },
+  "homepage": "https://github.com/Valkyr-JS/StashReels#readme"
+}
