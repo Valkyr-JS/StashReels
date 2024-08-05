@@ -15,17 +15,22 @@ interface VideoItemProps {
 const VideoItem: React.FC<VideoItemProps> = (props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  /** Handle toggling the video play state. */
+  const togglePlayHandler = () =>
+    videoRef.current?.paused
+      ? videoRef.current.play()
+      : videoRef.current?.pause();
+
   if (props.scene.path)
     return (
       <div className={styles.container}>
         <video
-          // autoPlay
-          className={styles["video"]}
           id={props.id}
           muted
-          // onClick={togglePlay}
+          onClick={togglePlayHandler}
           // onDoubleClick={toggleMuteHandler}
           ref={videoRef}
+          data-testid="VideoItem--video"
         >
           <source src={props.scene.path} type={`video/${props.scene.format}`} />
         </video>
