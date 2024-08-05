@@ -44,7 +44,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   return (
     <div className={styles.container}>
       <video
-        data-testid="VideoItem--video"
+        data-testid={"VideoItem--video-" + props.index}
         id={props.scene.id}
         muted
         onClick={togglePlayHandler}
