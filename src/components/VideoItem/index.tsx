@@ -3,25 +3,7 @@ import React, { useEffect, useRef } from "react";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
 
-interface VideoItemProps {
-  /** The ID of the scene in Stash. */
-  id: Scene["id"];
-  /** The zero-based index of the scene in the video queue. */
-  index: number;
-  /** The scene data. */
-  scene: {
-    /** The absolute path of the subtitles file. */
-    captions?: {
-      format: string;
-      lang: string;
-      source: string;
-    }[];
-    /** The format of the video, e.g. "mp4". */
-    format: string;
-    /** The absolute path of the video stream. */
-    path: string;
-  };
-}
+interface VideoItemProps extends IitemData {}
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,7 +45,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     <div className={styles.container}>
       <video
         data-testid="VideoItem--video"
-        id={props.id}
+        id={props.scene.id}
         muted
         onClick={togglePlayHandler}
         ref={videoRef}

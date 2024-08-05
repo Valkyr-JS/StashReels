@@ -9,10 +9,10 @@ const meta = {
   // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
   //   args: { onClick: fn() },
   args: {
-    id: "3097",
     index: 1,
     scene: {
       format: "mp4",
+      id: "3097",
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
     },
   },
@@ -46,7 +46,6 @@ export const TogglePlayOnTap: Story = {
 
 export const Subtitles: Story = {
   args: {
-    id: "5133",
     index: 1,
     scene: {
       captions: [
@@ -57,6 +56,7 @@ export const Subtitles: Story = {
         },
       ],
       format: "mp4",
+      id: "5133",
       path: process.env.STASH_ADDRESS + "/scene/5133/stream",
     },
   },
