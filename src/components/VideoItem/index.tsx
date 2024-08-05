@@ -1,36 +1,38 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef } from "react";
 import * as styles from "./VideoItem.module.scss";
-import { fetchData } from "../../helpers";
 
-interface VideoItemProps {}
+interface VideoItemProps {
+  // getVideos: (length: number) => void;
+  id: Scene["id"];
+  index: number;
+  lastVideoIndex: number;
+  scene: {
+    format: VideoFile["format"];
+    path: Scene["paths"]["stream"];
+  };
+}
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
-  const [sceneData, setSceneData] = useState<{
-    data: { findScenes: FindScenesResultType };
-  } | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Fetch scene data
-  useEffect(() => {
-    fetchData(`{
-      findScenes(
-        filter: { per_page: 5, sort: "random" }
-        scene_filter: { orientation: { value: PORTRAIT } }
-      ) {
-        scenes {
-          id
-          files { format }
-          paths { stream }
-          title
-          }
-        }
-      }`).then((res) => setSceneData(res));
-  }, []);
+  if (props.scene.path)
+    return (
+      <div className={styles.container}>
+        <video
+          // autoPlay
+          className={styles["video"]}
+          id={props.id}
+          muted
+          // onClick={togglePlay}
+          // onDoubleClick={toggleMuteHandler}
+          ref={videoRef}
+        >
+          <source src={props.scene.path} type={`video/${props.scene.format}`} />
+        </video>
+      </div>
+    );
 
-  return (
-    <div className={styles.base}>
-      {sceneData?.data.findScenes.scenes[0].title || "Loading"}
-    </div>
-  );
+  return null;
 };
 
 export default VideoItem;

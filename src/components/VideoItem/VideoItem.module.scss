@@ -1,4 +1,4 @@
-.base {
+.container {
   height: 100vh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
@@ -11,5 +11,9 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+
+    justify-content: center;
+    align-items: center;
+    display: flex;
   }
 }
