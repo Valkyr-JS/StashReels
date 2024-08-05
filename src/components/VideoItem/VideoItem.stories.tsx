@@ -11,7 +11,6 @@ const meta = {
   args: {
     id: "3097",
     index: 1,
-    lastVideoIndex: 1,
     scene: {
       format: "mp4",
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
