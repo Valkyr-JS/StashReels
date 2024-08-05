@@ -43,3 +43,21 @@ export const TogglePlayOnTap: Story = {
     });
   },
 };
+
+export const Subtitles: Story = {
+  args: {
+    id: "5133",
+    index: 1,
+    scene: {
+      captions: [
+        {
+          format: "srt",
+          lang: "uk",
+          source: process.env.STASH_ADDRESS + "/scene/5133/caption",
+        },
+      ],
+      format: "mp4",
+      path: process.env.STASH_ADDRESS + "/scene/5133/stream",
+    },
+  },
+};

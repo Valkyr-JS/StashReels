@@ -1,3 +1,4 @@
+import ISO6391 from "iso-639-1";
 import React, { useEffect, useRef } from "react";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
@@ -9,6 +10,12 @@ interface VideoItemProps {
   index: number;
   /** The scene data. */
   scene: {
+    /** The absolute path of the subtitles file. */
+    captions?: {
+      format: string;
+      lang: string;
+      source: string;
+    }[];
     /** The format of the video, e.g. "mp4". */
     format: string;
     /** The absolute path of the video stream. */
@@ -36,16 +43,33 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       ? videoRef.current.play()
       : videoRef.current?.pause();
 
+  /** Only render captions track if available. Fails accessibility if missing,
+   * but there's no point rendering an empty track. */
+  const captionSources = props.scene.captions
+    ? props.scene.captions.map((sub) => {
+        const src = sub.source + `?lang=${sub.lang}&type=${sub.format}`;
+        return (
+          <track
+            kind="captions"
+            label={ISO6391.getName(sub.lang) || "Unknown"}
+            src={src}
+            srcLang={sub.lang}
+          />
+        );
+      })
+    : null;
+
   return (
     <div className={styles.container}>
       <video
+        data-testid="VideoItem--video"
         id={props.id}
         muted
         onClick={togglePlayHandler}
         ref={videoRef}
-        data-testid="VideoItem--video"
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
+        {captionSources}
       </video>
     </div>
   );
