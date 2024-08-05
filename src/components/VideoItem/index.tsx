@@ -1,8 +1,8 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import * as styles from "./VideoItem.module.scss";
+import { useIsInViewport } from "../../hooks";
 
 interface VideoItemProps {
-  // getVideos: (length: number) => void;
   id: Scene["id"];
   index: number;
   lastVideoIndex: number;
@@ -14,6 +14,28 @@ interface VideoItemProps {
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const isInViewport = useIsInViewport(videoRef, {
+    threshold: 0.9,
+  });
+
+  useEffect(() => {
+    console.log(isInViewport, videoRef);
+    if (isInViewport && videoRef.current) {
+      console.log("play");
+      videoRef.current.play();
+    } else {
+      console.log("pause");
+      videoRef.current?.pause();
+    }
+  }, [isInViewport]);
+
+  useEffect(() => {
+    if (!isInViewport) {
+      console.log("pause");
+      videoRef.current?.pause();
+    }
+  }, [isInViewport]);
 
   /** Handle toggling the video play state. */
   const togglePlayHandler = () =>
@@ -28,7 +50,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           id={props.id}
           muted
           onClick={togglePlayHandler}
-          // onDoubleClick={toggleMuteHandler}
           ref={videoRef}
           data-testid="VideoItem--video"
         >

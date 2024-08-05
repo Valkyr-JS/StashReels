@@ -25,20 +25,22 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const TogglePlayOnTap: Story = {
-  args: {},
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
 
-    // Video should be paused by default
-    await expect(video.paused).toBe(true);
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      // Video should be playing by default
+      await expect(video.paused).toBe(false);
 
-    // First click should play the video
-    await userEvent.click(video, { delay: 500 });
-    await expect(video.paused).toBe(false);
+      // First click should pause the video
+      await userEvent.click(video, { delay: 500 });
+      await expect(video.paused).toBe(true);
 
-    // Second click should pause the video again
-    await userEvent.click(video, { delay: 1000 });
-    await expect(video.paused).toBe(true);
+      // Second click should play the video again
+      await userEvent.click(video, { delay: 1000 });
+      await expect(video.paused).toBe(false);
+    });
   },
 };
