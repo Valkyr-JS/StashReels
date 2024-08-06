@@ -1,6 +1,8 @@
 import React from "react";
+import FeedPage from "../pages/Feed";
+
 const App = () => {
-  return <h1>Hello React</h1>;
+  return <FeedPage />;
 };
 
 export default App;
