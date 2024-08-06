@@ -15,6 +15,7 @@ const meta = {
       format: "mp4",
       id: "3097",
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
+      title: "Scene Title 1",
     },
   },
 } satisfies Meta<typeof VideoItem>;
@@ -38,6 +39,7 @@ export const Subtitles: Story = {
       format: "mp4",
       id: "5133",
       path: process.env.STASH_ADDRESS + "/scene/5133/stream",
+      title: "Scene Title 2",
     },
   },
 };

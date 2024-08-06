@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 /** Fetch data from Stash via GQL. */
 export const fetchData = async (query: string) => {
   try {
@@ -16,3 +18,4 @@ export const fetchData = async (query: string) => {
     return console.log(err);
   }
 };
+

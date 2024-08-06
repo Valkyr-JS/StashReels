@@ -17,6 +17,8 @@ interface IsceneData {
   format: string;
   /** The absolute path of the video stream. */
   path: string;
+  /** The title of the scene. */
+  title: string;
   /** The absolute path of the subtitles file. */
   captions?: {
     format: string;

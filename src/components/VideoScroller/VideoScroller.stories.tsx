@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, fn, userEvent, within } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import VideoScroller from ".";
 
 const meta = {
@@ -14,9 +14,10 @@ const meta = {
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
-          id: "4065",
+          id: "2056",
           format: "mp4",
-          path: "http://192.168.0.20:9990/scene/4065/stream",
+          path: process.env.STASH_ADDRESS + "/scene/2056/stream",
+          title: "Scene Title 1",
         },
       },
       {
@@ -24,9 +25,10 @@ const meta = {
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
-          id: "3193",
+          id: "2057",
           format: "mp4",
-          path: "http://192.168.0.20:9990/scene/3193/stream",
+          path: process.env.STASH_ADDRESS + "/scene/2057/stream",
+          title: "Scene Title 2",
         },
       },
       {
@@ -34,9 +36,10 @@ const meta = {
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
-          id: "3233",
+          id: "2061",
           format: "mp4",
-          path: "http://192.168.0.20:9990/scene/3233/stream",
+          path: process.env.STASH_ADDRESS + "/scene/2061/stream",
+          title: "Scene Title 3",
         },
       },
       {
@@ -44,9 +47,10 @@ const meta = {
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
-          id: "4225",
+          id: "2063",
           format: "mp4",
-          path: "http://192.168.0.20:9990/scene/4225/stream",
+          path: process.env.STASH_ADDRESS + "/scene/2063/stream",
+          title: "Scene Title 4",
         },
       },
       {
@@ -56,7 +60,8 @@ const meta = {
           captions: undefined,
           id: "3376",
           format: "mp4",
-          path: "http://192.168.0.20:9990/scene/3376/stream",
+          path: process.env.STASH_ADDRESS + "/scene/3376/stream",
+          title: "Scene Title 5",
         },
       },
     ],
@@ -92,54 +97,54 @@ export const PlayNewVideoOnScroll: Story = {
       scroller.scrollTo(0, (video0.scrollHeight / 2) * 3);
 
       // Allow time for scroll animation
-      setTimeout(async () => {
+      await waitFor(() => {
         // All videos should be paused, except video1 which should be playing
-        await expect(video0.paused).toBe(true);
-        await expect(video1.paused).toBe(false);
-        await expect(video2.paused).toBe(true);
-        await expect(video3.paused).toBe(true);
-        await expect(video4.paused).toBe(true);
+        expect(video0.paused).toBe(true);
+        expect(video1.paused).toBe(false);
+        expect(video2.paused).toBe(true);
+        expect(video3.paused).toBe(true);
+        expect(video4.paused).toBe(true);
 
         // Fire a second scroll down event
         scroller.scrollTo(
           0,
           video0.scrollHeight + (video1.scrollHeight / 3) * 2
         );
-      }, 3000);
+      });
 
       // Allow time for scroll animation
-      setTimeout(async () => {
+      await waitFor(() => {
         // All videos should be paused, except video2 which should be playing
-        await expect(video0.paused).toBe(true);
-        await expect(video1.paused).toBe(true);
-        await expect(video2.paused).toBe(false);
-        await expect(video3.paused).toBe(true);
-        await expect(video4.paused).toBe(true);
+        expect(video0.paused).toBe(true);
+        expect(video1.paused).toBe(true);
+        expect(video2.paused).toBe(false);
+        expect(video3.paused).toBe(true);
+        expect(video4.paused).toBe(true);
 
         // Fire a scroll up event
         scroller.scrollTo(0, (video0.scrollHeight / 3) * 2);
-      }, 6000);
+      });
 
       // Allow time for scroll animation
-      setTimeout(async () => {
+      await waitFor(() => {
         // All videos should be paused, except video1 which should be playing
-        await expect(video0.paused).toBe(true);
-        await expect(video1.paused).toBe(false);
-        await expect(video2.paused).toBe(true);
-        await expect(video3.paused).toBe(true);
-        await expect(video4.paused).toBe(true);
+        expect(video0.paused).toBe(true);
+        expect(video1.paused).toBe(false);
+        expect(video2.paused).toBe(true);
+        expect(video3.paused).toBe(true);
+        expect(video4.paused).toBe(true);
 
         // The first three videos should retain their play duration, whilst the
         // others should have no play duration as they haven't been played yet.
-        await expect(video0.currentTime).not.toBe(0);
-        await expect(video1.currentTime).not.toBe(0);
-        await expect(video2.currentTime).not.toBe(0);
-        await expect(video3.currentTime).toBe(0);
-        await expect(video4.currentTime).toBe(0);
+        expect(video0.currentTime).not.toBe(0);
+        expect(video1.currentTime).not.toBe(0);
+        expect(video2.currentTime).not.toBe(0);
+        expect(video3.currentTime).toBe(0);
+        expect(video4.currentTime).toBe(0);
 
         // Fire a scroll up event
         scroller.scrollTo(0, (video0.scrollHeight / 3) * 2);
-      }, 9000);
+      });
     });
   },
 };
