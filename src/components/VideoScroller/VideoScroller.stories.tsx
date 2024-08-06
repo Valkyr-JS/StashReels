@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, userEvent, within } from "@storybook/test";
+import { expect, fn, userEvent, within } from "@storybook/test";
 import VideoScroller from ".";
 import {
   ITEMS_BEFORE_END_ON_FETCH,
@@ -11,9 +11,11 @@ const meta = {
   component: VideoScroller,
   tags: ["autodocs"],
   args: {
+    fetchVideos: fn(),
     items: [
       {
-        index: 1,
+        index: 0,
+        loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
           id: "4065",
@@ -22,7 +24,8 @@ const meta = {
         },
       },
       {
-        index: 2,
+        index: 1,
+        loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
           id: "3193",
@@ -31,7 +34,8 @@ const meta = {
         },
       },
       {
-        index: 3,
+        index: 2,
+        loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
           id: "3233",
@@ -40,7 +44,8 @@ const meta = {
         },
       },
       {
-        index: 0,
+        index: 3,
+        loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
           id: "4225",
@@ -50,6 +55,7 @@ const meta = {
       },
       {
         index: 4,
+        loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
           id: "3376",
@@ -66,44 +72,45 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const LoadVideosOnScroll: Story = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const scroller: HTMLDivElement = canvas.getByTestId(
-      "VideoScroller--container"
-    );
-    const numOriginalVids = meta.args.items.length;
+// ! This should be tested in the app component, where the fetchVideosHandler function will originate
+// export const LoadVideosOnScroll: Story = {
+//   play: async ({ canvasElement }) => {
+//     const canvas = within(canvasElement);
+//     const scroller: HTMLDivElement = canvas.getByTestId(
+//       "VideoScroller--container"
+//     );
+//     const numOriginalVids = meta.args.items.length;
 
-    // Expect the default number of video items to be loaded.
-    await expect(scroller.childNodes.length).toBe(numOriginalVids);
+//     // Expect the default number of video items to be loaded.
+//     await expect(scroller.childNodes.length).toBe(numOriginalVids);
 
-    const indexToLoadMore = ITEMS_TO_FETCH_PER_LOAD - ITEMS_BEFORE_END_ON_FETCH;
-    for (let i = 0; i < numOriginalVids; i++) {
-      // Allow time for scroll animation
-      setTimeout(
-        async () => {
-          // Expect the number of videos to be the originally passed amount,
-          // until more have been loaded at which point it should increase.
-          await expect(scroller.childElementCount).toBe(
-            i < indexToLoadMore
-              ? numOriginalVids
-              : numOriginalVids + ITEMS_TO_FETCH_PER_LOAD
-          );
-          // Fire a scroll down event down to the next video.
-          let scrollDistance = 0;
-          for (let j = 0; j < i; j++) {
-            scrollDistance += scroller.children[j].scrollHeight;
-          }
-          scroller.scrollTo(
-            0,
-            scrollDistance + (scroller.children[i].scrollHeight / 3) * 2
-          );
-        },
-        (i + 1) * 1500
-      );
-    }
-  },
-};
+//     const indexToLoadMore = ITEMS_TO_FETCH_PER_LOAD - ITEMS_BEFORE_END_ON_FETCH;
+//     for (let i = 0; i < numOriginalVids; i++) {
+//       // Allow time for scroll animation
+//       setTimeout(
+//         async () => {
+//           // Expect the number of videos to be the originally passed amount,
+//           // until more have been loaded at which point it should increase.
+//           await expect(scroller.childElementCount).toBe(
+//             i < indexToLoadMore
+//               ? numOriginalVids
+//               : numOriginalVids + ITEMS_TO_FETCH_PER_LOAD
+//           );
+//           // Fire a scroll down event down to the next video.
+//           let scrollDistance = 0;
+//           for (let j = 0; j < i; j++) {
+//             scrollDistance += scroller.children[j].scrollHeight;
+//           }
+//           scroller.scrollTo(
+//             0,
+//             scrollDistance + (scroller.children[i].scrollHeight / 3) * 2
+//           );
+//         },
+//         (i + 1) * 1500
+//       );
+//     }
+//   },
+// };
 
 export const PlayNewVideoOnScroll: Story = {
   play: async ({ canvasElement }) => {

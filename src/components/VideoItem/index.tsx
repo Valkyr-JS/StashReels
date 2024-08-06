@@ -3,7 +3,9 @@ import React, { useEffect, useRef } from "react";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
 
-interface VideoItemProps extends IitemData {}
+export interface VideoItemProps extends IitemData {
+  loadMoreVideosHandler: (index: number) => void;
+}
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -13,10 +15,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     threshold: 0.8,
   });
 
-  // Play the video if it is currently in the viewport, otherwise pause it.
   useEffect(() => {
+    // Play the video if it is currently in the viewport, otherwise pause it.
     if (isInViewport && videoRef.current) videoRef.current.play();
     else videoRef.current?.pause();
+
+    // Fetch more videos if required
+    if (isInViewport) props.loadMoreVideosHandler(props.index);
   }, [isInViewport]);
 
   /** Handle toggling the video play state. */
@@ -28,14 +33,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /** Only render captions track if available. Fails accessibility if missing,
    * but there's no point rendering an empty track. */
   const captionSources = props.scene.captions
-    ? props.scene.captions.map((sub) => {
-        const src = sub.source + `?lang=${sub.lang}&type=${sub.format}`;
+    ? props.scene.captions.map((cap) => {
+        const src = cap.source + `?lang=${cap.lang}&type=${cap.format}`;
         return (
           <track
             kind="captions"
-            label={ISO6391.getName(sub.lang) || "Unknown"}
+            label={ISO6391.getName(cap.lang) || "Unknown"}
             src={src}
-            srcLang={sub.lang}
+            srcLang={cap.lang}
           />
         );
       })

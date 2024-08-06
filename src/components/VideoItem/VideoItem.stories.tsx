@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, userEvent, within } from "@storybook/test";
+import { expect, fn, userEvent, within } from "@storybook/test";
 import VideoItem from ".";
 
 const meta = {
@@ -10,6 +10,7 @@ const meta = {
   //   args: { onClick: fn() },
   args: {
     index: 0,
+    loadMoreVideosHandler: fn(),
     scene: {
       format: "mp4",
       id: "3097",
