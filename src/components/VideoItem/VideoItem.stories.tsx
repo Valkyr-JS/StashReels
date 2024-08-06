@@ -45,7 +45,9 @@ export const Subtitles: Story = {
 export const TogglePlayOnTap: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video-0");
+    const allVideos: HTMLVideoElement[] =
+      canvas.getAllByTestId("VideoItem--video");
+    const video: HTMLVideoElement = allVideos[0];
 
     // Wait for the video to load
     video.addEventListener("canplaythrough", async () => {
