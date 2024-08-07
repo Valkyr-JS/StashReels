@@ -1,5 +1,6 @@
 .container {
-  height: 100vh;
+  height: 100vh; // Fallback
+  height: calc(var(--vsr-vh, 1vh) * 100);
   scroll-snap-align: start;
   scroll-snap-stop: always;
   background: #000;

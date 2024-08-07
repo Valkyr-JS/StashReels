@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "@storybook/test";
 import VideoItem from ".";
+import { setCssVHDecorator } from "../../../.storybook/decorators";
 
 const meta = {
   title: "Components/VideoItem",
@@ -18,6 +19,7 @@ const meta = {
     },
     toggleAudioHandler: fn(),
   },
+  decorators: [setCssVHDecorator],
 } satisfies Meta<typeof VideoItem>;
 
 export default meta;
@@ -57,11 +59,11 @@ export const TogglePlayOnTap: Story = {
       await expect(video.paused).toBe(false);
 
       // First click should pause the video
-      await userEvent.click(video, { delay: 500 });
+      await userEvent.click(video, { delay: 1500 });
       await expect(video.paused).toBe(true);
 
       // Second click should play the video again
-      await userEvent.click(video, { delay: 1000 });
+      await userEvent.click(video, { delay: 1500 });
       await expect(video.paused).toBe(false);
     });
   },

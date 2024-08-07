@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useWindowSize } from "../hooks";
 
 /** Fetch data from Stash via GQL. */
 export const fetchData = async (query: string) => {
@@ -19,3 +19,9 @@ export const fetchData = async (query: string) => {
   }
 };
 
+/** Function for setting the --vsr-vh CSS variable used in video items. */
+export const setCssVH = () => {
+  const windowSize = useWindowSize();
+  let vh = windowSize.height * 0.01;
+  document.documentElement.style.setProperty("--vsr-vh", `${vh}px`);
+};

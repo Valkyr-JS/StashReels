@@ -1,5 +1,6 @@
 .container {
-  height: 100vh;
+  height: 100vh; // Fallback
+  height: calc(var(--vsr-vh, 1vh) * 100);
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;

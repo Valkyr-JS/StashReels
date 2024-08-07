@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import VideoScroller from ".";
+import { setCssVHDecorator } from "../../../.storybook/decorators";
 
 const meta = {
   title: "Components/VideoScroller",
@@ -77,6 +78,7 @@ const meta = {
       },
     ],
   },
+  decorators: [setCssVHDecorator],
 } satisfies Meta<typeof VideoScroller>;
 
 export default meta;

@@ -2,12 +2,14 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
+import { setCssVHDecorator } from "../../../.storybook/decorators";
 
 const meta = {
   title: "Pages/Feed",
   component: FeedPage,
   tags: ["autodocs"],
   args: {},
+  decorators: [setCssVHDecorator],
 } satisfies Meta<typeof FeedPage>;
 
 export default meta;
