@@ -94,7 +94,7 @@ export const PlayNewVideoOnScroll: Story = {
       await expect(video0.paused).toBe(false);
 
       // Fire a scroll down event
-      scroller.scrollTo(0, (video0.scrollHeight / 2) * 3);
+      scroller.scrollTo(0, (video0.scrollHeight / 3) * 2);
 
       // Allow time for scroll animation
       await waitFor(() => {
@@ -141,9 +141,6 @@ export const PlayNewVideoOnScroll: Story = {
         expect(video2.currentTime).not.toBe(0);
         expect(video3.currentTime).toBe(0);
         expect(video4.currentTime).toBe(0);
-
-        // Fire a scroll up event
-        scroller.scrollTo(0, (video0.scrollHeight / 3) * 2);
       });
     });
   },

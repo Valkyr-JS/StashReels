@@ -32,42 +32,41 @@ export const LoadVideosOnRender: Story = {
   },
 };
 
-// ! This should be tested in the app component, where the fetchVideosHandler function will originate
-// export const LoadVideosOnScroll: Story = {
-//   play: async ({ canvasElement }) => {
-//     const canvas = within(canvasElement);
-//     const scroller: HTMLDivElement = canvas.getByTestId(
-//       "VideoScroller--container"
-//     );
-//     const numOriginalVids = meta.args.items.length;
+export const LoadVideosOnScroll: Story = {
+  play: async (context) => {
+    const canvas = within(context.canvasElement);
+    const scroller: HTMLDivElement = canvas.getByTestId(
+      "VideoScroller--container"
+    );
 
-//     // Expect the default number of video items to be loaded.
-//     await expect(scroller.childNodes.length).toBe(numOriginalVids);
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
 
-//     const indexToLoadMore = ITEMS_TO_FETCH_PER_LOAD - ITEMS_BEFORE_END_ON_FETCH;
-//     for (let i = 0; i < numOriginalVids; i++) {
-//       // Allow time for scroll animation
-//       setTimeout(
-//         async () => {
-//           // Expect the number of videos to be the originally passed amount,
-//           // until more have been loaded at which point it should increase.
-//           await expect(scroller.childElementCount).toBe(
-//             i < indexToLoadMore
-//               ? numOriginalVids
-//               : numOriginalVids + ITEMS_TO_FETCH_PER_LOAD
-//           );
-//           // Fire a scroll down event down to the next video.
-//           let scrollDistance = 0;
-//           for (let j = 0; j < i; j++) {
-//             scrollDistance += scroller.children[j].scrollHeight;
-//           }
-//           scroller.scrollTo(
-//             0,
-//             scrollDistance + (scroller.children[i].scrollHeight / 3) * 2
-//           );
-//         },
-//         (i + 1) * 1500
-//       );
-//     }
-//   },
-// };
+    const allVideos: HTMLVideoElement[] =
+      within(scroller).getAllByTestId("VideoItem--video");
+    const video0: HTMLVideoElement = allVideos[0];
+
+    // Fire a scroll down event to video index 1.
+    await waitFor(() => {
+      scroller.scrollTo(0, (video0.scrollHeight / 3) * 2);
+      expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD);
+    });
+
+    // Fire a scroll down event to video index 2, at which point a load request
+    // is sent.
+    await waitFor(() => {
+      scroller.scrollTo(0, (video0.scrollHeight + video0.scrollHeight / 3) * 2);
+      expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD);
+    });
+
+    // Fire a scroll down event to video index 3, at which point the requested
+    // videos should be loaded.
+    await waitFor(() => {
+      scroller.scrollTo(
+        0,
+        (video0.scrollHeight * 2 + video0.scrollHeight / 3) * 2
+      );
+      expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD * 2);
+    });
+  },
+};
