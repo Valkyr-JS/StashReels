@@ -1,6 +1,10 @@
 import React from "react";
+import FeedPage from "../pages/Feed";
+import { setCssVH } from "../helpers";
+
 const App = () => {
-  return <h1>Hello React</h1>;
+  setCssVH();
+  return <FeedPage />;
 };
 
 export default App;

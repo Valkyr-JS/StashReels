@@ -1,6 +1,6 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const path = require("path");
+const Dotenv = require("dotenv-webpack");
 
 module.exports = {
   module: {
@@ -17,6 +17,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new Dotenv(),
     new HtmlWebpackPlugin({
       template: "src/index.html", // to import index.html file inside index.js
     }),

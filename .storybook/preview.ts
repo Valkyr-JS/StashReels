@@ -11,7 +11,19 @@ const preview: Preview = {
       },
     },
     layout: "fullscreen",
-    viewport: { defaultViewport: "iphone5", viewports: INITIAL_VIEWPORTS },
+    viewport: {
+      defaultViewport: "iphone5",
+      viewports: {
+        ...INITIAL_VIEWPORTS,
+        galaxyS21u: {
+          name: "Galaxy S21 Ultra",
+          styles: {
+            width: "480px",
+            height: "1067px",
+          },
+        },
+      },
+    },
   },
 };
 
