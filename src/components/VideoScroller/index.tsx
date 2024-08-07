@@ -4,6 +4,8 @@ import VideoItem, { VideoItemProps } from "../VideoItem";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
 interface VideoScrollerProps {
+  /** The audio state set by the user. */
+  isMuted: boolean;
   /** Handler to fetch more video data from the queue. */
   fetchVideos: (length: number) => void;
   /** The data for each item in the queue. */
@@ -18,6 +20,9 @@ const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   /** Handle loading more videos when required. */
   const handleLoadingMoreVideos = (index: number) => {
     console.log(index, loadNewVidsAtIndex);
+
+    // Only execute fetch if the video index matches the point at which new
+    // videos need to be requested.
     if (index === loadNewVidsAtIndex) {
       props.fetchVideos(ITEMS_TO_FETCH_PER_LOAD);
       setloadNewVidsAtIndex((prev) => prev + ITEMS_TO_FETCH_PER_LOAD);
@@ -37,9 +42,11 @@ const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
         return (
           <VideoItem
             index={i}
+            isMuted={props.isMuted}
             key={i}
             loadMoreVideosHandler={handleLoadingMoreVideos}
             scene={item.scene}
+            toggleAudioHandler={item.toggleAudioHandler}
           />
         );
       })}

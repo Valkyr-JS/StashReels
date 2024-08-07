@@ -4,7 +4,12 @@ import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
 
 export interface VideoItemProps extends IitemData {
+  /** The audio state set by the user. */
+  isMuted: boolean;
+  /** Function for handling loading more videos data. */
   loadMoreVideosHandler: (index: number) => void;
+  /** Function for handling toggling video audio on and off. */
+  toggleAudioHandler: () => void;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -47,18 +52,40 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       })
     : null;
 
+  /* ----------------------------- Audio handling ----------------------------- */
+
+  /** Handle clicking the mute button */
+  const muteButtonClickHandler = () => {
+    if (isInViewport) props.toggleAudioHandler();
+  };
+
+  // Update the mute property via the ref object
+  useEffect(() => {
+    if (isInViewport && videoRef.current)
+      videoRef.current.muted = props.isMuted;
+  }, [props.isMuted]);
+
+  /* -------------------------------- Component ------------------------------- */
+
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-testid="VideoItem--container">
       <video
-        data-testid={"VideoItem--video"}
+        data-testid="VideoItem--video"
         id={props.scene.id}
-        muted
+        muted={props.isMuted || !isInViewport}
         onClick={togglePlayHandler}
         ref={videoRef}
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
       </video>
+      <button
+        data-testid="VideoItem--muteButton"
+        onClick={muteButtonClickHandler}
+        style={{ position: "absolute" }}
+      >
+        Mute
+      </button>
     </div>
   );
 };

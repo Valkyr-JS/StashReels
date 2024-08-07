@@ -6,10 +6,9 @@ const meta = {
   title: "Components/VideoItem",
   component: VideoItem,
   tags: ["autodocs"],
-  // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
-  //   args: { onClick: fn() },
   args: {
     index: 0,
+    isMuted: true,
     loadMoreVideosHandler: fn(),
     scene: {
       format: "mp4",
@@ -17,6 +16,7 @@ const meta = {
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
       title: "Scene Title 1",
     },
+    toggleAudioHandler: fn(),
   },
 } satisfies Meta<typeof VideoItem>;
 

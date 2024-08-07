@@ -8,9 +8,11 @@ const meta = {
   tags: ["autodocs"],
   args: {
     fetchVideos: fn(),
+    isMuted: true,
     items: [
       {
         index: 0,
+        isMuted: true,
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
@@ -19,9 +21,11 @@ const meta = {
           path: process.env.STASH_ADDRESS + "/scene/2056/stream",
           title: "Scene Title 1",
         },
+        toggleAudioHandler: fn(),
       },
       {
         index: 1,
+        isMuted: true,
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
@@ -30,9 +34,11 @@ const meta = {
           path: process.env.STASH_ADDRESS + "/scene/2057/stream",
           title: "Scene Title 2",
         },
+        toggleAudioHandler: fn(),
       },
       {
         index: 2,
+        isMuted: true,
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
@@ -41,9 +47,11 @@ const meta = {
           path: process.env.STASH_ADDRESS + "/scene/2061/stream",
           title: "Scene Title 3",
         },
+        toggleAudioHandler: fn(),
       },
       {
         index: 3,
+        isMuted: true,
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
@@ -52,9 +60,11 @@ const meta = {
           path: process.env.STASH_ADDRESS + "/scene/2063/stream",
           title: "Scene Title 4",
         },
+        toggleAudioHandler: fn(),
       },
       {
         index: 4,
+        isMuted: true,
         loadMoreVideosHandler: fn(),
         scene: {
           captions: undefined,
@@ -63,6 +73,7 @@ const meta = {
           path: process.env.STASH_ADDRESS + "/scene/3376/stream",
           title: "Scene Title 5",
         },
+        toggleAudioHandler: fn(),
       },
     ],
   },

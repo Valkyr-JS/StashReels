@@ -46,12 +46,20 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     const processedData: VideoItemProps[] = sceneData.map((sc, i) => {
       return {
         index: queuedItems.length + i,
+        isMuted: isMuted,
         loadMoreVideosHandler: handleQueuingUpData,
         scene: sc,
+        toggleAudioHandler: handleTogglingAudio,
       };
     });
     setQueuedItems((prev) => [...prev, ...processedData]);
   };
+
+  /* ---------------------------------- Audio --------------------------------- */
+
+  const [isMuted, setIsMuted] = useState(true);
+
+  const handleTogglingAudio = () => setIsMuted((prev) => !prev);
 
   useEffect(() => {
     // Once scene data is loaded, process and queue it into the scroller.
@@ -60,7 +68,11 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
   return (
     <main>
-      <VideoScoller items={queuedItems} fetchVideos={handleQueuingUpData} />
+      <VideoScoller
+        isMuted={isMuted}
+        items={queuedItems}
+        fetchVideos={handleQueuingUpData}
+      />
     </main>
   );
 };

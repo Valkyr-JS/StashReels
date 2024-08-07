@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, waitFor, within } from "@storybook/test";
+import { expect, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
@@ -68,5 +68,38 @@ export const LoadVideosOnScroll: Story = {
       );
       expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD * 2);
     });
+  },
+};
+
+export const ToggleAudio: Story = {
+  play: async (context) => {
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+
+    const canvas = within(context.canvasElement);
+    const allItems: HTMLDivElement[] = canvas.getAllByTestId(
+      "VideoItem--container"
+    );
+    const allVideos: HTMLVideoElement[] =
+      canvas.getAllByTestId("VideoItem--video");
+    const item0: HTMLDivElement = allItems[0];
+    const video0: HTMLVideoElement = allVideos[0];
+    const muteButton0: HTMLButtonElement = within(item0).getByTestId(
+      "VideoItem--muteButton"
+    );
+
+    // Delay the video to make sure its loaded
+    await waitFor(() =>
+      // Video should be muted by default
+      expect(video0.muted).toBe(true)
+    );
+
+    // Trigger a click on the mute button to unmute the video.
+    await userEvent.click(muteButton0, { delay: 500 });
+    await expect(video0.muted).toBe(false);
+
+    // Trigger a second click on the mute button to mute it again.
+    await userEvent.click(muteButton0);
+    await expect(video0.muted).toBe(true);
   },
 };
