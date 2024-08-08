@@ -4,6 +4,7 @@ import { Scrubber } from "react-scrubber";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
 import "./VideoItem.scss";
+import { default as cx } from "classnames";
 
 export interface VideoItemProps extends IitemData {
   /** The audio state set by the user. */
@@ -103,15 +104,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
       </video>
-      <div
-        className="scrubber-container"
-        style={{
-          height: "20px",
-          position: "absolute",
-          bottom: "0",
-          width: "100%",
-        }}
-      >
+      <div className={cx("scrubber-container", styles.scrubber)}>
         <Scrubber
           min={0}
           max={100}

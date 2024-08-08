@@ -1,3 +1,5 @@
+$scrubber-bg-color: rgba(0, 0, 0, 0.15);
+
 .container {
   height: 100vh; // Fallback
   height: calc(var(--vsr-vh, 1vh) * 100);
@@ -17,4 +19,12 @@
     align-items: center;
     display: flex;
   }
+}
+
+.scrubber {
+  height: 20px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: $scrubber-bg-color;
 }

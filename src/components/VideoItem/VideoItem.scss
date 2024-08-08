@@ -1,131 +1,158 @@
+// Copied from react-scrubber css import, and updated as needed.
+
+$bar-color: rgba(100, 100, 100, 0.5);
+$buffer-color: rgba(170, 170, 170, 0.6);
+$marker-color: rgb(240, 205, 5);
+$progress-color: #fff;
+$tooltip-color: rgba(0, 0, 0, 0.6);
+$tooltip-arrow-color: rgba(0, 0, 0, 0.6);
+
 .scrubber {
   width: 100%;
   height: 100%;
   position: relative;
   user-select: none;
   touch-action: none;
-}
-.scrubber * {
-  user-select: none;
-}
-.scrubber .bar {
-  background: rgba(100, 100, 100, 0.5);
-  position: relative;
-  transition:
-    height 0.2s linear,
-    width 0.2s linear;
-}
-.scrubber.horizontal .bar {
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  height: 4px;
-  width: 100%;
-}
-.scrubber.vertical .bar {
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 100%;
-}
-.scrubber .bar__progress {
-  position: absolute;
-  background: #019afd;
-}
-.scrubber .bar__buffer {
-  position: absolute;
-  background: rgba(170, 170, 170, 0.6);
-}
-.scrubber.horizontal .bar__progress,
-.scrubber.horizontal .bar__marker,
-.scrubber.horizontal .bar__buffer {
-  height: 100%;
-}
-.scrubber.vertical .bar__progress,
-.scrubber.vertical .bar__marker,
-.scrubber.vertical .bar__buffer {
-  width: 100%;
-  bottom: 0;
-}
-.scrubber .bar__thumb {
-  position: absolute;
-  width: 0px;
-  height: 0px;
-  border-radius: 10px;
-  background: #019afd;
-  transition:
-    height 0.2s linear,
-    width 0.2s linear;
-}
-.scrubber.horizontal .bar__thumb {
-  transform: translate(-50%, -50%);
-  top: 50%;
-}
-.scrubber.vertical .bar__thumb {
-  transform: translate(-50%, 50%);
-  left: 50%;
-}
-.scrubber.hover.horizontal .bar {
-  height: 6px;
-}
-.scrubber.hover.vertical .bar {
-  width: 6px;
-}
-.scrubber.hover .bar__thumb {
-  width: 12px;
-  height: 12px;
-}
 
-.scrubber .bar__marker {
-  position: absolute;
-  background: rgb(240, 205, 5);
-  z-index: 1;
-}
+  * {
+    user-select: none;
+  }
 
-.scrubber.horizontal .bar__marker {
-  width: 12px;
-}
+  .bar {
+    background: $bar-color;
+    position: relative;
+    transition:
+      height 0.2s linear,
+      width 0.2s linear;
 
-.scrubber.vertical .bar__marker {
-  height: 12px;
-}
+    &__progress {
+      position: absolute;
+      background: $progress-color;
+    }
 
-.scrubber .bar__tooltip {
-  position: absolute;
-  padding: 2px 8px;
-  background: rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
+    &__buffer {
+      position: absolute;
+      background: $buffer-color;
+    }
 
-.scrubber.horizontal .bar__tooltip {
-  transform: translate(-50%, calc(-100% - 12px));
-}
+    &__thumb {
+      position: absolute;
+      width: 0px;
+      height: 0px;
+      border-radius: 10px;
+      background: $progress-color;
+      transition:
+        height 0.2s linear,
+        width 0.2s linear;
+    }
 
-.scrubber.horizontal .bar__tooltip-arrow {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 6px solid rgba(0, 0, 0, 0.6);
-}
+    &__tooltip {
+      position: absolute;
+      padding: 2px 8px;
+      background: $tooltip-color;
+      pointer-events: none;
+    }
 
-.scrubber.vertical .bar__tooltip {
-  transform: translate(calc(-100% - 12px), 50%);
-}
+    &__marker {
+      position: absolute;
+      background: $marker-color;
+      z-index: 1;
+    }
+  }
 
-.scrubber.vertical .bar__tooltip-arrow {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  border-left: 6px solid rgba(0, 0, 0, 0.6);
+  &.horizontal .bar {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 4px;
+    width: 100%;
+
+    &__progress,
+    &__marker,
+    &__buffer {
+      height: 100%;
+    }
+
+    &__thumb {
+      transform: translate(-50%, -50%);
+      top: 50%;
+    }
+
+    &__marker {
+      width: 12px;
+    }
+
+    &__tooltip {
+      transform: translate(-50%, calc(-100% - 12px));
+    }
+
+    &__tooltip-arrow {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid $tooltip-arrow-color;
+    }
+  }
+
+  &.vertical .bar {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 100%;
+
+    &__progress,
+    &__marker,
+    &__buffer {
+      width: 100%;
+      bottom: 0;
+    }
+
+    &__thumb {
+      transform: translate(-50%, 50%);
+      left: 50%;
+    }
+
+    &__marker {
+      height: 12px;
+    }
+
+    &__tooltip {
+      transform: translate(calc(-100% - 12px), 50%);
+    }
+
+    &__tooltip-arrow {
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 6px solid $tooltip-arrow-color;
+    }
+  }
+
+  &.hover {
+    &.horizontal .bar {
+      height: 6px;
+    }
+
+    &.vertical .bar {
+      width: 6px;
+    }
+
+    .bar {
+      &__thumb {
+        width: 12px;
+        height: 12px;
+      }
+    }
+  }
 }
