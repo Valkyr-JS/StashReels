@@ -1,4 +1,5 @@
 import {
+  faBars,
   faCircleInfo,
   faGear,
   faHeart,
@@ -13,6 +14,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useRef, useState } from "react";
 import { Scrubber } from "react-scrubber";
+import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
 import "./VideoItem.scss";
@@ -67,6 +69,37 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       })
     : null;
 
+  /* ----------------------------- Toggle buttons ----------------------------- */
+
+  const [showUI, setShowUI] = useState(true);
+  const uiButtonDrawerRef = useRef(null);
+  const uiButtonRef = useRef(null);
+  const buttonsTransitionDuration = 150;
+  const toggleableUiStyles: React.CSSProperties = {
+    transitionDuration: buttonsTransitionDuration / 1000 + "s",
+  };
+
+  const toggleableUiTransitionStyles = {
+    entering: { opacity: 1 },
+    entered: { opacity: 1 },
+    exiting: { opacity: 0 },
+    exited: { opacity: 0 },
+    unmounted: {},
+  };
+
+  const toggleUiButtonTransitionStyles = {
+    entering: { opacity: 1 },
+    entered: { opacity: 1 },
+    exiting: { opacity: 0.35 },
+    exited: { opacity: 0.35 },
+    unmounted: {},
+  };
+
+  const handleTogglingUI = () => {
+    console.log("UI: ", showUI);
+    setShowUI((prev) => !prev);
+  };
+
   /* ----------------------------- Audio handling ----------------------------- */
 
   /** Handle clicking the mute button */
@@ -117,62 +150,98 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         {captionSources}
       </video>
       <div className={styles.controls}>
-        <button
-          data-testid="VideoItem--muteButton"
-          onClick={muteButtonClickHandler}
-          type="button"
+        <Transition
+          in={showUI}
+          nodeRef={uiButtonDrawerRef}
+          timeout={buttonsTransitionDuration}
         >
-          <FontAwesomeIcon icon={props.isMuted ? faVolumeSlash : faVolume} />
-        </button>
-        <button
-          data-testid="VideoItem--subtitlesButton"
-          onClick={() => console.log("subtitles button")}
-          type="button"
+          {(state) => (
+            <div
+              className={styles["toggleable-ui"]}
+              ref={uiButtonDrawerRef}
+              style={{
+                ...toggleableUiStyles,
+                ...toggleableUiTransitionStyles[state],
+              }}
+            >
+              <button
+                data-testid="VideoItem--muteButton"
+                onClick={muteButtonClickHandler}
+                type="button"
+              >
+                <FontAwesomeIcon
+                  icon={props.isMuted ? faVolumeSlash : faVolume}
+                />
+                <span className={styles["visually-hidden"]}>
+                  {props.isMuted ? "Unmute" : "Mute"}
+                </span>
+              </button>
+              <button
+                data-testid="VideoItem--subtitlesButton"
+                onClick={() => console.log("subtitles button")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faSubtitles} />
+              </button>
+              <button
+                data-testid="VideoItem--infoButton"
+                onClick={() => console.log("scene info")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faCircleInfo} />
+              </button>
+              <button
+                data-testid="VideoItem--faveButton"
+                onClick={() => console.log("favourite")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faHeart} />
+              </button>
+              <button
+                data-testid="VideoItem--rateButton"
+                onClick={() => console.log("rating")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faStar} />
+              </button>
+              <button
+                data-testid="VideoItem--loopButton"
+                onClick={() => console.log("loop scene")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faRepeat} />
+              </button>
+              <button
+                data-testid="VideoItem--configButton"
+                onClick={() => console.log("config settings")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faGear} />
+              </button>
+            </div>
+          )}
+        </Transition>
+        <Transition
+          in={showUI}
+          nodeRef={uiButtonRef}
+          timeout={buttonsTransitionDuration}
         >
-          <FontAwesomeIcon icon={faSubtitles} />
-        </button>
-        <button
-          data-testid="VideoItem--infoButton"
-          onClick={() => console.log("scene info")}
-          type="button"
-        >
-          <FontAwesomeIcon icon={faCircleInfo} />
-        </button>
-        <button
-          data-testid="VideoItem--faveButton"
-          onClick={() => console.log("favourite")}
-          type="button"
-        >
-          <FontAwesomeIcon icon={faHeart} />
-        </button>
-        <button
-          data-testid="VideoItem--rateButton"
-          onClick={() => console.log("rating")}
-          type="button"
-        >
-          <FontAwesomeIcon icon={faStar} />
-        </button>
-        <button
-          data-testid="VideoItem--loopButton"
-          onClick={() => console.log("loop scene")}
-          type="button"
-        >
-          <FontAwesomeIcon icon={faRepeat} />
-        </button>
-        <button
-          data-testid="VideoItem--configButton"
-          onClick={() => console.log("config settings")}
-          type="button"
-        >
-          <FontAwesomeIcon icon={faGear} />
-        </button>
-        <button
-          data-testid="VideoItem--showUiButton"
-          onClick={() => console.log("show/hide UI")}
-          type="button"
-        >
-          <FontAwesomeIcon icon={faXmark} />
-        </button>
+          {(state) => (
+            <button
+              className={styles["toggleable-ui-button"]}
+              data-testid="VideoItem--showUiButton"
+              onClick={handleTogglingUI}
+              ref={uiButtonRef}
+              type="button"
+              style={{
+                ...toggleableUiStyles,
+                ...toggleUiButtonTransitionStyles[state],
+              }}
+            >
+              <FontAwesomeIcon icon={showUI ? faXmark : faBars} />
+            </button>
+          )}
+        </Transition>
       </div>
       <div className={cx("scrubber-container", styles.scrubber)}>
         <Scrubber
