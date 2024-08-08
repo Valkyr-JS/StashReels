@@ -69,16 +69,23 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   /* -------------------------------- Scrubber -------------------------------- */
 
-  const [sceneProgress, setSceneProgress] = useState({
-    value: 0,
-    state: "None",
-  });
+  const [sceneProgress, setSceneProgress] = useState(0);
 
-  const timeUpdateHandler: React.ReactEventHandler<HTMLVideoElement> = (e) => {
+  /** Handle updating the scrubber position when the scene is playing */
+  const handleTimeUpdate: React.ReactEventHandler<HTMLVideoElement> = (e) => {
     const target = e.target as HTMLVideoElement;
     const { currentTime, duration } = target;
     const newTimePercentage = (currentTime / duration) * 100;
-    setSceneProgress({ value: newTimePercentage, state: "Time" });
+    setSceneProgress(newTimePercentage);
+  };
+
+  /** Handle updating the current position of the scene when moving the
+   * scrubber. */
+  const handleScrubChange = (value: number) => {
+    setSceneProgress(value);
+    if (videoRef.current) {
+      videoRef.current.currentTime = (videoRef.current.duration / 100) * value;
+    }
   };
 
   /* -------------------------------- Component ------------------------------- */
@@ -91,7 +98,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         muted={props.isMuted || !isInViewport}
         onClick={togglePlayHandler}
         ref={videoRef}
-        onTimeUpdate={timeUpdateHandler}
+        onTimeUpdate={handleTimeUpdate}
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
@@ -105,7 +112,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           width: "100%",
         }}
       >
-        <Scrubber min={0} max={100} value={sceneProgress.value} />
+        <Scrubber
+          min={0}
+          max={100}
+          value={sceneProgress}
+          onScrubChange={handleScrubChange}
+          onScrubEnd={handleScrubChange}
+          onScrubStart={handleScrubChange}
+        />
       </div>
       <button
         data-testid="VideoItem--muteButton"
