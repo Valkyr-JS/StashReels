@@ -104,6 +104,57 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
       </video>
+      <div className={styles.controls}>
+        <button
+          data-testid="VideoItem--muteButton"
+          onClick={muteButtonClickHandler}
+          type="button"
+        >
+          Mute
+        </button>
+        <button
+          data-testid="VideoItem--infoButton"
+          onClick={() => console.log("scene info")}
+          type="button"
+        >
+          Info
+        </button>
+        <button
+          data-testid="VideoItem--faveButton"
+          onClick={() => console.log("favourite")}
+          type="button"
+        >
+          Fave
+        </button>
+        <button
+          data-testid="VideoItem--rateButton"
+          onClick={() => console.log("rating")}
+          type="button"
+        >
+          Rate
+        </button>
+        <button
+          data-testid="VideoItem--loopButton"
+          onClick={() => console.log("loop scene")}
+          type="button"
+        >
+          Loop
+        </button>
+        <button
+          data-testid="VideoItem--configButton"
+          onClick={() => console.log("config settings")}
+          type="button"
+        >
+          Conf
+        </button>
+        <button
+          data-testid="VideoItem--showUiButton"
+          onClick={() => console.log("show/hide UI")}
+          type="button"
+        >
+          UI
+        </button>
+      </div>
       <div className={cx("scrubber-container", styles.scrubber)}>
         <Scrubber
           min={0}
@@ -114,13 +165,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           onScrubStart={handleScrubChange}
         />
       </div>
-      <button
-        data-testid="VideoItem--muteButton"
-        onClick={muteButtonClickHandler}
-        style={{ position: "absolute" }}
-      >
-        Mute
-      </button>
     </div>
   );
 };
