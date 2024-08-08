@@ -113,6 +113,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           Mute
         </button>
         <button
+          data-testid="VideoItem--subtitlesButton"
+          onClick={() => console.log("subtitles button")}
+          type="button"
+        >
+          Subs
+        </button>
+        <button
           data-testid="VideoItem--infoButton"
           onClick={() => console.log("scene info")}
           type="button"

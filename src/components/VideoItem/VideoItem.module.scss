@@ -1,5 +1,8 @@
 $scrubber-bg-color: rgba(0, 0, 0, 0.15);
 
+$ui-button-size: 50px;
+$ui-spacer: 3px;
+
 .container {
   height: 100vh; // Fallback
   height: calc(var(--vsr-vh, 1vh) * 100);
@@ -11,7 +14,9 @@ $scrubber-bg-color: rgba(0, 0, 0, 0.15);
 
   display: grid;
   grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] 20px [scrubber-bottom canvas-bottom];
-  grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] 50px [controls-end canvas-end];
+  grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] (
+      $ui-button-size + $ui-spacer
+    ) [controls-end canvas-end];
 
   video {
     grid-column: canvas-start / canvas-end;
@@ -43,9 +48,11 @@ $scrubber-bg-color: rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   justify-content: end;
-  gap: 10px;
+  gap: $ui-spacer;
+  margin-right: $ui-spacer;
+  margin-bottom: $ui-spacer;
 
   button {
-    height: 50px;
+    height: $ui-button-size;
   }
 }
