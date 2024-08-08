@@ -1,3 +1,15 @@
+import {
+  faCircleInfo,
+  faGear,
+  faHeart,
+  faRepeat,
+  faStar,
+  faSubtitles,
+  faVolume,
+  faVolumeSlash,
+  faXmark,
+} from "@fortawesome/pro-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useRef, useState } from "react";
 import { Scrubber } from "react-scrubber";
@@ -110,56 +122,56 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           onClick={muteButtonClickHandler}
           type="button"
         >
-          Mute
+          <FontAwesomeIcon icon={props.isMuted ? faVolumeSlash : faVolume} />
         </button>
         <button
           data-testid="VideoItem--subtitlesButton"
           onClick={() => console.log("subtitles button")}
           type="button"
         >
-          Subs
+          <FontAwesomeIcon icon={faSubtitles} />
         </button>
         <button
           data-testid="VideoItem--infoButton"
           onClick={() => console.log("scene info")}
           type="button"
         >
-          Info
+          <FontAwesomeIcon icon={faCircleInfo} />
         </button>
         <button
           data-testid="VideoItem--faveButton"
           onClick={() => console.log("favourite")}
           type="button"
         >
-          Fave
+          <FontAwesomeIcon icon={faHeart} />
         </button>
         <button
           data-testid="VideoItem--rateButton"
           onClick={() => console.log("rating")}
           type="button"
         >
-          Rate
+          <FontAwesomeIcon icon={faStar} />
         </button>
         <button
           data-testid="VideoItem--loopButton"
           onClick={() => console.log("loop scene")}
           type="button"
         >
-          Loop
+          <FontAwesomeIcon icon={faRepeat} />
         </button>
         <button
           data-testid="VideoItem--configButton"
           onClick={() => console.log("config settings")}
           type="button"
         >
-          Conf
+          <FontAwesomeIcon icon={faGear} />
         </button>
         <button
           data-testid="VideoItem--showUiButton"
           onClick={() => console.log("show/hide UI")}
           type="button"
         >
-          UI
+          <FontAwesomeIcon icon={faXmark} />
         </button>
       </div>
       <div className={cx("scrubber-container", styles.scrubber)}>

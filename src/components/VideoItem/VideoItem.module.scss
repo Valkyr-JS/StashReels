@@ -53,6 +53,18 @@ $ui-spacer: 3px;
   margin-bottom: $ui-spacer;
 
   button {
+    appearance: none;
+    border: 0;
+    padding: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
     height: $ui-button-size;
+
+    background-color: transparent;
+    color: white;
+    font-size: 28px;
+    line-height: 1;
   }
 }
