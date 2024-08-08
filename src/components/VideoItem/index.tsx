@@ -1,7 +1,9 @@
 import ISO6391 from "iso-639-1";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Scrubber } from "react-scrubber";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
+import "./VideoItem.scss";
 
 export interface VideoItemProps extends IitemData {
   /** The audio state set by the user. */
@@ -65,6 +67,20 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       videoRef.current.muted = props.isMuted;
   }, [props.isMuted]);
 
+  /* -------------------------------- Scrubber -------------------------------- */
+
+  const [sceneProgress, setSceneProgress] = useState({
+    value: 0,
+    state: "None",
+  });
+
+  const timeUpdateHandler: React.ReactEventHandler<HTMLVideoElement> = (e) => {
+    const target = e.target as HTMLVideoElement;
+    const { currentTime, duration } = target;
+    const newTimePercentage = (currentTime / duration) * 100;
+    setSceneProgress({ value: newTimePercentage, state: "Time" });
+  };
+
   /* -------------------------------- Component ------------------------------- */
 
   return (
@@ -75,10 +91,22 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         muted={props.isMuted || !isInViewport}
         onClick={togglePlayHandler}
         ref={videoRef}
+        onTimeUpdate={timeUpdateHandler}
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
       </video>
+      <div
+        className="scrubber-container"
+        style={{
+          height: "20px",
+          position: "absolute",
+          bottom: "0",
+          width: "100%",
+        }}
+      >
+        <Scrubber min={0} max={100} value={sceneProgress.value} />
+      </div>
       <button
         data-testid="VideoItem--muteButton"
         onClick={muteButtonClickHandler}
