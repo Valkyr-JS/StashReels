@@ -1,7 +1,10 @@
 import ISO6391 from "iso-639-1";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Scrubber } from "react-scrubber";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
+import "./VideoItem.scss";
+import { default as cx } from "classnames";
 
 export interface VideoItemProps extends IitemData {
   /** The audio state set by the user. */
@@ -65,6 +68,27 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       videoRef.current.muted = props.isMuted;
   }, [props.isMuted]);
 
+  /* -------------------------------- Scrubber -------------------------------- */
+
+  const [sceneProgress, setSceneProgress] = useState(0);
+
+  /** Handle updating the scrubber position when the scene is playing */
+  const handleTimeUpdate: React.ReactEventHandler<HTMLVideoElement> = (e) => {
+    const target = e.target as HTMLVideoElement;
+    const { currentTime, duration } = target;
+    const newTimePercentage = (currentTime / duration) * 100;
+    setSceneProgress(newTimePercentage);
+  };
+
+  /** Handle updating the current position of the scene when moving the
+   * scrubber. */
+  const handleScrubChange = (value: number) => {
+    setSceneProgress(value);
+    if (videoRef.current) {
+      videoRef.current.currentTime = (videoRef.current.duration / 100) * value;
+    }
+  };
+
   /* -------------------------------- Component ------------------------------- */
 
   return (
@@ -75,10 +99,21 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         muted={props.isMuted || !isInViewport}
         onClick={togglePlayHandler}
         ref={videoRef}
+        onTimeUpdate={handleTimeUpdate}
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
       </video>
+      <div className={cx("scrubber-container", styles.scrubber)}>
+        <Scrubber
+          min={0}
+          max={100}
+          value={sceneProgress}
+          onScrubChange={handleScrubChange}
+          onScrubEnd={handleScrubChange}
+          onScrubStart={handleScrubChange}
+        />
+      </div>
       <button
         data-testid="VideoItem--muteButton"
         onClick={muteButtonClickHandler}
