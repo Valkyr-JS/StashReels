@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, fn, userEvent, within } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import VideoItem from ".";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
 
@@ -47,6 +47,7 @@ export const Subtitles: Story = {
 };
 
 export const TogglePlayOnTap: Story = {
+  name: "Toggle play on tap",
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const allVideos: HTMLVideoElement[] =
@@ -65,6 +66,31 @@ export const TogglePlayOnTap: Story = {
       // Second click should play the video again
       await userEvent.click(video, { delay: 1500 });
       await expect(video.paused).toBe(false);
+    });
+  },
+};
+
+export const ToggleUiVisibility: Story = {
+  name: "Toggle UI visibility",
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const toggleUiButton = canvas.getAllByTestId("VideoItem--showUiButton")[0];
+    const togglableUi = canvas.queryAllByTestId("VideoItem--toggleableUi")[0];
+
+    // UI should be visible by default
+    expect(togglableUi).toBeInTheDocument();
+
+    // Fire a click event to hide the controls and remove them from the DOM.
+    userEvent.click(toggleUiButton);
+    await waitFor(() => expect(togglableUi).not.toBeInTheDocument());
+
+    // Fire a second click to re-add the controls to the DOM again and display
+    // them.
+    userEvent.click(toggleUiButton);
+    await waitFor(() => {
+      // Find it again
+      const togglableUi = canvas.queryAllByTestId("VideoItem--toggleableUi")[0];
+      expect(togglableUi).toBeInTheDocument();
     });
   },
 };

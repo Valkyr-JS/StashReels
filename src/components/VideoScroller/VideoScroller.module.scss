@@ -1,6 +1,11 @@
 .container {
   height: 100vh; // Fallback
-  height: calc(var(--vsr-vh, 1vh) * 100);
+  // ? Setting the calculated height here will hide the Android address bar
+  // after scrolling down a couple of items, however it reappears on scrolling
+  // up which causes some issues with scroll placement. Removing for now but may
+  // reintroduce depending on how PWA works.
+  //
+  //height: calc(var(--vsr-vh, 1vh) * 100);
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;

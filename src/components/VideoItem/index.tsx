@@ -1,6 +1,20 @@
+import {
+  faBars,
+  faCircleInfo,
+  faGear,
+  faHeart,
+  faRepeat,
+  faStar,
+  faSubtitles,
+  faVolume,
+  faVolumeSlash,
+  faXmark,
+} from "@fortawesome/pro-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useRef, useState } from "react";
 import { Scrubber } from "react-scrubber";
+import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
 import { useIsInViewport } from "../../hooks";
 import "./VideoItem.scss";
@@ -55,6 +69,36 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       })
     : null;
 
+  /* ----------------------------- Toggle buttons ----------------------------- */
+
+  const [showUI, setShowUI] = useState(true);
+  const uiButtonDrawerRef = useRef(null);
+  const uiButtonRef = useRef(null);
+  const buttonsTransitionDuration = 150;
+  const toggleableUiStyles: React.CSSProperties = {
+    transitionDuration: buttonsTransitionDuration / 1000 + "s",
+  };
+
+  const toggleableUiTransitionStyles = {
+    entering: { opacity: 1 },
+    entered: { opacity: 1 },
+    exiting: { opacity: 0 },
+    exited: { opacity: 0 },
+    unmounted: {},
+  };
+
+  const toggleUiButtonTransitionStyles = {
+    entering: { opacity: 1 },
+    entered: { opacity: 1 },
+    exiting: { opacity: 0.35 },
+    exited: { opacity: 0.35 },
+    unmounted: {},
+  };
+
+  const handleTogglingUI = () => {
+    setShowUI((prev) => !prev);
+  };
+
   /* ----------------------------- Audio handling ----------------------------- */
 
   /** Handle clicking the mute button */
@@ -71,6 +115,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /* -------------------------------- Scrubber -------------------------------- */
 
   const [sceneProgress, setSceneProgress] = useState(0);
+  const scrubberRef = useRef(null);
 
   /** Handle updating the scrubber position when the scene is playing */
   const handleTimeUpdate: React.ReactEventHandler<HTMLVideoElement> = (e) => {
@@ -104,23 +149,124 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
       </video>
-      <div className={cx("scrubber-container", styles.scrubber)}>
-        <Scrubber
-          min={0}
-          max={100}
-          value={sceneProgress}
-          onScrubChange={handleScrubChange}
-          onScrubEnd={handleScrubChange}
-          onScrubStart={handleScrubChange}
-        />
+      <div className={styles.controls}>
+        <Transition
+          in={showUI}
+          nodeRef={uiButtonDrawerRef}
+          timeout={buttonsTransitionDuration}
+          unmountOnExit
+        >
+          {(state) => (
+            <div
+              className={styles["toggleable-ui"]}
+              data-testid="VideoItem--toggleableUi"
+              ref={uiButtonDrawerRef}
+              style={{
+                ...toggleableUiStyles,
+                ...toggleableUiTransitionStyles[state],
+              }}
+            >
+              <button
+                data-testid="VideoItem--muteButton"
+                onClick={muteButtonClickHandler}
+                type="button"
+              >
+                <FontAwesomeIcon
+                  icon={props.isMuted ? faVolumeSlash : faVolume}
+                />
+                <span className={styles["visually-hidden"]}>
+                  {props.isMuted ? "Unmute" : "Mute"}
+                </span>
+              </button>
+              <button
+                data-testid="VideoItem--subtitlesButton"
+                onClick={() => console.log("subtitles button")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faSubtitles} />
+              </button>
+              <button
+                data-testid="VideoItem--infoButton"
+                onClick={() => console.log("scene info")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faCircleInfo} />
+              </button>
+              <button
+                data-testid="VideoItem--faveButton"
+                onClick={() => console.log("favourite")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faHeart} />
+              </button>
+              <button
+                data-testid="VideoItem--rateButton"
+                onClick={() => console.log("rating")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faStar} />
+              </button>
+              <button
+                data-testid="VideoItem--loopButton"
+                onClick={() => console.log("loop scene")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faRepeat} />
+              </button>
+              <button
+                data-testid="VideoItem--configButton"
+                onClick={() => console.log("config settings")}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faGear} />
+              </button>
+            </div>
+          )}
+        </Transition>
+        <Transition
+          in={showUI}
+          nodeRef={uiButtonRef}
+          timeout={buttonsTransitionDuration}
+        >
+          {(state) => (
+            <button
+              className={styles["toggleable-ui-button"]}
+              data-testid="VideoItem--showUiButton"
+              onClick={handleTogglingUI}
+              ref={uiButtonRef}
+              type="button"
+              style={{
+                ...toggleableUiStyles,
+                ...toggleUiButtonTransitionStyles[state],
+              }}
+            >
+              <FontAwesomeIcon icon={showUI ? faXmark : faBars} />
+            </button>
+          )}
+        </Transition>
       </div>
-      <button
-        data-testid="VideoItem--muteButton"
-        onClick={muteButtonClickHandler}
-        style={{ position: "absolute" }}
+      <Transition
+        in={showUI}
+        nodeRef={scrubberRef}
+        timeout={buttonsTransitionDuration}
       >
-        Mute
-      </button>
+        {(state) => (
+          <div
+            className={cx("scrubber-container", styles["scrubber"], state)}
+            ref={scrubberRef}
+            style={toggleableUiStyles}
+          >
+            <Scrubber
+              min={0}
+              max={100}
+              value={sceneProgress}
+              onScrubChange={handleScrubChange}
+              onScrubEnd={handleScrubChange}
+              onScrubStart={handleScrubChange}
+            />
+          </div>
+        )}
+      </Transition>
     </div>
   );
 };
