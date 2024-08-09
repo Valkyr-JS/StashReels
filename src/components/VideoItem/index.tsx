@@ -96,7 +96,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   };
 
   const handleTogglingUI = () => {
-    console.log("UI: ", showUI);
     setShowUI((prev) => !prev);
   };
 
@@ -116,6 +115,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /* -------------------------------- Scrubber -------------------------------- */
 
   const [sceneProgress, setSceneProgress] = useState(0);
+  const scrubberRef = useRef(null);
 
   /** Handle updating the scrubber position when the scene is playing */
   const handleTimeUpdate: React.ReactEventHandler<HTMLVideoElement> = (e) => {
@@ -243,16 +243,28 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           )}
         </Transition>
       </div>
-      <div className={cx("scrubber-container", styles.scrubber)}>
-        <Scrubber
-          min={0}
-          max={100}
-          value={sceneProgress}
-          onScrubChange={handleScrubChange}
-          onScrubEnd={handleScrubChange}
-          onScrubStart={handleScrubChange}
-        />
-      </div>
+      <Transition
+        in={showUI}
+        nodeRef={scrubberRef}
+        timeout={buttonsTransitionDuration}
+      >
+        {(state) => (
+          <div
+            className={cx("scrubber-container", styles["scrubber"], state)}
+            ref={scrubberRef}
+            style={toggleableUiStyles}
+          >
+            <Scrubber
+              min={0}
+              max={100}
+              value={sceneProgress}
+              onScrubChange={handleScrubChange}
+              onScrubEnd={handleScrubChange}
+              onScrubStart={handleScrubChange}
+            />
+          </div>
+        )}
+      </Transition>
     </div>
   );
 };
