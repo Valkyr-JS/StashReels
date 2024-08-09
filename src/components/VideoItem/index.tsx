@@ -1,4 +1,5 @@
 import {
+  faArrowProgress,
   faBars,
   faCircleInfo,
   faGear,
@@ -25,8 +26,13 @@ export interface VideoItemProps extends IitemData {
   isMuted: boolean;
   /** Function for handling loading more videos data. */
   loadMoreVideosHandler: (index: number) => void;
+  /** Whether the video should loop on end. If false, the next video is scrolled
+   * to automatically. */
+  loopOnEnd: boolean;
   /** Function for handling toggling video audio on and off. */
   toggleAudioHandler: () => void;
+  /** Function for handling toggling video looping on and off. */
+  toggleLoopHandler: () => void;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -111,6 +117,18 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (isInViewport && videoRef.current)
       videoRef.current.muted = props.isMuted;
   }, [props.isMuted]);
+
+  /* ------------------------------ On end event ------------------------------ */
+
+  /** Handle clicking the loop button. */
+  const loopButtonClickHandler = () => {
+    if (isInViewport) props.toggleLoopHandler();
+  };
+
+  // Update the loop property via the ref object
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.loop = props.loopOnEnd;
+  }, [props.loopOnEnd]);
 
   /* -------------------------------- Scrubber -------------------------------- */
 
@@ -208,10 +226,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               </button>
               <button
                 data-testid="VideoItem--loopButton"
-                onClick={() => console.log("loop scene")}
+                onClick={loopButtonClickHandler}
                 type="button"
               >
-                <FontAwesomeIcon icon={faRepeat} />
+                <FontAwesomeIcon
+                  icon={props.loopOnEnd ? faRepeat : faArrowProgress}
+                />
               </button>
               <button
                 data-testid="VideoItem--configButton"

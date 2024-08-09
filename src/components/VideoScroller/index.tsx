@@ -4,12 +4,15 @@ import VideoItem, { VideoItemProps } from "../VideoItem";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
 interface VideoScrollerProps {
-  /** The audio state set by the user. */
-  isMuted: boolean;
   /** Handler to fetch more video data from the queue. */
   fetchVideos: (length: number) => void;
+  /** The audio state set by the user. */
+  isMuted: boolean;
   /** The data for each item in the queue. */
   items: VideoItemProps[];
+  /** Whether the video should loop on end. If false, the next video is scrolled
+   * to automatically. */
+  loopOnEnd: boolean;
 }
 
 const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
@@ -44,9 +47,11 @@ const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
             index={i}
             isMuted={props.isMuted}
             key={i}
+            loopOnEnd={props.loopOnEnd}
             loadMoreVideosHandler={handleLoadingMoreVideos}
             scene={item.scene}
             toggleAudioHandler={item.toggleAudioHandler}
+            toggleLoopHandler={item.toggleLoopHandler}
           />
         );
       })}

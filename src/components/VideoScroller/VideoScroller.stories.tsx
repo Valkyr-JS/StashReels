@@ -9,12 +9,12 @@ const meta = {
   tags: ["autodocs"],
   args: {
     fetchVideos: fn(),
-    isMuted: true,
     items: [
       {
         index: 0,
         isMuted: true,
         loadMoreVideosHandler: fn(),
+        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2056",
@@ -23,11 +23,13 @@ const meta = {
           title: "Scene Title 1",
         },
         toggleAudioHandler: fn(),
+        toggleLoopHandler: fn(),
       },
       {
         index: 1,
         isMuted: true,
         loadMoreVideosHandler: fn(),
+        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2057",
@@ -36,11 +38,13 @@ const meta = {
           title: "Scene Title 2",
         },
         toggleAudioHandler: fn(),
+        toggleLoopHandler: fn(),
       },
       {
         index: 2,
         isMuted: true,
         loadMoreVideosHandler: fn(),
+        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2061",
@@ -49,11 +53,13 @@ const meta = {
           title: "Scene Title 3",
         },
         toggleAudioHandler: fn(),
+        toggleLoopHandler: fn(),
       },
       {
         index: 3,
         isMuted: true,
         loadMoreVideosHandler: fn(),
+        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2063",
@@ -62,11 +68,13 @@ const meta = {
           title: "Scene Title 4",
         },
         toggleAudioHandler: fn(),
+        toggleLoopHandler: fn(),
       },
       {
         index: 4,
         isMuted: true,
         loadMoreVideosHandler: fn(),
+        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "3376",
@@ -75,6 +83,7 @@ const meta = {
           title: "Scene Title 5",
         },
         toggleAudioHandler: fn(),
+        toggleLoopHandler: fn(),
       },
     ],
   },
@@ -82,7 +91,7 @@ const meta = {
 } satisfies Meta<typeof VideoScroller>;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof VideoScroller>;
 
 export const Default: Story = {};
 

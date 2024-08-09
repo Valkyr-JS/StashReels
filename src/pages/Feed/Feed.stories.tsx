@@ -105,3 +105,31 @@ export const ToggleAudio: Story = {
     await expect(video0.muted).toBe(true);
   },
 };
+
+export const ToggleLoop: Story = {
+  play: async (context) => {
+    const canvas = within(context.canvasElement);
+
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+    const allLoopButtons: HTMLButtonElement[] = canvas.getAllByTestId(
+      "VideoItem--loopButton"
+    );
+    const loopButton0 = allLoopButtons[0];
+
+    const allVideos: HTMLVideoElement[] =
+      canvas.getAllByTestId("VideoItem--video");
+    const video0 = allVideos[0];
+
+    // Default state should be to continue to the next video.
+    await expect(video0.loop).toBe(false);
+
+    // Fire a click to change to loop the current video.
+    await userEvent.click(loopButton0, { delay: 100 });
+    await expect(video0.loop).toBe(true);
+
+    // Fire a second click to change back to continuing to the next video.
+    await userEvent.click(loopButton0, { delay: 100 });
+    await expect(video0.loop).toBe(false);
+  },
+};
