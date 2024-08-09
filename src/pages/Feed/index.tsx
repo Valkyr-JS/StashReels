@@ -81,7 +81,7 @@ export default FeedPage;
 
 const sceneQuery = `{
   findScenes(
-    filter: {per_page: -1}
+    filter: {per_page: -1, sort: "random"}
     scene_filter: {orientation: {value: PORTRAIT}}
   ) {
     scenes {
