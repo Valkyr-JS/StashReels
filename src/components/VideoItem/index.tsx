@@ -154,10 +154,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           in={showUI}
           nodeRef={uiButtonDrawerRef}
           timeout={buttonsTransitionDuration}
+          unmountOnExit
         >
           {(state) => (
             <div
               className={styles["toggleable-ui"]}
+              data-testid="VideoItem--toggleableUi"
               ref={uiButtonDrawerRef}
               style={{
                 ...toggleableUiStyles,
