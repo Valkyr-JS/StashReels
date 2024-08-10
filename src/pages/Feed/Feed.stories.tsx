@@ -8,7 +8,30 @@ const meta = {
   title: "Pages/Feed",
   component: FeedPage,
   tags: ["autodocs"],
-  args: {},
+  args: {
+    query: `{
+      findScenes(
+        filter: {per_page: -1, sort: "random"}
+        scene_filter: {orientation: {value: PORTRAIT}}
+      ) {
+        scenes {
+          captions {
+            caption_type
+            language_code
+          }
+          id
+          files {
+            format
+          }
+          paths {
+            caption
+            stream
+          }
+          title
+        }
+      }
+    }`,
+  },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof FeedPage>;
 
@@ -131,5 +154,32 @@ export const ToggleLoop: Story = {
     // Fire a second click to change back to continuing to the next video.
     await userEvent.click(loopButton0, { delay: 100 });
     await expect(video0.loop).toBe(false);
+  },
+};
+
+export const ToggleCaptions: Story = {
+  args: {
+    query: `{
+      findScenes(
+        filter: {per_page: -1, sort: "random"}
+        scene_filter: {orientation: {value: PORTRAIT}, captions: {modifier: NOT_NULL, value:""}}
+      ) {
+        scenes {
+          captions {
+            caption_type
+            language_code
+          }
+          id
+          files {
+            format
+          }
+          paths {
+            caption
+            stream
+          }
+          title
+        }
+      }
+    }`,
   },
 };

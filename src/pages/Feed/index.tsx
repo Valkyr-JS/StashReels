@@ -5,7 +5,9 @@ import { VideoItemProps } from "../../components/VideoItem";
 import { fetchData } from "../../helpers";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
-interface FeedPageProps {}
+interface FeedPageProps {
+  query: string;
+}
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
   const [allSceneData, setAllSceneData] = useState<IsceneData[]>([]);
@@ -18,7 +20,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
    */
   useEffect(() => {
     let isMounted = true;
-    fetchData(sceneQuery).then(
+    fetchData(props.query).then(
       (res: { data: { findScenes: FindScenesResultType } }) => {
         if (isMounted) {
           // Process fetched scene data, filtering out invalid scenes
@@ -85,29 +87,6 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 };
 
 export default FeedPage;
-
-const sceneQuery = `{
-  findScenes(
-    filter: {per_page: -1, sort: "random"}
-    scene_filter: {orientation: {value: PORTRAIT}}
-  ) {
-    scenes {
-      captions {
-        caption_type
-        language_code
-      }
-      id
-      files {
-        format
-      }
-      paths {
-        caption
-        stream
-      }
-      title
-    }
-  }
-}`;
 
 /** Process individual scene data from Stash to app format. */
 const processSceneData = (sc: Scene): IsceneData | null => {
