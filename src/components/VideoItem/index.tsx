@@ -120,6 +120,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   /* ------------------------------ On end event ------------------------------ */
 
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  /** Handle the event fired at the end of video playback. */
+  const handleOnEnded = () => {
+    // If not looping on end, scroll to the next item.
+    if (!props.loopOnEnd && !!itemRef.current)
+      itemRef.current.nextElementSibling?.scrollIntoView();
+  };
+
   /** Handle clicking the loop button. */
   const loopButtonClickHandler = () => {
     if (isInViewport) props.toggleLoopHandler();
@@ -155,14 +164,19 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /* -------------------------------- Component ------------------------------- */
 
   return (
-    <div className={styles.container} data-testid="VideoItem--container">
+    <div
+      className={styles.container}
+      data-testid="VideoItem--container"
+      ref={itemRef}
+    >
       <video
         data-testid="VideoItem--video"
         id={props.scene.id}
         muted={props.isMuted || !isInViewport}
         onClick={togglePlayHandler}
-        ref={videoRef}
+        onEnded={handleOnEnded}
         onTimeUpdate={handleTimeUpdate}
+        ref={videoRef}
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
