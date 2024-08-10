@@ -11,6 +11,7 @@ const meta = {
     index: 0,
     isMuted: true,
     loadMoreVideosHandler: fn(),
+    loopOnEnd: false,
     scene: {
       format: "mp4",
       id: "3097",
@@ -18,6 +19,7 @@ const meta = {
       title: "Scene Title 1",
     },
     toggleAudioHandler: fn(),
+    toggleLoopHandler: fn(),
   },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof VideoItem>;

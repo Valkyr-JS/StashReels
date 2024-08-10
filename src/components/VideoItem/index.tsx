@@ -11,22 +11,28 @@ import {
   faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useRef, useState } from "react";
 import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
-import { useIsInViewport } from "../../hooks";
 import "./VideoItem.scss";
-import { default as cx } from "classnames";
+import { FaSolidRepeatSlash } from "../Icons";
+import { useIsInViewport } from "../../hooks";
 
 export interface VideoItemProps extends IitemData {
   /** The audio state set by the user. */
   isMuted: boolean;
   /** Function for handling loading more videos data. */
   loadMoreVideosHandler: (index: number) => void;
+  /** Whether the video should loop on end. If false, the next video is scrolled
+   * to automatically. */
+  loopOnEnd: boolean;
   /** Function for handling toggling video audio on and off. */
   toggleAudioHandler: () => void;
+  /** Function for handling toggling video looping on and off. */
+  toggleLoopHandler: () => void;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -112,6 +118,27 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       videoRef.current.muted = props.isMuted;
   }, [props.isMuted]);
 
+  /* ------------------------------ On end event ------------------------------ */
+
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  /** Handle the event fired at the end of video playback. */
+  const handleOnEnded = () => {
+    // If not looping on end, scroll to the next item.
+    if (!props.loopOnEnd && !!itemRef.current)
+      itemRef.current.nextElementSibling?.scrollIntoView();
+  };
+
+  /** Handle clicking the loop button. */
+  const loopButtonClickHandler = () => {
+    if (isInViewport) props.toggleLoopHandler();
+  };
+
+  // Update the loop property via the ref object
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.loop = props.loopOnEnd;
+  }, [props.loopOnEnd]);
+
   /* -------------------------------- Scrubber -------------------------------- */
 
   const [sceneProgress, setSceneProgress] = useState(0);
@@ -137,14 +164,19 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /* -------------------------------- Component ------------------------------- */
 
   return (
-    <div className={styles.container} data-testid="VideoItem--container">
+    <div
+      className={styles.container}
+      data-testid="VideoItem--container"
+      ref={itemRef}
+    >
       <video
         data-testid="VideoItem--video"
         id={props.scene.id}
         muted={props.isMuted || !isInViewport}
         onClick={togglePlayHandler}
-        ref={videoRef}
+        onEnded={handleOnEnded}
         onTimeUpdate={handleTimeUpdate}
+        ref={videoRef}
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
@@ -208,10 +240,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               </button>
               <button
                 data-testid="VideoItem--loopButton"
-                onClick={() => console.log("loop scene")}
+                onClick={loopButtonClickHandler}
                 type="button"
               >
-                <FontAwesomeIcon icon={faRepeat} />
+                {props.loopOnEnd ? (
+                  <FontAwesomeIcon icon={faRepeat} />
+                ) : (
+                  <FaSolidRepeatSlash />
+                )}
               </button>
               <button
                 data-testid="VideoItem--configButton"

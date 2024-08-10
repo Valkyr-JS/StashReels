@@ -46,10 +46,12 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     const processedData: VideoItemProps[] = sceneData.map((sc, i) => {
       return {
         index: queuedItems.length + i,
-        isMuted: isMuted,
+        isMuted,
         loadMoreVideosHandler: handleQueuingUpData,
+        loopOnEnd,
         scene: sc,
         toggleAudioHandler: handleTogglingAudio,
+        toggleLoopHandler: handleTogglingLooping,
       };
     });
     setQueuedItems((prev) => [...prev, ...processedData]);
@@ -58,8 +60,12 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /* ---------------------------------- Audio --------------------------------- */
 
   const [isMuted, setIsMuted] = useState(true);
-
   const handleTogglingAudio = () => setIsMuted((prev) => !prev);
+
+  /* --------------------------------- Looping -------------------------------- */
+
+  const [loopOnEnd, setLoopOnEnd] = useState(false);
+  const handleTogglingLooping = () => setLoopOnEnd((prev) => !prev);
 
   useEffect(() => {
     // Once scene data is loaded, process and queue it into the scroller.
@@ -72,6 +78,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         isMuted={isMuted}
         items={queuedItems}
         fetchVideos={handleQueuingUpData}
+        loopOnEnd={loopOnEnd}
       />
     </main>
   );
