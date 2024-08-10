@@ -1,5 +1,4 @@
 import {
-  faArrowProgress,
   faBars,
   faCircleInfo,
   faGear,
@@ -12,14 +11,15 @@ import {
   faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useRef, useState } from "react";
 import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
-import { useIsInViewport } from "../../hooks";
 import "./VideoItem.scss";
-import { default as cx } from "classnames";
+import { FaSolidRepeatSlash } from "../Icons";
+import { useIsInViewport } from "../../hooks";
 
 export interface VideoItemProps extends IitemData {
   /** The audio state set by the user. */
@@ -243,9 +243,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 onClick={loopButtonClickHandler}
                 type="button"
               >
-                <FontAwesomeIcon
-                  icon={props.loopOnEnd ? faRepeat : faArrowProgress}
-                />
+                {props.loopOnEnd ? (
+                  <FontAwesomeIcon icon={faRepeat} />
+                ) : (
+                  <FaSolidRepeatSlash />
+                )}
               </button>
               <button
                 data-testid="VideoItem--configButton"
