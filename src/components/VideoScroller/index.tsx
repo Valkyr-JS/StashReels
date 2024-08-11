@@ -15,6 +15,8 @@ interface VideoScrollerProps {
   loopOnEnd: boolean;
   /** The subtitles state set by the user. */
   subtitlesOn: boolean;
+  /** Whether the UI buttons are visible. */
+  uiIsVisible: boolean;
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
@@ -60,6 +62,8 @@ const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
             toggleAudioHandler={item.toggleAudioHandler}
             toggleLoopHandler={item.toggleLoopHandler}
             toggleSubtitlesHandler={item.toggleSubtitlesHandler}
+            toggleUiHandler={item.toggleUiHandler}
+            uiIsVisible={props.uiIsVisible}
           />
         );
       })}

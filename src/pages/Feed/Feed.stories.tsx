@@ -219,3 +219,35 @@ export const ToggleCaptions: Story = {
     });
   },
 };
+
+export const ToggleUiVisibility: Story = {
+  name: "Toggle UI visibility",
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const scroller: HTMLDivElement = canvas.getByTestId(
+      "VideoScroller--container"
+    );
+
+    // Await promise for videos to be fetched
+    await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
+
+    const toggleUiButton = canvas.getAllByTestId("VideoItem--showUiButton")[0];
+    const togglableUi = canvas.queryAllByTestId("VideoItem--toggleableUi")[0];
+
+    // UI should be visible by default
+    await expect(togglableUi).toBeInTheDocument();
+
+    // Fire a click event to hide the controls and remove them from the DOM.
+    userEvent.click(toggleUiButton, { delay: 300 });
+    await waitFor(() => expect(togglableUi).not.toBeInTheDocument());
+
+    // Fire a second click to re-add the controls to the DOM again and display
+    // them.
+    userEvent.click(toggleUiButton, { delay: 300 });
+    await waitFor(() => {
+      // Find it again
+      const togglableUi = canvas.queryAllByTestId("VideoItem--toggleableUi")[0];
+      expect(togglableUi).toBeInTheDocument();
+    });
+  },
+};

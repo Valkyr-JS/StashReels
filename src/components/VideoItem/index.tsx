@@ -30,14 +30,18 @@ export interface VideoItemProps extends IitemData {
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
+  /** The subtitles state set by the user. */
+  subtitlesOn: boolean;
   /** Function for handling toggling video audio on and off. */
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
   /** Function for handling toggling video subtitles on and off. */
   toggleSubtitlesHandler: () => void;
-  /** The subtitles state set by the user. */
-  subtitlesOn: boolean;
+  /** Function for handling toggling the UI button visibility */
+  toggleUiHandler: () => void;
+  /** Whether the UI buttons are visible. */
+  uiIsVisible: boolean;
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
@@ -68,7 +72,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   /* ----------------------------- Toggle buttons ----------------------------- */
 
-  const [showUI, setShowUI] = useState(true);
   const uiButtonDrawerRef = useRef(null);
   const uiButtonRef = useRef(null);
   const buttonsTransitionDuration = 150;
@@ -92,8 +95,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     unmounted: {},
   };
 
-  const handleTogglingUI = () => {
-    setShowUI((prev) => !prev);
+  const toggleUiButtonClickHandler = () => {
+    if (isInViewport) props.toggleUiHandler();
   };
 
   /* ----------------------------- Audio handling ----------------------------- */
@@ -221,7 +224,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       </video>
       <div className={styles.controls}>
         <Transition
-          in={showUI}
+          in={props.uiIsVisible}
           nodeRef={uiButtonDrawerRef}
           timeout={buttonsTransitionDuration}
           unmountOnExit
@@ -276,7 +279,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           )}
         </Transition>
         <Transition
-          in={showUI}
+          in={props.uiIsVisible}
           nodeRef={uiButtonRef}
           timeout={buttonsTransitionDuration}
         >
@@ -284,7 +287,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
             <button
               className={styles["toggleable-ui-button"]}
               data-testid="VideoItem--showUiButton"
-              onClick={handleTogglingUI}
+              onClick={toggleUiButtonClickHandler}
               ref={uiButtonRef}
               type="button"
               style={{
@@ -292,13 +295,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 ...toggleUiButtonTransitionStyles[state],
               }}
             >
-              <FontAwesomeIcon icon={showUI ? faXmark : faBars} />
+              <FontAwesomeIcon icon={props.uiIsVisible ? faXmark : faBars} />
             </button>
           )}
         </Transition>
       </div>
       <Transition
-        in={showUI}
+        in={props.uiIsVisible}
         nodeRef={scrubberRef}
         timeout={buttonsTransitionDuration}
       >
