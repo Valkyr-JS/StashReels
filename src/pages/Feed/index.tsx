@@ -55,6 +55,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         loadMoreVideosHandler: handleQueuingUpData,
         loopOnEnd,
         scene: sc,
+        sceneInfoIsVisible: true,
+        toggleSceneInfoHandler: () => {},
         subtitlesOn: subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
         toggleLoopHandler: handleTogglingLooping,
@@ -116,10 +118,15 @@ export default FeedPage;
 const processSceneData = (sc: Scene): IsceneData | null => {
   if (!sc.paths.stream) return null;
 
+  console.log(sc);
+
   const processedData: IsceneData = {
+    date: sc.date ?? undefined,
     format: sc.files[0].format,
     id: sc.id,
+    parentStudio: sc.studio?.parent_studio?.name ?? undefined,
     path: sc.paths.stream,
+    studio: sc.studio?.name ?? undefined,
     title: sc.title || "Untitled",
     captions: sc.captions
       ?.map((cap) => {

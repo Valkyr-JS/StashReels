@@ -13,14 +13,19 @@ const meta = {
     loadMoreVideosHandler: fn(),
     loopOnEnd: false,
     scene: {
+      date: "2021-02-18",
       format: "mp4",
       id: "3097",
+      parentStudio: "Parent studio name",
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
+      studio: "Studio name",
       title: "Scene Title 1",
     },
+    sceneInfoIsVisible: false,
     subtitlesOn: true,
     toggleAudioHandler: fn(),
     toggleLoopHandler: fn(),
+    toggleSceneInfoHandler: fn(),
     toggleSubtitlesHandler: fn(),
     toggleUiHandler: fn(),
     uiIsVisible: true,
@@ -48,6 +53,12 @@ export const Default: Story = {
       // toggle.
       expect(subtitlesButton).not.toBeInTheDocument();
     });
+  },
+};
+
+export const SceneInfoOpen: Story = {
+  args: {
+    sceneInfoIsVisible: true,
   },
 };
 

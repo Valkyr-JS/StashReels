@@ -20,6 +20,7 @@ const meta = {
             caption_type
             language_code
           }
+          date
           id
           files {
             format
@@ -27,6 +28,12 @@ const meta = {
           paths {
             caption
             stream
+          }
+          studio {
+            name
+            parent_studio {
+              name
+            }
           }
           title
         }

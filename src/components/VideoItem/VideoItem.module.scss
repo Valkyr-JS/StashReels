@@ -1,3 +1,5 @@
+$scene-info-spacer: 5px;
+$scrubber-height: 20px;
 $ui-button-size: 50px;
 $ui-spacer: 3px;
 
@@ -11,7 +13,7 @@ $ui-spacer: 3px;
   border: 1px solid transparent;
 
   display: grid;
-  grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] 20px [scrubber-bottom canvas-bottom];
+  grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] $scrubber-height [scrubber-bottom canvas-bottom];
   grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] (
       $ui-button-size + $ui-spacer
     ) [controls-end canvas-end];
@@ -74,6 +76,33 @@ $ui-spacer: 3px;
       white-space: nowrap;
       width: 1px;
     }
+  }
+}
+
+.scene-info {
+  grid-column: main-start / canvas-end;
+  grid-row: main-top / canvas-bottom;
+
+  align-self: flex-end;
+  background-color: rgba(black, 0.7);
+  padding-top: $scene-info-spacer;
+  padding-right: $ui-button-size + $ui-spacer + $scene-info-spacer;
+  padding-bottom: $scrubber-height + $scene-info-spacer;
+  padding-left: $scene-info-spacer;
+
+  display: grid;
+
+  // Title
+  h5 {
+    font-size: 1.1rem;
+  }
+
+  &__date {
+    font-size: 0.9rem;
+  }
+
+  &__studio {
+    font-size: 0.9rem;
   }
 }
 

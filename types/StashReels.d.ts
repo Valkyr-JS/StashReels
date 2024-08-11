@@ -28,4 +28,10 @@ interface IsceneData {
     /** The Stash path to the subtitle file. */
     source: string;
   }[];
+  /** The date of the scene. */
+  date?: string;
+  /** The parent of the studio hosting the scene. */
+  parentStudio?: string;
+  /** The studio hosting the scene. */
+  studio?: string;
 }

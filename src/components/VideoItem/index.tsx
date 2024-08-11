@@ -30,12 +30,16 @@ export interface VideoItemProps extends IitemData {
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
+  /** The scene info panel visibility. */
+  sceneInfoIsVisible: boolean;
   /** The subtitles state set by the user. */
   subtitlesOn: boolean;
   /** Function for handling toggling video audio on and off. */
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
+  /** Function for handling toggling scene info panel visibility. */
+  toggleSceneInfoHandler: () => void;
   /** Function for handling toggling video subtitles on and off. */
   toggleSubtitlesHandler: () => void;
   /** Function for handling toggling the UI button visibility */
@@ -299,6 +303,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
             </button>
           )}
         </Transition>
+      </div>
+      <div className={styles["scene-info"]}>
+        <span className={styles["scene-info__studio"]}>
+          {props.scene.studio} | {props.scene.parentStudio}
+        </span>
+        <h5>{props.scene.title}</h5>
+        <span className={styles["scene-info__date"]}>{props.scene.date}</span>
       </div>
       <Transition
         in={props.uiIsVisible}
