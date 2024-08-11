@@ -33,6 +33,8 @@ export interface VideoItemProps extends IitemData {
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
+  /** The default captions language to show. `undefined` means no default captions. */
+  captionsDefault?: string;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -65,6 +67,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         const src = cap.source + `?lang=${cap.lang}&type=${cap.format}`;
         return (
           <track
+            default={props.captionsDefault === cap.lang}
             key={i}
             kind="captions"
             label={ISO6391.getName(cap.lang) || "Unknown"}
@@ -170,6 +173,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       ref={itemRef}
     >
       <video
+        crossOrigin="anonymous"
         data-testid="VideoItem--video"
         id={props.scene.id}
         muted={props.isMuted || !isInViewport}

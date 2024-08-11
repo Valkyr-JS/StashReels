@@ -31,6 +31,7 @@ export const Default: Story = {};
 
 export const Subtitles: Story = {
   args: {
+    captionsDefault: "uk",
     index: 1,
     scene: {
       captions: [
@@ -45,6 +46,18 @@ export const Subtitles: Story = {
       path: process.env.STASH_ADDRESS + "/scene/5133/stream",
       title: "Scene Title 2",
     },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const allVideos: HTMLVideoElement[] =
+      canvas.getAllByTestId("VideoItem--video");
+    const video: HTMLVideoElement = allVideos[0];
+
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      // Show default tracks automatically
+      expect(video.textTracks[0].mode).toBe("showing");
+    });
   },
 };
 
