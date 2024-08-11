@@ -1,4 +1,5 @@
 import {
+  faCircleInfo,
   faRepeat,
   faSubtitles,
   faVolume,
@@ -280,7 +281,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 onClick={sceneInfoButtonClickHandler}
                 type="button"
               >
-                <FontAwesomeIcon icon={faCircleInfoOff} />
+                <FontAwesomeIcon
+                  icon={sceneInfoOpen ? faCircleInfo : faCircleInfoOff}
+                />
               </button>
               <button
                 data-testid="VideoItem--loopButton"
