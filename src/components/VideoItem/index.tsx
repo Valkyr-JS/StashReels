@@ -9,7 +9,7 @@ import {
   faGear as faGearOff,
   faRepeat as faRepeatOff,
   faSubtitles as faSubtitlesOff,
-  faVolumeOff,
+  faVolumeXmark as faVolumeOff,
   faXmark,
 } from "@fortawesome/pro-light-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
