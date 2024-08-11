@@ -55,8 +55,6 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         loadMoreVideosHandler: handleQueuingUpData,
         loopOnEnd,
         scene: sc,
-        sceneInfoIsVisible: true,
-        toggleSceneInfoHandler: () => {},
         subtitlesOn: subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
         toggleLoopHandler: handleTogglingLooping,

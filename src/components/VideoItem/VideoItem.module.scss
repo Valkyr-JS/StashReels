@@ -91,6 +91,7 @@ $ui-spacer: 3px;
   padding-left: $scene-info-spacer;
 
   display: grid;
+  transition: opacity ease-in-out;
 
   // Title
   h5 {

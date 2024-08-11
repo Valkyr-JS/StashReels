@@ -15,7 +15,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
@@ -31,16 +37,12 @@ export interface VideoItemProps extends IitemData {
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
-  /** The scene info panel visibility. */
-  sceneInfoIsVisible: boolean;
   /** The subtitles state set by the user. */
   subtitlesOn: boolean;
   /** Function for handling toggling video audio on and off. */
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
-  /** Function for handling toggling scene info panel visibility. */
-  toggleSceneInfoHandler: () => void;
   /** Function for handling toggling video subtitles on and off. */
   toggleSubtitlesHandler: () => void;
   /** Function for handling toggling the UI button visibility */
@@ -137,6 +139,22 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   useEffect(() => {
     if (videoRef.current) videoRef.current.loop = props.loopOnEnd;
   }, [props.loopOnEnd]);
+
+  /* ------------------------------- Scene info ------------------------------- */
+
+  // ? Unlike most other UI states, scene info visibility does not persist
+  // across scenes, and should be reset to false on scrolling to another like.
+
+  const [sceneInfoOpen, setSceneInfoOpen] = useState(false);
+  const sceneInfoPanelRef = useRef(null);
+
+  const sceneInfoButtonClickHandler = () => {
+    if (isInViewport) setSceneInfoOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (!isInViewport) setSceneInfoOpen(false);
+  }, [isInViewport]);
 
   /* -------------------------------- Scrubber -------------------------------- */
 
@@ -259,7 +277,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               {subtitlesButton}
               <button
                 data-testid="VideoItem--infoButton"
-                onClick={() => console.log("scene info")}
+                onClick={sceneInfoButtonClickHandler}
                 type="button"
               >
                 <FontAwesomeIcon icon={faCircleInfoOff} />
@@ -305,7 +323,24 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           )}
         </Transition>
       </div>
-      <SceneInfoPanel {...props.scene} />
+      <Transition
+        in={sceneInfoOpen}
+        nodeRef={sceneInfoPanelRef}
+        timeout={buttonsTransitionDuration}
+        mountOnEnter
+        unmountOnExit
+      >
+        {(state) => (
+          <SceneInfoPanel
+            {...props.scene}
+            ref={sceneInfoPanelRef}
+            style={{
+              ...toggleableUiStyles,
+              ...toggleableUiTransitionStyles[state],
+            }}
+          />
+        )}
+      </Transition>
       <Transition
         in={props.uiIsVisible}
         nodeRef={scrubberRef}
@@ -338,61 +373,74 @@ export default VideoItem;
 /*                              Scene info panel                              */
 /* -------------------------------------------------------------------------- */
 
-const SceneInfoPanel: React.FC<IsceneData> = (props) => {
-  /* ---------------------------------- Date ---------------------------------- */
+interface SceneInfoPanelProps extends IsceneData {
+  style: React.CSSProperties;
+}
 
-  const date = props.date ? (
-    <span className={styles["scene-info__date"]}>{props.date}</span>
-  ) : null;
+const SceneInfoPanel = forwardRef(
+  (props: SceneInfoPanelProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+    /* ---------------------------------- Date ---------------------------------- */
 
-  /* ------------------------------- Performers ------------------------------- */
+    const date = props.date ? (
+      <span className={styles["scene-info__date"]}>{props.date}</span>
+    ) : null;
 
-  const sortedPerformers = sortPerformers(props.performers);
-  const totalPerformers = sortedPerformers.length;
+    /* ------------------------------- Performers ------------------------------- */
 
-  const performersInner = sortedPerformers.map((pf, i) => {
-    const isOneBeforeLast = i === totalPerformers - 2;
-    const isAnyBeforeLast = i < totalPerformers - 1;
-    let suffix = null;
-    if (totalPerformers === 2 && isOneBeforeLast) suffix = " and ";
-    else {
-      if (isAnyBeforeLast) suffix = ", ";
-      if (isOneBeforeLast) suffix += "and ";
-    }
+    const sortedPerformers = sortPerformers(props.performers);
+    const totalPerformers = sortedPerformers.length;
+
+    const performersInner = sortedPerformers.map((pf, i) => {
+      const isOneBeforeLast = i === totalPerformers - 2;
+      const isAnyBeforeLast = i < totalPerformers - 1;
+      let suffix = null;
+      if (totalPerformers === 2 && isOneBeforeLast) suffix = " and ";
+      else {
+        if (isAnyBeforeLast) suffix = ", ";
+        if (isOneBeforeLast) suffix += "and ";
+      }
+      return (
+        <Fragment key={i}>
+          <span>{pf.name}</span>
+          {suffix}
+        </Fragment>
+      );
+    });
+
+    const performers = performersInner.length ? (
+      <div className={styles["scene-info__performers"]}>{performersInner}</div>
+    ) : null;
+
+    /* --------------------------------- Studio --------------------------------- */
+
+    const parentStudioText = props.parentStudio
+      ? " | " + props.parentStudio
+      : "";
+
+    const studio = props.studio ? (
+      <span className={styles["scene-info__studio"]}>
+        {props.studio + parentStudioText}
+      </span>
+    ) : null;
+
+    /* ---------------------------------- Title --------------------------------- */
+
+    const title = props.title ? <h5>{props.title}</h5> : null;
+
+    /* -------------------------------- Component ------------------------------- */
+
     return (
-      <>
-        <span>{pf.name}</span>
-        {suffix}
-      </>
+      <div
+        className={styles["scene-info"]}
+        data-testid="VideoItem--sceneInfo"
+        style={props.style}
+        ref={ref}
+      >
+        {studio}
+        {title}
+        {performers}
+        {date}
+      </div>
     );
-  });
-
-  const performers = performersInner.length ? (
-    <div className={styles["scene-info__performers"]}>{performersInner}</div>
-  ) : null;
-
-  /* --------------------------------- Studio --------------------------------- */
-
-  const parentStudioText = props.parentStudio ? " | " + props.parentStudio : "";
-
-  const studio = props.studio ? (
-    <span className={styles["scene-info__studio"]}>
-      {props.studio + parentStudioText}
-    </span>
-  ) : null;
-
-  /* ---------------------------------- Title --------------------------------- */
-
-  const title = props.title ? <h5>{props.title}</h5> : null;
-
-  /* -------------------------------- Component ------------------------------- */
-
-  return (
-    <div className={styles["scene-info"]}>
-      {studio}
-      {title}
-      {performers}
-      {date}
-    </div>
-  );
-};
+  }
+);

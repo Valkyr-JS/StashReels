@@ -58,11 +58,9 @@ const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
             loopOnEnd={props.loopOnEnd}
             loadMoreVideosHandler={handleLoadingMoreVideos}
             scene={item.scene}
-            sceneInfoIsVisible={item.sceneInfoIsVisible}
             subtitlesOn={props.subtitlesOn}
             toggleAudioHandler={item.toggleAudioHandler}
             toggleLoopHandler={item.toggleLoopHandler}
-            toggleSceneInfoHandler={item.toggleSceneInfoHandler}
             toggleSubtitlesHandler={item.toggleSubtitlesHandler}
             toggleUiHandler={item.toggleUiHandler}
             uiIsVisible={props.uiIsVisible}

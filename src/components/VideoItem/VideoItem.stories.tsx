@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, fn, userEvent, within } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import VideoItem from ".";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
 
@@ -25,11 +25,9 @@ const meta = {
       studio: "Studio name",
       title: "Scene Title 1",
     },
-    sceneInfoIsVisible: false,
     subtitlesOn: true,
     toggleAudioHandler: fn(),
     toggleLoopHandler: fn(),
-    toggleSceneInfoHandler: fn(),
     toggleSubtitlesHandler: fn(),
     toggleUiHandler: fn(),
     uiIsVisible: true,
@@ -57,12 +55,6 @@ export const Default: Story = {
       // toggle.
       expect(subtitlesButton).not.toBeInTheDocument();
     });
-  },
-};
-
-export const SceneInfoOpen: Story = {
-  args: {
-    sceneInfoIsVisible: true,
   },
 };
 
@@ -136,6 +128,30 @@ export const TogglePlayOnTap: Story = {
       // Second click should play the video again
       await userEvent.click(video, { delay: 1500 });
       await expect(video.paused).toBe(false);
+    });
+  },
+};
+
+export const ToggleSceneInfoButton: Story = {
+  name: "Toggle scene info",
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const sceneInfoButton = canvas.getByTestId("VideoItem--infoButton");
+    const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+
+    // Panel should not be visible by default
+    expect(sceneInfoPanel).not.toBeInTheDocument();
+
+    // Fire a click to display the panel
+    userEvent.click(sceneInfoButton, { delay: 300 });
+    await waitFor(() => expect(sceneInfoPanel).not.toBeInTheDocument());
+
+    // Fire another click to hide the panel again
+    userEvent.click(sceneInfoButton, { delay: 300 });
+    await waitFor(() => {
+      // Find it again
+      const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+      expect(sceneInfoPanel).toBeInTheDocument();
     });
   },
 };
