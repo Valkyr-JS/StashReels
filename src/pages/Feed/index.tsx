@@ -5,7 +5,12 @@ import { VideoItemProps } from "../../components/VideoItem";
 import { fetchData } from "../../helpers";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
-interface FeedPageProps {}
+interface FeedPageProps {
+  query: string;
+  /** The default captions language to show. `undefined` means no default
+   * captions. */
+  captionsDefault: string | undefined;
+}
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
   const [allSceneData, setAllSceneData] = useState<IsceneData[]>([]);
@@ -18,7 +23,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
    */
   useEffect(() => {
     let isMounted = true;
-    fetchData(sceneQuery).then(
+    fetchData(props.query).then(
       (res: { data: { findScenes: FindScenesResultType } }) => {
         if (isMounted) {
           // Process fetched scene data, filtering out invalid scenes
@@ -52,6 +57,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         scene: sc,
         toggleAudioHandler: handleTogglingAudio,
         toggleLoopHandler: handleTogglingLooping,
+        toggleSubtitlesHandler: handleTogglingSubtitles,
+        subtitlesOn: subtitlesOn,
       };
     });
     setQueuedItems((prev) => [...prev, ...processedData]);
@@ -72,42 +79,26 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     handleQueuingUpData(ITEMS_TO_FETCH_PER_LOAD);
   }, [allSceneData]);
 
+  /* -------------------------------- Subtitles ------------------------------- */
+
+  const [subtitlesOn, setSubtitlesOn] = useState(true);
+  const handleTogglingSubtitles = () => setSubtitlesOn((prev) => !prev);
+
   return (
     <main>
       <VideoScoller
+        captionsDefault={props.captionsDefault}
         isMuted={isMuted}
         items={queuedItems}
         fetchVideos={handleQueuingUpData}
         loopOnEnd={loopOnEnd}
+        subtitlesOn={subtitlesOn}
       />
     </main>
   );
 };
 
 export default FeedPage;
-
-const sceneQuery = `{
-  findScenes(
-    filter: {per_page: -1, sort: "random"}
-    scene_filter: {orientation: {value: PORTRAIT}}
-  ) {
-    scenes {
-      captions {
-        caption_type
-        language_code
-      }
-      id
-      files {
-        format
-      }
-      paths {
-        caption
-        stream
-      }
-      title
-    }
-  }
-}`;
 
 /** Process individual scene data from Stash to app format. */
 const processSceneData = (sc: Scene): IsceneData | null => {
@@ -118,6 +109,17 @@ const processSceneData = (sc: Scene): IsceneData | null => {
     id: sc.id,
     path: sc.paths.stream,
     title: sc.title || "Untitled",
+    captions: sc.captions
+      ?.map((cap) => {
+        if (typeof sc.paths.caption === "string") {
+          return {
+            format: cap.caption_type,
+            lang: cap.language_code,
+            source: sc.paths.caption,
+          };
+        }
+      })
+      .filter((c) => !!c),
   };
 
   return processedData;

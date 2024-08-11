@@ -10,6 +10,7 @@ import {
   faVolumeSlash,
   faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
+import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
@@ -33,6 +34,13 @@ export interface VideoItemProps extends IitemData {
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
+  /** Function for handling toggling video subtitles on and off. */
+  toggleSubtitlesHandler: () => void;
+  /** The subtitles state set by the user. */
+  subtitlesOn: boolean;
+  /** The default captions language to show. `undefined` means no default
+   * captions. */
+  captionsDefault?: string;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -57,23 +65,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     videoRef.current?.paused
       ? videoRef.current.play()
       : videoRef.current?.pause();
-
-  /** Only render captions track if available. Fails accessibility if missing,
-   * but there's no point rendering an empty track. */
-  const captionSources = props.scene.captions
-    ? props.scene.captions.map((cap, i) => {
-        const src = cap.source + `?lang=${cap.lang}&type=${cap.format}`;
-        return (
-          <track
-            key={i}
-            kind="captions"
-            label={ISO6391.getName(cap.lang) || "Unknown"}
-            src={src}
-            srcLang={cap.lang}
-          />
-        );
-      })
-    : null;
 
   /* ----------------------------- Toggle buttons ----------------------------- */
 
@@ -161,6 +152,52 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     }
   };
 
+  /* -------------------------------- Subtitles ------------------------------- */
+
+  /** Only render captions track if available, and it matches the user's chosen
+   * langueage. Fails accessibility if missing, but there's no point rendering
+   * an empty track. */
+  const captionSources =
+    props.scene.captions && props.captionsDefault
+      ? props.scene.captions
+          .map((cap, i) => {
+            if (cap.lang === props.captionsDefault) {
+              const src = cap.source + `?lang=${cap.lang}&type=${cap.format}`;
+              return (
+                <track
+                  default={props.captionsDefault === cap.lang}
+                  key={i}
+                  kind="captions"
+                  label={ISO6391.getName(cap.lang) || "Unknown"}
+                  src={src}
+                  srcLang={cap.lang}
+                />
+              );
+            }
+          })
+          .filter((c) => !!c)
+      : null;
+
+  const subtitlesButton = !!captionSources ? (
+    <button
+      data-testid="VideoItem--subtitlesButton"
+      onClick={props.toggleSubtitlesHandler}
+      type="button"
+    >
+      <FontAwesomeIcon
+        icon={props.subtitlesOn ? faSubtitles : faSubtitlesOff}
+      />
+    </button>
+  ) : null;
+
+  // Update the subtitles track via the ref object
+  useEffect(() => {
+    if (videoRef.current && videoRef.current.textTracks.length)
+      videoRef.current.textTracks[0].mode = props.subtitlesOn
+        ? "showing"
+        : "disabled";
+  }, [props.subtitlesOn]);
+
   /* -------------------------------- Component ------------------------------- */
 
   return (
@@ -170,6 +207,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       ref={itemRef}
     >
       <video
+        crossOrigin="anonymous"
         data-testid="VideoItem--video"
         id={props.scene.id}
         muted={props.isMuted || !isInViewport}
@@ -210,13 +248,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   {props.isMuted ? "Unmute" : "Mute"}
                 </span>
               </button>
-              <button
-                data-testid="VideoItem--subtitlesButton"
-                onClick={() => console.log("subtitles button")}
-                type="button"
-              >
-                <FontAwesomeIcon icon={faSubtitles} />
-              </button>
+              {subtitlesButton}
               <button
                 data-testid="VideoItem--infoButton"
                 onClick={() => console.log("scene info")}

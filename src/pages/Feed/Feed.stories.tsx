@@ -8,7 +8,31 @@ const meta = {
   title: "Pages/Feed",
   component: FeedPage,
   tags: ["autodocs"],
-  args: {},
+  args: {
+    captionsDefault: undefined,
+    query: `{
+      findScenes(
+        filter: {per_page: -1, sort: "random"}
+        scene_filter: {orientation: {value: PORTRAIT}}
+      ) {
+        scenes {
+          captions {
+            caption_type
+            language_code
+          }
+          id
+          files {
+            format
+          }
+          paths {
+            caption
+            stream
+          }
+          title
+        }
+      }
+    }`,
+  },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof FeedPage>;
 
@@ -131,5 +155,67 @@ export const ToggleLoop: Story = {
     // Fire a second click to change back to continuing to the next video.
     await userEvent.click(loopButton0, { delay: 100 });
     await expect(video0.loop).toBe(false);
+  },
+};
+
+export const ToggleCaptions: Story = {
+  args: {
+    captionsDefault: "uk",
+    query: `{
+      findScenes(
+        filter: {per_page: -1, sort: "random"}
+        scene_filter: {orientation: {value: PORTRAIT}, captions: {modifier: NOT_NULL, value:""}}
+      ) {
+        scenes {
+          captions {
+            caption_type
+            language_code
+          }
+          id
+          files {
+            format
+          }
+          paths {
+            caption
+            stream
+          }
+          title
+        }
+      }
+    }`,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const scroller: HTMLDivElement = canvas.getByTestId(
+      "VideoScroller--container"
+    );
+
+    // Await promise for videos to be fetched
+    await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
+
+    const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
+    const subtitlesButton = canvas.getByTestId("VideoItem--subtitlesButton");
+
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      // Show default track automatically
+      expect(video.textTracks[0].mode).toBe("showing");
+
+      // Only render the track that matches the user's selected default.
+      expect(video.textTracks.length).toBe(1);
+      expect(video.textTracks[0].language).toBe("uk");
+
+      // Subtitle buttons should not be rendered if there are no tracks to
+      // toggle.
+      expect(subtitlesButton).toBeInTheDocument();
+
+      // Fire a click to toggle off subtitles
+      await userEvent.click(subtitlesButton);
+      await expect(video.textTracks[0].mode).toBe("disabled");
+
+      // Fire a click to toggle on subtitles
+      await userEvent.click(subtitlesButton);
+      await expect(video.textTracks[0].mode).toBe("showing");
+    });
   },
 };

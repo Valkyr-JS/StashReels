@@ -18,8 +18,10 @@ const meta = {
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
       title: "Scene Title 1",
     },
+    subtitlesOn: true,
     toggleAudioHandler: fn(),
     toggleLoopHandler: fn(),
+    toggleSubtitlesHandler: fn(),
   },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof VideoItem>;
@@ -27,10 +29,29 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: { captionsDefault: undefined },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
+    const track = canvas.queryByTestId("VideoItem--subtitles");
+    const subtitlesButton = canvas.queryByTestId("VideoItem--subtitlesButton");
+
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      // No tracks in the video if there aren't any
+      expect(track).not.toBeInTheDocument();
+
+      // Subtitle buttons should not be rendered if there are no tracks to
+      // toggle.
+      expect(subtitlesButton).not.toBeInTheDocument();
+    });
+  },
+};
 
 export const Subtitles: Story = {
   args: {
+    captionsDefault: "uk",
     index: 1,
     scene: {
       captions: [
@@ -39,12 +60,38 @@ export const Subtitles: Story = {
           lang: "uk",
           source: process.env.STASH_ADDRESS + "/scene/5133/caption",
         },
+        {
+          format: "srt",
+          lang: "en",
+          source: process.env.STASH_ADDRESS + "/scene/5133/caption",
+        },
+        {
+          format: "srt",
+          lang: "us",
+          source: process.env.STASH_ADDRESS + "/scene/5133/caption",
+        },
       ],
       format: "mp4",
       id: "5133",
       path: process.env.STASH_ADDRESS + "/scene/5133/stream",
       title: "Scene Title 2",
     },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const allVideos: HTMLVideoElement[] =
+      canvas.getAllByTestId("VideoItem--video");
+    const video: HTMLVideoElement = allVideos[0];
+
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      // Show default track automatically
+      expect(video.textTracks[0].mode).toBe("showing");
+
+      // Only render the track that matches the user's selected default.
+      expect(video.textTracks.length).toBe(1);
+      expect(video.textTracks[0].language).toBe("uk");
+    });
   },
 };
 

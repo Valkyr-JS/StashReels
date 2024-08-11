@@ -4,7 +4,30 @@ import { setCssVH } from "../helpers";
 
 const App = () => {
   setCssVH();
-  return <FeedPage />;
+  return <FeedPage query={query} captionsDefault={undefined} />;
 };
 
 export default App;
+
+const query = `{
+      findScenes(
+        filter: {per_page: -1, sort: "random"}
+        scene_filter: {orientation: {value: PORTRAIT}}
+      ) {
+        scenes {
+          captions {
+            caption_type
+            language_code
+          }
+          id
+          files {
+            format
+          }
+          paths {
+            caption
+            stream
+          }
+          title
+        }
+      }
+    }`;

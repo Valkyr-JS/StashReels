@@ -13,6 +13,11 @@ interface VideoScrollerProps {
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
+  /** The subtitles state set by the user. */
+  subtitlesOn: boolean;
+  /** The default captions language to show. `undefined` means no default
+   * captions. */
+  captionsDefault?: string;
 }
 
 const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
@@ -44,14 +49,17 @@ const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
       {items.map((item, i) => {
         return (
           <VideoItem
+            captionsDefault={props.captionsDefault}
             index={i}
             isMuted={props.isMuted}
             key={i}
             loopOnEnd={props.loopOnEnd}
             loadMoreVideosHandler={handleLoadingMoreVideos}
             scene={item.scene}
+            subtitlesOn={props.subtitlesOn}
             toggleAudioHandler={item.toggleAudioHandler}
             toggleLoopHandler={item.toggleLoopHandler}
+            toggleSubtitlesHandler={item.toggleSubtitlesHandler}
           />
         );
       })}

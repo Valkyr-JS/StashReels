@@ -19,10 +19,13 @@ interface IsceneData {
   path: string;
   /** The title of the scene. */
   title: string;
-  /** The absolute path of the subtitles file. */
   captions?: {
+    /** The file format of the subtitles file. Files are converted to VTT by
+     * stash, but this is required as part of the path. */
     format: string;
+    /** The ISO6391 code for the subtitle language. */
     lang: string;
+    /** The Stash path to the subtitle file. */
     source: string;
   }[];
 }
