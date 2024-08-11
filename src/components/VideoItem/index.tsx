@@ -1,18 +1,14 @@
-import {
-  faCircleInfo,
-  faRepeat,
-  faSubtitles,
-  faVolume,
-} from "@fortawesome/pro-solid-svg-icons";
-import {
-  faBars,
-  faCircleInfo as faCircleInfoOff,
-  faGear as faGearOff,
-  faRepeat as faRepeatOff,
-  faSubtitles as faSubtitlesOff,
-  faVolumeXmark as faVolumeOff,
-  faXmark,
-} from "@fortawesome/pro-light-svg-icons";
+import { faCircleInfo } from "@fortawesome/pro-solid-svg-icons/faCircleInfo";
+import { faRepeat } from "@fortawesome/pro-solid-svg-icons/faRepeat";
+import { faSubtitles } from "@fortawesome/pro-solid-svg-icons/faSubtitles";
+import { faVolume } from "@fortawesome/pro-solid-svg-icons/faVolume";
+import { faBars } from "@fortawesome/pro-light-svg-icons/faBars";
+import { faCircleInfo as faCircleInfoOff } from "@fortawesome/pro-light-svg-icons/faCircleInfo";
+import { faGear as faGearOff } from "@fortawesome/pro-light-svg-icons/faGear";
+import { faRepeat as faRepeatOff } from "@fortawesome/pro-light-svg-icons/faRepeat";
+import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-light-svg-icons/faSubtitles";
+import { faVolumeXmark as faVolumeOff } from "@fortawesome/pro-light-svg-icons/faVolumeXmark";
+import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
