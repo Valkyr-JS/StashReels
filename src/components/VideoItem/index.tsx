@@ -1,16 +1,17 @@
 import {
-  faBars,
-  faCircleInfo,
-  faGear,
-  faHeart,
   faRepeat,
-  faStar,
   faSubtitles,
   faVolume,
-  faVolumeSlash,
-  faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
-import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-regular-svg-icons";
+import {
+  faBars,
+  faCircleInfo as faCircleInfoOff,
+  faGear as faGearOff,
+  faRepeat as faRepeatOff,
+  faSubtitles as faSubtitlesOff,
+  faVolumeXmark as faVolumeOff,
+  faXmark,
+} from "@fortawesome/pro-light-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
@@ -19,7 +20,6 @@ import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
-import { FaSolidRepeatSlash } from "../Icons";
 import { useIsInViewport } from "../../hooks";
 
 export interface VideoItemProps extends IitemData {
@@ -30,14 +30,18 @@ export interface VideoItemProps extends IitemData {
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
+  /** The subtitles state set by the user. */
+  subtitlesOn: boolean;
   /** Function for handling toggling video audio on and off. */
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
   /** Function for handling toggling video subtitles on and off. */
   toggleSubtitlesHandler: () => void;
-  /** The subtitles state set by the user. */
-  subtitlesOn: boolean;
+  /** Function for handling toggling the UI button visibility */
+  toggleUiHandler: () => void;
+  /** Whether the UI buttons are visible. */
+  uiIsVisible: boolean;
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
@@ -68,7 +72,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   /* ----------------------------- Toggle buttons ----------------------------- */
 
-  const [showUI, setShowUI] = useState(true);
   const uiButtonDrawerRef = useRef(null);
   const uiButtonRef = useRef(null);
   const buttonsTransitionDuration = 150;
@@ -92,8 +95,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     unmounted: {},
   };
 
-  const handleTogglingUI = () => {
-    setShowUI((prev) => !prev);
+  const toggleUiButtonClickHandler = () => {
+    if (isInViewport) props.toggleUiHandler();
   };
 
   /* ----------------------------- Audio handling ----------------------------- */
@@ -221,7 +224,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       </video>
       <div className={styles.controls}>
         <Transition
-          in={showUI}
+          in={props.uiIsVisible}
           nodeRef={uiButtonDrawerRef}
           timeout={buttonsTransitionDuration}
           unmountOnExit
@@ -242,7 +245,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 type="button"
               >
                 <FontAwesomeIcon
-                  icon={props.isMuted ? faVolumeSlash : faVolume}
+                  icon={props.isMuted ? faVolumeOff : faVolume}
                 />
                 <span className={styles["visually-hidden"]}>
                   {props.isMuted ? "Unmute" : "Mute"}
@@ -254,45 +257,29 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 onClick={() => console.log("scene info")}
                 type="button"
               >
-                <FontAwesomeIcon icon={faCircleInfo} />
-              </button>
-              <button
-                data-testid="VideoItem--faveButton"
-                onClick={() => console.log("favourite")}
-                type="button"
-              >
-                <FontAwesomeIcon icon={faHeart} />
-              </button>
-              <button
-                data-testid="VideoItem--rateButton"
-                onClick={() => console.log("rating")}
-                type="button"
-              >
-                <FontAwesomeIcon icon={faStar} />
+                <FontAwesomeIcon icon={faCircleInfoOff} />
               </button>
               <button
                 data-testid="VideoItem--loopButton"
                 onClick={loopButtonClickHandler}
                 type="button"
               >
-                {props.loopOnEnd ? (
-                  <FontAwesomeIcon icon={faRepeat} />
-                ) : (
-                  <FaSolidRepeatSlash />
-                )}
+                <FontAwesomeIcon
+                  icon={props.loopOnEnd ? faRepeat : faRepeatOff}
+                />
               </button>
               <button
                 data-testid="VideoItem--configButton"
                 onClick={() => console.log("config settings")}
                 type="button"
               >
-                <FontAwesomeIcon icon={faGear} />
+                <FontAwesomeIcon icon={faGearOff} />
               </button>
             </div>
           )}
         </Transition>
         <Transition
-          in={showUI}
+          in={props.uiIsVisible}
           nodeRef={uiButtonRef}
           timeout={buttonsTransitionDuration}
         >
@@ -300,7 +287,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
             <button
               className={styles["toggleable-ui-button"]}
               data-testid="VideoItem--showUiButton"
-              onClick={handleTogglingUI}
+              onClick={toggleUiButtonClickHandler}
               ref={uiButtonRef}
               type="button"
               style={{
@@ -308,13 +295,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 ...toggleUiButtonTransitionStyles[state],
               }}
             >
-              <FontAwesomeIcon icon={showUI ? faXmark : faBars} />
+              <FontAwesomeIcon icon={props.uiIsVisible ? faXmark : faBars} />
             </button>
           )}
         </Transition>
       </div>
       <Transition
-        in={showUI}
+        in={props.uiIsVisible}
         nodeRef={scrubberRef}
         timeout={buttonsTransitionDuration}
       >

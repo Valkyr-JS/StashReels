@@ -26,6 +26,8 @@ const meta = {
         toggleAudioHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
+        toggleUiHandler: fn(),
+        uiIsVisible: true,
       },
       {
         index: 1,
@@ -43,6 +45,8 @@ const meta = {
         toggleAudioHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
+        toggleUiHandler: fn(),
+        uiIsVisible: true,
       },
       {
         index: 2,
@@ -60,6 +64,8 @@ const meta = {
         toggleAudioHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
+        toggleUiHandler: fn(),
+        uiIsVisible: true,
       },
       {
         index: 3,
@@ -77,6 +83,8 @@ const meta = {
         toggleAudioHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
+        toggleUiHandler: fn(),
+        uiIsVisible: true,
       },
       {
         index: 4,
@@ -94,6 +102,8 @@ const meta = {
         toggleAudioHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
+        toggleUiHandler: fn(),
+        uiIsVisible: true,
       },
     ],
   },
