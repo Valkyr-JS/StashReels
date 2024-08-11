@@ -30,6 +30,7 @@ interface IsceneData {
   date?: string;
   /** The parent of the studio hosting the scene. */
   parentStudio?: string;
+  performers: { name: string; gender: GenderEnum }[];
   /** The studio hosting the scene. */
   studio?: string;
   /** The title of the scene. */

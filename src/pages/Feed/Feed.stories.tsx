@@ -29,6 +29,10 @@ const meta = {
             caption
             stream
           }
+          performers {
+            gender
+            name
+          }
           studio {
             name
             parent_studio {

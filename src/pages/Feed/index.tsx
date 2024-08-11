@@ -126,6 +126,9 @@ const processSceneData = (sc: Scene): IsceneData | null => {
     id: sc.id,
     parentStudio: sc.studio?.parent_studio?.name ?? undefined,
     path: sc.paths.stream,
+    performers: sc.performers.map((pf) => {
+      return { name: pf.name, gender: pf.gender || ("UNKNOWN" as GenderEnum) };
+    }),
     studio: sc.studio?.name ?? undefined,
     title: sc.title ?? undefined,
     captions: sc.captions

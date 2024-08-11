@@ -21,6 +21,7 @@ import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
+import { sortPerformers } from "../../helpers";
 
 export interface VideoItemProps extends IitemData {
   /** The audio state set by the user. */
@@ -344,6 +345,32 @@ const SceneInfoPanel: React.FC<IsceneData> = (props) => {
     <span className={styles["scene-info__date"]}>{props.date}</span>
   ) : null;
 
+  /* ------------------------------- Performers ------------------------------- */
+
+  const sortedPerformers = sortPerformers(props.performers);
+  const totalPerformers = sortedPerformers.length;
+
+  const performersInner = sortedPerformers.map((pf, i) => {
+    const isOneBeforeLast = i === totalPerformers - 2;
+    const isAnyBeforeLast = i < totalPerformers - 1;
+    let suffix = null;
+    if (totalPerformers === 2 && isOneBeforeLast) suffix = " and ";
+    else {
+      if (isAnyBeforeLast) suffix = ", ";
+      if (isOneBeforeLast) suffix += "and ";
+    }
+    return (
+      <>
+        <span>{pf.name}</span>
+        {suffix}
+      </>
+    );
+  });
+
+  const performers = performersInner.length ? (
+    <div className={styles["scene-info__performers"]}>{performersInner}</div>
+  ) : null;
+
   /* --------------------------------- Studio --------------------------------- */
 
   const parentStudioText = props.parentStudio ? " | " + props.parentStudio : "";
@@ -364,6 +391,7 @@ const SceneInfoPanel: React.FC<IsceneData> = (props) => {
     <div className={styles["scene-info"]}>
       {studio}
       {title}
+      {performers}
       {date}
     </div>
   );

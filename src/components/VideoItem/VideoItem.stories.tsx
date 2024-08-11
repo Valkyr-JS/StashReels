@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
+import { expect, fn, userEvent, within } from "@storybook/test";
 import VideoItem from ".";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
 
@@ -16,6 +16,10 @@ const meta = {
       date: "2021-02-18",
       format: "mp4",
       id: "3097",
+      performers: [
+        { name: "Scarlett Johannson", gender: "FEMALE" as GenderEnum.Female },
+        { name: "Jennifer Lawrence", gender: "FEMALE" as GenderEnum.Female },
+      ],
       parentStudio: "Parent studio name",
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
       studio: "Studio name",
@@ -83,6 +87,10 @@ export const Subtitles: Story = {
           lang: "us",
           source: process.env.STASH_ADDRESS + "/scene/5133/caption",
         },
+      ],
+      performers: [
+        { name: "Scarlett Johannson", gender: "FEMALE" as GenderEnum.Female },
+        { name: "Jennifer Lawrence", gender: "FEMALE" as GenderEnum.Female },
       ],
       format: "mp4",
       id: "5133",
