@@ -27,7 +27,25 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: { captionsDefault: undefined },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
+    const track = canvas.queryByTestId("VideoItem--subtitles");
+    const subtitlesButton = canvas.queryByTestId("VideoItem--subtitlesButton");
+
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      // No tracks in the video if there aren't any
+      expect(track).not.toBeInTheDocument();
+
+      // Subtitle buttons should not be rendered if there are no tracks to
+      // toggle.
+      expect(subtitlesButton).not.toBeInTheDocument();
+    });
+  },
+};
 
 export const Subtitles: Story = {
   args: {
