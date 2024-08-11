@@ -57,6 +57,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         scene: sc,
         toggleAudioHandler: handleTogglingAudio,
         toggleLoopHandler: handleTogglingLooping,
+        toggleSubtitlesHandler: handleTogglingSubtitles,
+        subtitlesOn: subtitlesOn,
       };
     });
     setQueuedItems((prev) => [...prev, ...processedData]);
@@ -77,6 +79,11 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     handleQueuingUpData(ITEMS_TO_FETCH_PER_LOAD);
   }, [allSceneData]);
 
+  /* -------------------------------- Subtitles ------------------------------- */
+
+  const [subtitlesOn, setSubtitlesOn] = useState(true);
+  const handleTogglingSubtitles = () => setSubtitlesOn((prev) => !prev);
+
   return (
     <main>
       <VideoScoller
@@ -85,6 +92,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         items={queuedItems}
         fetchVideos={handleQueuingUpData}
         loopOnEnd={loopOnEnd}
+        subtitlesOn={subtitlesOn}
       />
     </main>
   );

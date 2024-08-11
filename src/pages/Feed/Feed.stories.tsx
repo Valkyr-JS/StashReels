@@ -194,8 +194,7 @@ export const ToggleCaptions: Story = {
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
 
     const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
-    const track = canvas.queryByTestId("VideoItem--subtitles");
-    const subtitlesButton = canvas.queryByTestId("VideoItem--subtitlesButton");
+    const subtitlesButton = canvas.getByTestId("VideoItem--subtitlesButton");
 
     // Wait for the video to load
     video.addEventListener("canplaythrough", async () => {
@@ -210,11 +209,13 @@ export const ToggleCaptions: Story = {
       // toggle.
       expect(subtitlesButton).toBeInTheDocument();
 
-      subtitlesButton?.click();
-      await expect(track).not.toBeInTheDocument();
+      // Fire a click to toggle off subtitles
+      await userEvent.click(subtitlesButton);
+      await expect(video.textTracks[0].mode).toBe("disabled");
 
-      subtitlesButton?.click();
-      await expect(track).toBeInTheDocument();
+      // Fire a click to toggle on subtitles
+      await userEvent.click(subtitlesButton);
+      await expect(video.textTracks[0].mode).toBe("showing");
     });
   },
 };

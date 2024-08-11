@@ -18,8 +18,10 @@ const meta = {
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
       title: "Scene Title 1",
     },
+    subtitlesOn: true,
     toggleAudioHandler: fn(),
     toggleLoopHandler: fn(),
+    toggleSubtitlesHandler: fn(),
   },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof VideoItem>;

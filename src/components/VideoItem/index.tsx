@@ -10,6 +10,7 @@ import {
   faVolumeSlash,
   faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
+import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
@@ -33,6 +34,10 @@ export interface VideoItemProps extends IitemData {
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
+  /** Function for handling toggling video subtitles on and off. */
+  toggleSubtitlesHandler: () => void;
+  /** The subtitles state set by the user. */
+  subtitlesOn: boolean;
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
@@ -176,12 +181,22 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const subtitlesButton = !!captionSources ? (
     <button
       data-testid="VideoItem--subtitlesButton"
-      onClick={() => console.log("subtitles button")}
+      onClick={props.toggleSubtitlesHandler}
       type="button"
     >
-      <FontAwesomeIcon icon={faSubtitles} />
+      <FontAwesomeIcon
+        icon={props.subtitlesOn ? faSubtitles : faSubtitlesOff}
+      />
     </button>
   ) : null;
+
+  // Update the subtitles track via the ref object
+  useEffect(() => {
+    if (videoRef.current && videoRef.current.textTracks.length)
+      videoRef.current.textTracks[0].mode = props.subtitlesOn
+        ? "showing"
+        : "disabled";
+  }, [props.subtitlesOn]);
 
   /* -------------------------------- Component ------------------------------- */
 
