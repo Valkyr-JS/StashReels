@@ -13,9 +13,16 @@ const meta = {
     loadMoreVideosHandler: fn(),
     loopOnEnd: false,
     scene: {
+      date: "2021-02-18",
       format: "mp4",
       id: "3097",
+      performers: [
+        { name: "Scarlett Johannson", gender: "FEMALE" as GenderEnum.Female },
+        { name: "Jennifer Lawrence", gender: "FEMALE" as GenderEnum.Female },
+      ],
+      parentStudio: "Parent studio name",
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
+      studio: "Studio name",
       title: "Scene Title 1",
     },
     subtitlesOn: true,
@@ -73,6 +80,10 @@ export const Subtitles: Story = {
           source: process.env.STASH_ADDRESS + "/scene/5133/caption",
         },
       ],
+      performers: [
+        { name: "Scarlett Johannson", gender: "FEMALE" as GenderEnum.Female },
+        { name: "Jennifer Lawrence", gender: "FEMALE" as GenderEnum.Female },
+      ],
       format: "mp4",
       id: "5133",
       path: process.env.STASH_ADDRESS + "/scene/5133/stream",
@@ -117,6 +128,30 @@ export const TogglePlayOnTap: Story = {
       // Second click should play the video again
       await userEvent.click(video, { delay: 1500 });
       await expect(video.paused).toBe(false);
+    });
+  },
+};
+
+export const ToggleSceneInfoButton: Story = {
+  name: "Toggle scene info",
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const sceneInfoButton = canvas.getByTestId("VideoItem--infoButton");
+    const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+
+    // Panel should not be visible by default
+    expect(sceneInfoPanel).not.toBeInTheDocument();
+
+    // Fire a click to display the panel
+    userEvent.click(sceneInfoButton, { delay: 300 });
+    await waitFor(() => expect(sceneInfoPanel).not.toBeInTheDocument());
+
+    // Fire another click to hide the panel again
+    userEvent.click(sceneInfoButton, { delay: 300 });
+    await waitFor(() => {
+      // Find it again
+      const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+      expect(sceneInfoPanel).toBeInTheDocument();
     });
   },
 };

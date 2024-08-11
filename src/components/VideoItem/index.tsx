@@ -1,26 +1,30 @@
-import {
-  faRepeat,
-  faSubtitles,
-  faVolume,
-} from "@fortawesome/pro-solid-svg-icons";
-import {
-  faBars,
-  faCircleInfo as faCircleInfoOff,
-  faGear as faGearOff,
-  faRepeat as faRepeatOff,
-  faSubtitles as faSubtitlesOff,
-  faVolumeXmark as faVolumeOff,
-  faXmark,
-} from "@fortawesome/pro-light-svg-icons";
+import { faCircleInfo } from "@fortawesome/pro-solid-svg-icons/faCircleInfo";
+import { faRepeat } from "@fortawesome/pro-solid-svg-icons/faRepeat";
+import { faSubtitles } from "@fortawesome/pro-solid-svg-icons/faSubtitles";
+import { faVolume } from "@fortawesome/pro-solid-svg-icons/faVolume";
+import { faBars } from "@fortawesome/pro-light-svg-icons/faBars";
+import { faCircleInfo as faCircleInfoOff } from "@fortawesome/pro-light-svg-icons/faCircleInfo";
+import { faGear as faGearOff } from "@fortawesome/pro-light-svg-icons/faGear";
+import { faRepeat as faRepeatOff } from "@fortawesome/pro-light-svg-icons/faRepeat";
+import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-light-svg-icons/faSubtitles";
+import { faVolumeXmark as faVolumeOff } from "@fortawesome/pro-light-svg-icons/faVolumeXmark";
+import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
+import { sortPerformers } from "../../helpers";
 
 export interface VideoItemProps extends IitemData {
   /** The audio state set by the user. */
@@ -132,6 +136,22 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   useEffect(() => {
     if (videoRef.current) videoRef.current.loop = props.loopOnEnd;
   }, [props.loopOnEnd]);
+
+  /* ------------------------------- Scene info ------------------------------- */
+
+  // ? Unlike most other UI states, scene info visibility does not persist
+  // across scenes, and should be reset to false on scrolling to another like.
+
+  const [sceneInfoOpen, setSceneInfoOpen] = useState(false);
+  const sceneInfoPanelRef = useRef(null);
+
+  const sceneInfoButtonClickHandler = () => {
+    if (isInViewport) setSceneInfoOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (!isInViewport) setSceneInfoOpen(false);
+  }, [isInViewport]);
 
   /* -------------------------------- Scrubber -------------------------------- */
 
@@ -254,10 +274,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               {subtitlesButton}
               <button
                 data-testid="VideoItem--infoButton"
-                onClick={() => console.log("scene info")}
+                onClick={sceneInfoButtonClickHandler}
                 type="button"
               >
-                <FontAwesomeIcon icon={faCircleInfoOff} />
+                <FontAwesomeIcon
+                  icon={sceneInfoOpen ? faCircleInfo : faCircleInfoOff}
+                />
               </button>
               <button
                 data-testid="VideoItem--loopButton"
@@ -301,6 +323,24 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         </Transition>
       </div>
       <Transition
+        in={sceneInfoOpen}
+        nodeRef={sceneInfoPanelRef}
+        timeout={buttonsTransitionDuration}
+        mountOnEnter
+        unmountOnExit
+      >
+        {(state) => (
+          <SceneInfoPanel
+            {...props.scene}
+            ref={sceneInfoPanelRef}
+            style={{
+              ...toggleableUiStyles,
+              ...toggleableUiTransitionStyles[state],
+            }}
+          />
+        )}
+      </Transition>
+      <Transition
         in={props.uiIsVisible}
         nodeRef={scrubberRef}
         timeout={buttonsTransitionDuration}
@@ -327,3 +367,79 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 };
 
 export default VideoItem;
+
+/* -------------------------------------------------------------------------- */
+/*                              Scene info panel                              */
+/* -------------------------------------------------------------------------- */
+
+interface SceneInfoPanelProps extends IsceneData {
+  style: React.CSSProperties;
+}
+
+const SceneInfoPanel = forwardRef(
+  (props: SceneInfoPanelProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+    /* ---------------------------------- Date ---------------------------------- */
+
+    const date = props.date ? (
+      <span className={styles["scene-info__date"]}>{props.date}</span>
+    ) : null;
+
+    /* ------------------------------- Performers ------------------------------- */
+
+    const sortedPerformers = sortPerformers(props.performers);
+    const totalPerformers = sortedPerformers.length;
+
+    const performersInner = sortedPerformers.map((pf, i) => {
+      const isOneBeforeLast = i === totalPerformers - 2;
+      const isAnyBeforeLast = i < totalPerformers - 1;
+      let suffix = null;
+      if (totalPerformers === 2 && isOneBeforeLast) suffix = " and ";
+      else {
+        if (isAnyBeforeLast) suffix = ", ";
+        if (isOneBeforeLast) suffix += "and ";
+      }
+      return (
+        <Fragment key={i}>
+          <span>{pf.name}</span>
+          {suffix}
+        </Fragment>
+      );
+    });
+
+    const performers = performersInner.length ? (
+      <div className={styles["scene-info__performers"]}>{performersInner}</div>
+    ) : null;
+
+    /* --------------------------------- Studio --------------------------------- */
+
+    const parentStudioText = props.parentStudio
+      ? " | " + props.parentStudio
+      : "";
+
+    const studio = props.studio ? (
+      <span className={styles["scene-info__studio"]}>
+        {props.studio + parentStudioText}
+      </span>
+    ) : null;
+
+    /* ---------------------------------- Title --------------------------------- */
+
+    const title = props.title ? <h5>{props.title}</h5> : null;
+
+    /* -------------------------------- Component ------------------------------- */
+
+    return (
+      <div
+        className={styles["scene-info"]}
+        data-testid="VideoItem--sceneInfo"
+        style={props.style}
+        ref={ref}
+      >
+        {studio}
+        {title}
+        {performers}
+        {date}
+      </div>
+    );
+  }
+);

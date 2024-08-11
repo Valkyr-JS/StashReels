@@ -116,11 +116,19 @@ export default FeedPage;
 const processSceneData = (sc: Scene): IsceneData | null => {
   if (!sc.paths.stream) return null;
 
+  console.log(sc);
+
   const processedData: IsceneData = {
+    date: sc.date ?? undefined,
     format: sc.files[0].format,
     id: sc.id,
+    parentStudio: sc.studio?.parent_studio?.name ?? undefined,
     path: sc.paths.stream,
-    title: sc.title || "Untitled",
+    performers: sc.performers.map((pf) => {
+      return { name: pf.name, gender: pf.gender || ("UNKNOWN" as GenderEnum) };
+    }),
+    studio: sc.studio?.name ?? undefined,
+    title: sc.title ?? undefined,
     captions: sc.captions
       ?.map((cap) => {
         if (typeof sc.paths.caption === "string") {

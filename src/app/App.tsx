@@ -19,6 +19,7 @@ const query = `{
             caption_type
             language_code
           }
+          date
           id
           files {
             format
@@ -26,6 +27,16 @@ const query = `{
           paths {
             caption
             stream
+          }
+          performers {
+            gender
+            name
+          }
+          studio {
+            name
+            parent_studio {
+              name
+            }
           }
           title
         }
