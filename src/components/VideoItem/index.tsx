@@ -1,16 +1,17 @@
 import {
-  faBars,
-  faCircleInfo,
-  faGear,
-  faHeart,
   faRepeat,
-  faStar,
   faSubtitles,
   faVolume,
-  faVolumeSlash,
-  faXmark,
 } from "@fortawesome/pro-solid-svg-icons";
-import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-regular-svg-icons";
+import {
+  faBars,
+  faCircleInfo as faCircleInfoOff,
+  faGear as faGearOff,
+  faRepeat as faRepeatOff,
+  faSubtitles as faSubtitlesOff,
+  faVolumeOff,
+  faXmark,
+} from "@fortawesome/pro-light-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
@@ -19,7 +20,6 @@ import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
-import { FaSolidRepeatSlash } from "../Icons";
 import { useIsInViewport } from "../../hooks";
 
 export interface VideoItemProps extends IitemData {
@@ -242,7 +242,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 type="button"
               >
                 <FontAwesomeIcon
-                  icon={props.isMuted ? faVolumeSlash : faVolume}
+                  icon={props.isMuted ? faVolumeOff : faVolume}
                 />
                 <span className={styles["visually-hidden"]}>
                   {props.isMuted ? "Unmute" : "Mute"}
@@ -254,39 +254,23 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 onClick={() => console.log("scene info")}
                 type="button"
               >
-                <FontAwesomeIcon icon={faCircleInfo} />
-              </button>
-              <button
-                data-testid="VideoItem--faveButton"
-                onClick={() => console.log("favourite")}
-                type="button"
-              >
-                <FontAwesomeIcon icon={faHeart} />
-              </button>
-              <button
-                data-testid="VideoItem--rateButton"
-                onClick={() => console.log("rating")}
-                type="button"
-              >
-                <FontAwesomeIcon icon={faStar} />
+                <FontAwesomeIcon icon={faCircleInfoOff} />
               </button>
               <button
                 data-testid="VideoItem--loopButton"
                 onClick={loopButtonClickHandler}
                 type="button"
               >
-                {props.loopOnEnd ? (
-                  <FontAwesomeIcon icon={faRepeat} />
-                ) : (
-                  <FaSolidRepeatSlash />
-                )}
+                <FontAwesomeIcon
+                  icon={props.loopOnEnd ? faRepeat : faRepeatOff}
+                />
               </button>
               <button
                 data-testid="VideoItem--configButton"
                 onClick={() => console.log("config settings")}
                 type="button"
               >
-                <FontAwesomeIcon icon={faGear} />
+                <FontAwesomeIcon icon={faGearOff} />
               </button>
             </div>
           )}
