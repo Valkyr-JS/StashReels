@@ -17,8 +17,6 @@ interface IsceneData {
   format: string;
   /** The absolute path of the video stream. */
   path: string;
-  /** The title of the scene. */
-  title: string;
   captions?: {
     /** The file format of the subtitles file. Files are converted to VTT by
      * stash, but this is required as part of the path. */
@@ -34,4 +32,6 @@ interface IsceneData {
   parentStudio?: string;
   /** The studio hosting the scene. */
   studio?: string;
+  /** The title of the scene. */
+  title?: string;
 }

@@ -304,13 +304,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           )}
         </Transition>
       </div>
-      <div className={styles["scene-info"]}>
-        <span className={styles["scene-info__studio"]}>
-          {props.scene.studio} | {props.scene.parentStudio}
-        </span>
-        <h5>{props.scene.title}</h5>
-        <span className={styles["scene-info__date"]}>{props.scene.date}</span>
-      </div>
+      <SceneInfoPanel {...props.scene} />
       <Transition
         in={props.uiIsVisible}
         nodeRef={scrubberRef}
@@ -338,3 +332,39 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 };
 
 export default VideoItem;
+
+/* -------------------------------------------------------------------------- */
+/*                              Scene info panel                              */
+/* -------------------------------------------------------------------------- */
+
+const SceneInfoPanel: React.FC<IsceneData> = (props) => {
+  /* ---------------------------------- Date ---------------------------------- */
+
+  const date = props.date ? (
+    <span className={styles["scene-info__date"]}>{props.date}</span>
+  ) : null;
+
+  /* --------------------------------- Studio --------------------------------- */
+
+  const parentStudioText = props.parentStudio ? " | " + props.parentStudio : "";
+
+  const studio = props.studio ? (
+    <span className={styles["scene-info__studio"]}>
+      {props.studio + parentStudioText}
+    </span>
+  ) : null;
+
+  /* ---------------------------------- Title --------------------------------- */
+
+  const title = props.title ? <h5>{props.title}</h5> : null;
+
+  /* -------------------------------- Component ------------------------------- */
+
+  return (
+    <div className={styles["scene-info"]}>
+      {studio}
+      {title}
+      {date}
+    </div>
+  );
+};

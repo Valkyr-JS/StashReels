@@ -127,7 +127,7 @@ const processSceneData = (sc: Scene): IsceneData | null => {
     parentStudio: sc.studio?.parent_studio?.name ?? undefined,
     path: sc.paths.stream,
     studio: sc.studio?.name ?? undefined,
-    title: sc.title || "Untitled",
+    title: sc.title ?? undefined,
     captions: sc.captions
       ?.map((cap) => {
         if (typeof sc.paths.caption === "string") {
