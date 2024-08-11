@@ -9,6 +9,7 @@ const meta = {
   component: FeedPage,
   tags: ["autodocs"],
   args: {
+    captionsDefault: undefined,
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}
@@ -159,6 +160,7 @@ export const ToggleLoop: Story = {
 
 export const ToggleCaptions: Story = {
   args: {
+    captionsDefault: "uk",
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}
@@ -181,5 +183,38 @@ export const ToggleCaptions: Story = {
         }
       }
     }`,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const scroller: HTMLDivElement = canvas.getByTestId(
+      "VideoScroller--container"
+    );
+
+    // Await promise for videos to be fetched
+    await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
+
+    const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
+    const track = canvas.queryByTestId("VideoItem--subtitles");
+    const subtitlesButton = canvas.queryByTestId("VideoItem--subtitlesButton");
+
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      // Show default track automatically
+      expect(video.textTracks[0].mode).toBe("showing");
+
+      // Only render the track that matches the user's selected default.
+      expect(video.textTracks.length).toBe(1);
+      expect(video.textTracks[0].language).toBe("uk");
+
+      // Subtitle buttons should not be rendered if there are no tracks to
+      // toggle.
+      expect(subtitlesButton).toBeInTheDocument();
+
+      subtitlesButton?.click();
+      await expect(track).not.toBeInTheDocument();
+
+      subtitlesButton?.click();
+      await expect(track).toBeInTheDocument();
+    });
   },
 };

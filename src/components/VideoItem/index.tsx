@@ -33,7 +33,8 @@ export interface VideoItemProps extends IitemData {
   toggleAudioHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
-  /** The default captions language to show. `undefined` means no default captions. */
+  /** The default captions language to show. `undefined` means no default
+   * captions. */
   captionsDefault?: string;
 }
 
@@ -148,23 +149,29 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   /* -------------------------------- Subtitles ------------------------------- */
 
-  /** Only render captions track if available. Fails accessibility if missing,
-   * but there's no point rendering an empty track. */
-  const captionSources = props.scene.captions
-    ? props.scene.captions.map((cap, i) => {
-        const src = cap.source + `?lang=${cap.lang}&type=${cap.format}`;
-        return (
-          <track
-            default={props.captionsDefault === cap.lang}
-            key={i}
-            kind="captions"
-            label={ISO6391.getName(cap.lang) || "Unknown"}
-            src={src}
-            srcLang={cap.lang}
-          />
-        );
-      })
-    : null;
+  /** Only render captions track if available, and it matches the user's chosen
+   * langueage. Fails accessibility if missing, but there's no point rendering
+   * an empty track. */
+  const captionSources =
+    props.scene.captions && props.captionsDefault
+      ? props.scene.captions
+          .map((cap, i) => {
+            if (cap.lang === props.captionsDefault) {
+              const src = cap.source + `?lang=${cap.lang}&type=${cap.format}`;
+              return (
+                <track
+                  default={props.captionsDefault === cap.lang}
+                  key={i}
+                  kind="captions"
+                  label={ISO6391.getName(cap.lang) || "Unknown"}
+                  src={src}
+                  srcLang={cap.lang}
+                />
+              );
+            }
+          })
+          .filter((c) => !!c)
+      : null;
 
   const subtitlesButton = !!captionSources ? (
     <button

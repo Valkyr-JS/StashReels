@@ -7,6 +7,9 @@ import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
 interface FeedPageProps {
   query: string;
+  /** The default captions language to show. `undefined` means no default
+   * captions. */
+  captionsDefault: string | undefined;
 }
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
@@ -77,6 +80,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   return (
     <main>
       <VideoScoller
+        captionsDefault={props.captionsDefault}
         isMuted={isMuted}
         items={queuedItems}
         fetchVideos={handleQueuingUpData}
@@ -97,6 +101,17 @@ const processSceneData = (sc: Scene): IsceneData | null => {
     id: sc.id,
     path: sc.paths.stream,
     title: sc.title || "Untitled",
+    captions: sc.captions
+      ?.map((cap) => {
+        if (typeof sc.paths.caption === "string") {
+          return {
+            format: cap.caption_type,
+            lang: cap.language_code,
+            source: sc.paths.caption,
+          };
+        }
+      })
+      .filter((c) => !!c),
   };
 
   return processedData;

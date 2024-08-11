@@ -4,7 +4,7 @@ import { setCssVH } from "../helpers";
 
 const App = () => {
   setCssVH();
-  return <FeedPage query={query} />;
+  return <FeedPage query={query} captionsDefault={undefined} />;
 };
 
 export default App;

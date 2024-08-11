@@ -58,6 +58,16 @@ export const Subtitles: Story = {
           lang: "uk",
           source: process.env.STASH_ADDRESS + "/scene/5133/caption",
         },
+        {
+          format: "srt",
+          lang: "en",
+          source: process.env.STASH_ADDRESS + "/scene/5133/caption",
+        },
+        {
+          format: "srt",
+          lang: "us",
+          source: process.env.STASH_ADDRESS + "/scene/5133/caption",
+        },
       ],
       format: "mp4",
       id: "5133",
@@ -73,8 +83,12 @@ export const Subtitles: Story = {
 
     // Wait for the video to load
     video.addEventListener("canplaythrough", async () => {
-      // Show default tracks automatically
+      // Show default track automatically
       expect(video.textTracks[0].mode).toBe("showing");
+
+      // Only render the track that matches the user's selected default.
+      expect(video.textTracks.length).toBe(1);
+      expect(video.textTracks[0].language).toBe("uk");
     });
   },
 };
