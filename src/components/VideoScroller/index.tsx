@@ -6,6 +6,8 @@ import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 interface VideoScrollerProps {
   /** Handler to fetch more video data from the queue. */
   fetchVideos: (length: number) => void;
+  /** The fullscreen state set by the user. */
+  isFullscreen: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
   /** The data for each item in the queue. */
@@ -53,6 +55,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
           <VideoItem
             captionsDefault={props.captionsDefault}
             index={i}
+            isFullscreen={props.isFullscreen}
             isMuted={props.isMuted}
             key={i}
             loopOnEnd={props.loopOnEnd}
@@ -60,6 +63,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
             scene={item.scene}
             subtitlesOn={props.subtitlesOn}
             toggleAudioHandler={item.toggleAudioHandler}
+            toggleFullscreenHandler={item.toggleFullscreenHandler}
             toggleLoopHandler={item.toggleLoopHandler}
             toggleSubtitlesHandler={item.toggleSubtitlesHandler}
             toggleUiHandler={item.toggleUiHandler}

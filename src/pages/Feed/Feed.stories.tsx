@@ -182,6 +182,7 @@ export const ToggleCaptions: Story = {
             caption_type
             language_code
           }
+          date
           id
           files {
             format
@@ -189,6 +190,16 @@ export const ToggleCaptions: Story = {
           paths {
             caption
             stream
+          }
+          performers {
+            gender
+            name
+          }
+          studio {
+            name
+            parent_studio {
+              name
+            }
           }
           title
         }
@@ -245,17 +256,17 @@ export const ToggleFullscreen: Story = {
     const toggleFullscreenButton = canvas.getAllByTestId(
       "VideoItem--fullscreenButton"
     )[0];
-    const FeedPage = canvas.queryAllByTestId("FeedPage")[0];
+    const FeedPage = canvas.getByTestId("FeedPage");
 
     // UI should not be in fullscreen by default
     await expect(document.fullscreenElement).toBeNull();
 
     // Fire a click event to make the page fullscreen.
-    await userEvent.click(toggleFullscreenButton);
+    await userEvent.click(toggleFullscreenButton, { delay: 300 });
     await waitFor(() => expect(document.fullscreenElement).toBe(FeedPage));
 
     // Fire another click event to exit fullscreen.
-    await userEvent.click(toggleFullscreenButton);
+    await userEvent.click(toggleFullscreenButton, { delay: 300 });
     await waitFor(() => expect(document.fullscreenElement).toBeNull());
   },
 };

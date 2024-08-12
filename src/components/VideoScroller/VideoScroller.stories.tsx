@@ -12,6 +12,7 @@ const meta = {
     items: [
       {
         index: 0,
+        isFullscreen: false,
         isMuted: true,
         loadMoreVideosHandler: fn(),
         loopOnEnd: false,
@@ -25,6 +26,7 @@ const meta = {
         },
         subtitlesOn: false,
         toggleAudioHandler: fn(),
+        toggleFullscreenHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -32,6 +34,7 @@ const meta = {
       },
       {
         index: 1,
+        isFullscreen: false,
         isMuted: true,
         loadMoreVideosHandler: fn(),
         loopOnEnd: false,
@@ -45,6 +48,7 @@ const meta = {
         },
         subtitlesOn: false,
         toggleAudioHandler: fn(),
+        toggleFullscreenHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -52,6 +56,7 @@ const meta = {
       },
       {
         index: 2,
+        isFullscreen: false,
         isMuted: true,
         loadMoreVideosHandler: fn(),
         loopOnEnd: false,
@@ -65,6 +70,7 @@ const meta = {
         },
         subtitlesOn: false,
         toggleAudioHandler: fn(),
+        toggleFullscreenHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -72,6 +78,7 @@ const meta = {
       },
       {
         index: 3,
+        isFullscreen: false,
         isMuted: true,
         loadMoreVideosHandler: fn(),
         loopOnEnd: false,
@@ -85,6 +92,7 @@ const meta = {
         },
         subtitlesOn: false,
         toggleAudioHandler: fn(),
+        toggleFullscreenHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -92,6 +100,7 @@ const meta = {
       },
       {
         index: 4,
+        isFullscreen: false,
         isMuted: true,
         loadMoreVideosHandler: fn(),
         loopOnEnd: false,
@@ -105,6 +114,7 @@ const meta = {
         },
         subtitlesOn: false,
         toggleAudioHandler: fn(),
+        toggleFullscreenHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
