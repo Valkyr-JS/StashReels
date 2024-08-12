@@ -1,7 +1,4 @@
-$scene-info-spacer: 5px;
-$scrubber-height: 20px;
-$ui-button-size: 50px;
-$ui-spacer: 3px;
+@import "../../styles/variables.scss";
 
 .container {
   height: 100vh; // Fallback
@@ -13,7 +10,7 @@ $ui-spacer: 3px;
   border: 1px solid transparent;
 
   display: grid;
-  grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] $scrubber-height [scrubber-bottom canvas-bottom];
+  grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] max-content [scrubber-bottom canvas-bottom];
   grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] (
       $ui-button-size + $ui-spacer
     ) [controls-end canvas-end];
@@ -37,6 +34,15 @@ $ui-spacer: 3px;
   height: 100%;
   bottom: 0;
   width: 100%;
+
+  &--timecode {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+
+    font-size: 0.8rem;
+    text-align: right;
+  }
 }
 
 .controls {

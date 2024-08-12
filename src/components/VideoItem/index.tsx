@@ -26,7 +26,7 @@ import { Transition } from "react-transition-group";
 import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
-import { sortPerformers } from "../../helpers";
+import { secondsToTimestamp, sortPerformers } from "../../helpers";
 
 export interface VideoItemProps extends IitemData {
   /** The fullscreen state set by the user. */
@@ -186,6 +186,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       videoRef.current.currentTime = (videoRef.current.duration / 100) * value;
     }
   };
+
+  const timecode = secondsToTimestamp(videoRef.current?.currentTime ?? 0);
+  const duration = secondsToTimestamp(videoRef.current?.duration ?? 0);
 
   /* -------------------------------- Subtitles ------------------------------- */
 
@@ -380,6 +383,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               onScrubEnd={handleScrubChange}
               onScrubStart={handleScrubChange}
             />
+            <div className={styles["scrubber--timecode"]}>
+              <span>{timecode}</span>
+              <span>{duration}</span>
+            </div>
           </div>
         )}
       </Transition>
