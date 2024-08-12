@@ -1,9 +1,11 @@
 import { faCircleInfo } from "@fortawesome/pro-solid-svg-icons/faCircleInfo";
+import { faExpand } from "@fortawesome/pro-solid-svg-icons/faExpand";
 import { faRepeat } from "@fortawesome/pro-solid-svg-icons/faRepeat";
 import { faSubtitles } from "@fortawesome/pro-solid-svg-icons/faSubtitles";
 import { faVolume } from "@fortawesome/pro-solid-svg-icons/faVolume";
 import { faBars } from "@fortawesome/pro-light-svg-icons/faBars";
 import { faCircleInfo as faCircleInfoOff } from "@fortawesome/pro-light-svg-icons/faCircleInfo";
+import { faExpand as faExpandOff } from "@fortawesome/pro-light-svg-icons/faExpand";
 import { faGear as faGearOff } from "@fortawesome/pro-light-svg-icons/faGear";
 import { faRepeat as faRepeatOff } from "@fortawesome/pro-light-svg-icons/faRepeat";
 import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-light-svg-icons/faSubtitles";
@@ -27,6 +29,8 @@ import { useIsInViewport } from "../../hooks";
 import { sortPerformers } from "../../helpers";
 
 export interface VideoItemProps extends IitemData {
+  /** The fullscreen state set by the user. */
+  isFullscreen: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
   /** Function for handling loading more videos data. */
@@ -38,6 +42,8 @@ export interface VideoItemProps extends IitemData {
   subtitlesOn: boolean;
   /** Function for handling toggling video audio on and off. */
   toggleAudioHandler: () => void;
+  /** Function for handling toggling fullscreen mode on and off. */
+  toggleFullscreenHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
   /** Function for handling toggling video subtitles on and off. */
@@ -115,6 +121,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (isInViewport && videoRef.current)
       videoRef.current.muted = props.isMuted;
   }, [props.isMuted]);
+
+  /* ------------------------------- Fullscreen ------------------------------- */
+
+  const fullscreenButtonClickHandler = () => {
+    if (isInViewport) props.toggleFullscreenHandler();
+  };
 
   /* ------------------------------ On end event ------------------------------ */
 
@@ -270,6 +282,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 <span className={styles["visually-hidden"]}>
                   {props.isMuted ? "Unmute" : "Mute"}
                 </span>
+              </button>
+              <button
+                data-testid="VideoItem--fullscreenButton"
+                onClick={fullscreenButtonClickHandler}
+                type="button"
+              >
+                <FontAwesomeIcon
+                  icon={props.isFullscreen ? faExpand : faExpandOff}
+                />
               </button>
               {subtitlesButton}
               <button

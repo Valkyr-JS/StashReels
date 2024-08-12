@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./Feed.scss";
-import VideoScoller from "../../components/VideoScroller";
+import VideoScroller from "../../components/VideoScroller";
 import { VideoItemProps } from "../../components/VideoItem";
 import { fetchData } from "../../helpers";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
@@ -51,12 +51,14 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     const processedData: VideoItemProps[] = sceneData.map((sc, i) => {
       return {
         index: queuedItems.length + i,
+        isFullscreen,
         isMuted,
         loadMoreVideosHandler: handleQueuingUpData,
         loopOnEnd,
         scene: sc,
         subtitlesOn: subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
+        toggleFullscreenHandler: handleTogglingFullscreen,
         toggleLoopHandler: handleTogglingLooping,
         toggleSubtitlesHandler: handleTogglingSubtitles,
         toggleUiHandler: handleTogglingUI,
@@ -70,6 +72,32 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
   const [isMuted, setIsMuted] = useState(true);
   const handleTogglingAudio = () => setIsMuted((prev) => !prev);
+
+  /* ------------------------------- Fullscreen ------------------------------- */
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const pageRef = useRef<HTMLElement>(null);
+
+  const handleTogglingFullscreen = () => {
+    if (document.fullscreenElement === null) {
+      pageRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  // Watch for fullscreen being changed by events other than the button click.
+  useEffect(() => {
+    function onFullscreenChange() {
+      setIsFullscreen(!!document.fullscreenElement);
+    }
+
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
 
   /* --------------------------------- Looping -------------------------------- */
 
@@ -96,9 +124,10 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
   /* -------------------------------- component ------------------------------- */
   return (
-    <main>
-      <VideoScoller
+    <main data-testid="FeedPage" ref={pageRef}>
+      <VideoScroller
         captionsDefault={props.captionsDefault}
+        isFullscreen={isFullscreen}
         isMuted={isMuted}
         items={queuedItems}
         fetchVideos={handleQueuingUpData}
@@ -115,8 +144,6 @@ export default FeedPage;
 /** Process individual scene data from Stash to app format. */
 const processSceneData = (sc: Scene): IsceneData | null => {
   if (!sc.paths.stream) return null;
-
-  console.log(sc);
 
   const processedData: IsceneData = {
     date: sc.date ?? undefined,

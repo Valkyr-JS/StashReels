@@ -9,6 +9,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     index: 0,
+    isFullscreen: false,
     isMuted: true,
     loadMoreVideosHandler: fn(),
     loopOnEnd: false,
@@ -27,6 +28,7 @@ const meta = {
     },
     subtitlesOn: true,
     toggleAudioHandler: fn(),
+    toggleFullscreenHandler: fn(),
     toggleLoopHandler: fn(),
     toggleSubtitlesHandler: fn(),
     toggleUiHandler: fn(),
