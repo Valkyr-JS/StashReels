@@ -188,7 +188,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   };
 
   const timecode = secondsToTimestamp(videoRef.current?.currentTime ?? 0);
-  const duration = secondsToTimestamp(videoRef.current?.duration ?? 0);
+  const duration = !!videoRef.current?.duration
+    ? secondsToTimestamp(videoRef.current.duration)
+    : null;
 
   /* -------------------------------- Subtitles ------------------------------- */
 
