@@ -28,6 +28,16 @@
   }
 }
 
+.tap-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 7rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .scrubber {
   grid-column: canvas-start / canvas-end;
   grid-row: scrubber-top / scrubber-bottom;
