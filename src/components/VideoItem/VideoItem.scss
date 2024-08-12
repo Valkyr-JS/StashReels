@@ -1,20 +1,11 @@
-// Copied from react-scrubber css import, and updated as needed.
-
-$bar-color: rgba(100, 100, 100, 0.5);
-$buffer-color: rgba(170, 170, 170, 0.6);
-$marker-color: rgb(240, 205, 5);
-$progress-color: #fff;
-$scrubber-bg-color: rgba(0, 0, 0, 0.15);
-$tooltip-color: rgba(0, 0, 0, 0.6);
-$tooltip-arrow-color: rgba(0, 0, 0, 0.6);
+@import "../../styles/variables.scss";
 
 .scrubber {
   width: 100%;
-  height: 100%;
+  height: $scrubber-height;
   position: relative;
   user-select: none;
   touch-action: none;
-  background-color: $scrubber-bg-color;
   transition: all ease-in-out;
 
   * {
@@ -162,22 +153,24 @@ $tooltip-arrow-color: rgba(0, 0, 0, 0.6);
 }
 
 .scrubber-container {
+  padding-top: $scrubber-container-padding-top;
+  padding-bottom: $scrubber-container-padding-bottom;
+  // Move the timecode away from the edge due to some curved screens
+  padding-right: 15px;
+  padding-left: 15px;
+
+  background-color: $scrubber-bg-color;
   &.entering,
   &.entered {
     .bar {
       opacity: 1;
     }
-    .scrubber {
-      background-color: $scrubber-bg-color;
-    }
   }
   &.exiting,
   &.exited {
+    background-color: rgba(0, 0, 0, 0);
     .bar {
       opacity: 0.35;
-    }
-    .scrubber {
-      background-color: rgba(0, 0, 0, 0);
     }
   }
 }

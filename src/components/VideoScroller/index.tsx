@@ -31,8 +31,6 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
 
   /** Handle loading more videos when required. */
   const handleLoadingMoreVideos = (index: number) => {
-    console.log(index, loadNewVidsAtIndex);
-
     // Only execute fetch if the video index matches the point at which new
     // videos need to be requested.
     if (index === loadNewVidsAtIndex) {
