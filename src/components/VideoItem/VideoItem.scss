@@ -1,16 +1,5 @@
 @import "../../styles/variables.scss";
 
-// Copied from react-scrubber css import, and updated as needed.
-$bar-color: rgba(100, 100, 100, 0.5);
-$buffer-color: rgba(170, 170, 170, 0.6);
-$marker-color: rgb(240, 205, 5);
-$progress-color: #fff;
-$scrubber-bg-color: rgba(0, 0, 0, 0.35);
-$tooltip-color: rgba(0, 0, 0, 0.6);
-$tooltip-arrow-color: rgba(0, 0, 0, 0.6);
-
-$scrubber-height: 10px;
-
 .scrubber {
   width: 100%;
   height: $scrubber-height;
@@ -164,8 +153,8 @@ $scrubber-height: 10px;
 }
 
 .scrubber-container {
-  padding-top: $ui-spacer * 2;
-  padding-bottom: $ui-spacer;
+  padding-top: $scrubber-container-padding-top;
+  padding-bottom: $scrubber-container-padding-bottom;
   // Move the timecode away from the edge due to some curved screens
   padding-right: 15px;
   padding-left: 15px;
