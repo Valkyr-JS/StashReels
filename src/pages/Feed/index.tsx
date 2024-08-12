@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Feed.scss";
-import VideoScoller from "../../components/VideoScroller";
+import VideoScroller from "../../components/VideoScroller";
 import { VideoItemProps } from "../../components/VideoItem";
 import { fetchData } from "../../helpers";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
@@ -97,7 +97,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /* -------------------------------- component ------------------------------- */
   return (
     <main>
-      <VideoScoller
+      <VideoScroller
         captionsDefault={props.captionsDefault}
         isMuted={isMuted}
         items={queuedItems}

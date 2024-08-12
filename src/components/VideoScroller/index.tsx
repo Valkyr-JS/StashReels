@@ -22,7 +22,7 @@ interface VideoScrollerProps {
   captionsDefault?: string;
 }
 
-const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
+const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   /* ------------------------ Handle loading new videos ----------------------- */
 
   const [loadNewVidsAtIndex, setloadNewVidsAtIndex] = useState(3);
@@ -71,4 +71,4 @@ const VideoScoller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   );
 };
 
-export default VideoScoller;
+export default VideoScroller;
