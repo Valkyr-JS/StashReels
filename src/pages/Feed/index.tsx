@@ -77,15 +77,27 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const pageRef = useRef<HTMLElement>(null);
-  const handleTogglingFullscreen = () => setIsFullscreen((prev) => !prev);
 
-  useEffect(() => {
-    if (isFullscreen && pageRef.current) {
-      pageRef.current.requestFullscreen();
+  const handleTogglingFullscreen = () => {
+    if (document.fullscreenElement === null) {
+      pageRef.current?.requestFullscreen();
+      setIsFullscreen(true);
     } else {
       document.exitFullscreen();
+      setIsFullscreen(false);
     }
-  }, [isFullscreen]);
+  };
+
+  // Watch for fullscreen being changed by events other than the button click.
+  useEffect(() => {
+    function onFullscreenChange() {
+      setIsFullscreen(!!document.fullscreenElement);
+    }
+
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
 
   /* --------------------------------- Looping -------------------------------- */
 
