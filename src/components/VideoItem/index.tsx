@@ -27,6 +27,7 @@ import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
+import { faPause, faPlay } from "@fortawesome/pro-solid-svg-icons";
 
 export interface VideoItemProps extends IitemData {
   /** The fullscreen state set by the user. */
@@ -65,6 +66,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     threshold: 0.8,
   });
 
+  /* ------------------------------- Play/pause ------------------------------- */
+
   useEffect(() => {
     // Play the video if it is currently in the viewport, otherwise pause it.
     if (isInViewport && videoRef.current) videoRef.current.play();
@@ -74,11 +77,22 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (isInViewport) props.loadMoreVideosHandler(props.index);
   }, [isInViewport]);
 
+  const [showTapIcon, setShowTapIcon] = useState(false);
+  const tapIconRef = useRef(null);
+
   /** Handle toggling the video play state. */
-  const togglePlayHandler = () =>
-    videoRef.current?.paused
-      ? videoRef.current.play()
-      : videoRef.current?.pause();
+  const togglePlayHandler = () => {
+    if (videoRef.current?.paused) {
+      videoRef.current.play();
+    } else {
+      videoRef.current?.pause();
+    }
+    // Display the tap icon, then hide it after some time.
+    setShowTapIcon(true);
+    setTimeout(() => {
+      setShowTapIcon(false);
+    }, 1200);
+  };
 
   /* ----------------------------- Toggle buttons ----------------------------- */
 
@@ -259,6 +273,42 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
         {captionSources}
       </video>
+      <Transition
+        in={showTapIcon}
+        nodeRef={tapIconRef}
+        timeout={150}
+        unmountOnExit
+      >
+        {(state) => (
+          <FontAwesomeIcon
+            className={styles["tap-icon"]}
+            icon={videoRef.current?.paused ? faPause : faPlay}
+            ref={tapIconRef}
+            style={{
+              ...toggleableUiStyles,
+              ...toggleableUiTransitionStyles[state],
+            }}
+          />
+        )}
+      </Transition>
+      <Transition
+        in={sceneInfoOpen}
+        nodeRef={sceneInfoPanelRef}
+        timeout={buttonsTransitionDuration}
+        mountOnEnter
+        unmountOnExit
+      >
+        {(state) => (
+          <SceneInfoPanel
+            {...props.scene}
+            ref={sceneInfoPanelRef}
+            style={{
+              ...toggleableUiStyles,
+              ...toggleableUiTransitionStyles[state],
+            }}
+          />
+        )}
+      </Transition>
       <div className={styles.controls}>
         <Transition
           in={props.uiIsVisible}
@@ -348,24 +398,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           )}
         </Transition>
       </div>
-      <Transition
-        in={sceneInfoOpen}
-        nodeRef={sceneInfoPanelRef}
-        timeout={buttonsTransitionDuration}
-        mountOnEnter
-        unmountOnExit
-      >
-        {(state) => (
-          <SceneInfoPanel
-            {...props.scene}
-            ref={sceneInfoPanelRef}
-            style={{
-              ...toggleableUiStyles,
-              ...toggleableUiTransitionStyles[state],
-            }}
-          />
-        )}
-      </Transition>
       <Transition
         in={props.uiIsVisible}
         nodeRef={scrubberRef}

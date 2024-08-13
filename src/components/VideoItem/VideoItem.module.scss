@@ -28,7 +28,18 @@
   }
 }
 
+.tap-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 7rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .scrubber {
+  position: relative;
   grid-column: canvas-start / canvas-end;
   grid-row: scrubber-top / scrubber-bottom;
   height: 100%;
@@ -102,6 +113,9 @@
 
   display: grid;
   transition: opacity ease-in-out;
+
+  // Stop click events propagating to the video.
+  position: relative;
 
   // Title
   h5 {
