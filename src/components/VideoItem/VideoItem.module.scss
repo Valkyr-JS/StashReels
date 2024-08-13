@@ -39,6 +39,7 @@
 }
 
 .scrubber {
+  position: relative;
   grid-column: canvas-start / canvas-end;
   grid-row: scrubber-top / scrubber-bottom;
   height: 100%;
@@ -112,6 +113,9 @@
 
   display: grid;
   transition: opacity ease-in-out;
+
+  // Stop click events propagating to the video.
+  position: relative;
 
   // Title
   h5 {

@@ -291,6 +291,24 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           />
         )}
       </Transition>
+      <Transition
+        in={sceneInfoOpen}
+        nodeRef={sceneInfoPanelRef}
+        timeout={buttonsTransitionDuration}
+        mountOnEnter
+        unmountOnExit
+      >
+        {(state) => (
+          <SceneInfoPanel
+            {...props.scene}
+            ref={sceneInfoPanelRef}
+            style={{
+              ...toggleableUiStyles,
+              ...toggleableUiTransitionStyles[state],
+            }}
+          />
+        )}
+      </Transition>
       <div className={styles.controls}>
         <Transition
           in={props.uiIsVisible}
@@ -380,24 +398,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           )}
         </Transition>
       </div>
-      <Transition
-        in={sceneInfoOpen}
-        nodeRef={sceneInfoPanelRef}
-        timeout={buttonsTransitionDuration}
-        mountOnEnter
-        unmountOnExit
-      >
-        {(state) => (
-          <SceneInfoPanel
-            {...props.scene}
-            ref={sceneInfoPanelRef}
-            style={{
-              ...toggleableUiStyles,
-              ...toggleableUiTransitionStyles[state],
-            }}
-          />
-        )}
-      </Transition>
       <Transition
         in={props.uiIsVisible}
         nodeRef={scrubberRef}
