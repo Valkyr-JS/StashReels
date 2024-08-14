@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import * as styles from "./VideoScroller.module.scss";
-import VideoItem, { VideoItemProps } from "../VideoItem";
-import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
+import VideoItem from "../VideoItem";
+import * as videoItemStyles from "../VideoItem/VideoItem.module.scss";
+import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 
 interface VideoScrollerProps {
-  /** Handler to fetch more video data from the queue. */
-  fetchVideos: (length: number) => void;
   /** The fullscreen state set by the user. */
   isFullscreen: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
   /** The data for each item in the queue. */
-  items: VideoItemProps[];
+  items: IitemData[];
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
@@ -27,17 +26,10 @@ interface VideoScrollerProps {
 const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   /* ------------------------ Handle loading new videos ----------------------- */
 
-  const [loadNewVidsAtIndex, setloadNewVidsAtIndex] = useState(3);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  /** Handle loading more videos when required. */
-  const handleLoadingMoreVideos = (index: number) => {
-    // Only execute fetch if the video index matches the point at which new
-    // videos need to be requested.
-    if (index === loadNewVidsAtIndex) {
-      props.fetchVideos(ITEMS_TO_FETCH_PER_LOAD);
-      setloadNewVidsAtIndex((prev) => prev + ITEMS_TO_FETCH_PER_LOAD);
-    }
-  };
+  const handleChangeItem = (newItemIndex: number) =>
+    setCurrentIndex(newItemIndex);
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -49,25 +41,31 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
       tabIndex={0}
     >
       {items.map((item, i) => {
-        return (
-          <VideoItem
-            captionsDefault={props.captionsDefault}
-            index={i}
-            isFullscreen={props.isFullscreen}
-            isMuted={props.isMuted}
-            key={i}
-            loopOnEnd={props.loopOnEnd}
-            loadMoreVideosHandler={handleLoadingMoreVideos}
-            scene={item.scene}
-            subtitlesOn={props.subtitlesOn}
-            toggleAudioHandler={item.toggleAudioHandler}
-            toggleFullscreenHandler={item.toggleFullscreenHandler}
-            toggleLoopHandler={item.toggleLoopHandler}
-            toggleSubtitlesHandler={item.toggleSubtitlesHandler}
-            toggleUiHandler={item.toggleUiHandler}
-            uiIsVisible={props.uiIsVisible}
-          />
-        );
+        if (
+          i >= currentIndex - ITEM_BUFFER_EACH_SIDE &&
+          i <= currentIndex + ITEM_BUFFER_EACH_SIDE
+        ) {
+          return (
+            <VideoItem
+              captionsDefault={props.captionsDefault}
+              changeItemHandler={handleChangeItem}
+              currentIndex={currentIndex}
+              index={i}
+              isFullscreen={props.isFullscreen}
+              isMuted={props.isMuted}
+              key={i}
+              loopOnEnd={props.loopOnEnd}
+              scene={item.scene}
+              subtitlesOn={props.subtitlesOn}
+              toggleAudioHandler={item.toggleAudioHandler}
+              toggleFullscreenHandler={item.toggleFullscreenHandler}
+              toggleLoopHandler={item.toggleLoopHandler}
+              toggleSubtitlesHandler={item.toggleSubtitlesHandler}
+              toggleUiHandler={item.toggleUiHandler}
+              uiIsVisible={props.uiIsVisible}
+            />
+          );
+        } else return <div key={i} className={videoItemStyles.container} />;
       })}
     </div>
   );

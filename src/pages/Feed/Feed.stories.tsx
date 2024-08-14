@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
-import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
+import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
 
 const meta = {
@@ -63,9 +63,11 @@ export const LoadVideosOnRender: Story = {
     expect(scroller.childNodes.length).toBe(0);
 
     // Await promise for videos to be fetched
-    await waitFor(() =>
-      expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD)
-    );
+    await waitFor(() => {
+      // No more than 11 videos should be loaded at once
+      const allItems = canvas.getAllByTestId("VideoItem--container");
+      expect(allItems.length).not.toBeGreaterThan(ITEM_BUFFER_EACH_SIDE + 1);
+    });
   },
 };
 
@@ -79,32 +81,26 @@ export const LoadVideosOnScroll: Story = {
     // Run the previous story
     await LoadVideosOnRender.play!(context);
 
-    const allVideos: HTMLVideoElement[] =
-      within(scroller).getAllByTestId("VideoItem--video");
-    const video0: HTMLVideoElement = allVideos[0];
+    // Fire 15 scroll events, and check that there are never more than 11 videos at once (current plus five either side)
 
-    // Fire a scroll down event to video index 1.
-    await waitFor(() => {
-      scroller.scrollTo(0, (video0.scrollHeight / 3) * 2);
-      expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD);
-    });
+    // Fire a scroll down event to item index 1.
+    for (let i = 0; i < ITEM_BUFFER_EACH_SIDE * 2 + 1; i++) {
+      setTimeout(
+        () => {
+          const allItems = canvas.getAllByTestId("VideoItem--container");
 
-    // Fire a scroll down event to video index 2, at which point a load request
-    // is sent.
-    await waitFor(() => {
-      scroller.scrollTo(0, (video0.scrollHeight + video0.scrollHeight / 3) * 2);
-      expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD);
-    });
+          scroller.scrollTo(
+            0,
+            i * allItems[0].scrollHeight + (allItems[0].scrollHeight / 3) * 2
+          );
 
-    // Fire a scroll down event to video index 3, at which point the requested
-    // videos should be loaded.
-    await waitFor(() => {
-      scroller.scrollTo(
-        0,
-        (video0.scrollHeight * 2 + video0.scrollHeight / 3) * 2
+          expect(allItems.length).not.toBeGreaterThan(
+            ITEM_BUFFER_EACH_SIDE * 2 + 1
+          );
+        },
+        1000 * i + 1000
       );
-      expect(scroller.childNodes.length).toBe(ITEMS_TO_FETCH_PER_LOAD * 2);
-    });
+    }
   },
 };
 

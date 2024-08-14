@@ -30,27 +30,19 @@ import { secondsToTimestamp, sortPerformers } from "../../helpers";
 import { faPause, faPlay } from "@fortawesome/pro-solid-svg-icons";
 
 export interface VideoItemProps extends IitemData {
+  /** Function for handling changing the current item. */
+  changeItemHandler: (newIndex: number) => void;
+  /** The index of the item currently displayed in the scroller. */
+  currentIndex: number;
+  /** The zero-based index of the scene in the video queue. */
+  index: number;
   /** The fullscreen state set by the user. */
   isFullscreen: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
-  /** Function for handling loading more videos data. */
-  loadMoreVideosHandler: (index: number) => void;
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
-  /** The subtitles state set by the user. */
-  subtitlesOn: boolean;
-  /** Function for handling toggling video audio on and off. */
-  toggleAudioHandler: () => void;
-  /** Function for handling toggling fullscreen mode on and off. */
-  toggleFullscreenHandler: () => void;
-  /** Function for handling toggling video looping on and off. */
-  toggleLoopHandler: () => void;
-  /** Function for handling toggling video subtitles on and off. */
-  toggleSubtitlesHandler: () => void;
-  /** Function for handling toggling the UI button visibility */
-  toggleUiHandler: () => void;
   /** Whether the UI buttons are visible. */
   uiIsVisible: boolean;
   /** The default captions language to show. `undefined` means no default
@@ -73,8 +65,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (isInViewport && videoRef.current) videoRef.current.play();
     else videoRef.current?.pause();
 
-    // Fetch more videos if required
-    if (isInViewport) props.loadMoreVideosHandler(props.index);
+    // Update the current item data
+    if (isInViewport) props.changeItemHandler(props.index);
   }, [isInViewport]);
 
   const [showTapIcon, setShowTapIcon] = useState(false);

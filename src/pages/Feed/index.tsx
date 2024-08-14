@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./Feed.scss";
 import VideoScroller from "../../components/VideoScroller";
-import { VideoItemProps } from "../../components/VideoItem";
 import { fetchData } from "../../helpers";
-import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
 interface FeedPageProps {
   query: string;
@@ -13,8 +11,11 @@ interface FeedPageProps {
 }
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
+  /** Get and set the raw scene data from Stash. */
   const [allSceneData, setAllSceneData] = useState<IsceneData[]>([]);
-  const [queuedItems, setQueuedItems] = useState<VideoItemProps[]>([]);
+
+  /** Get and set the processed scene data. */
+  const [allProcessedData, setAllProcessedData] = useState<IitemData[]>([]);
 
   /**
    * ? All scene data is fetched and from Stash on load. However, it is not
@@ -42,30 +43,20 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   }, []);
 
   /** Handles fetching video data */
-  const handleQueuingUpData = (length: number) => {
-    // Once all scene data has been fetched, queue up the first lot of videos.
-    const startIndex = queuedItems.length;
-    const endIndex = startIndex + length;
-    const sceneData = [...allSceneData].slice(startIndex, endIndex);
-
-    const processedData: VideoItemProps[] = sceneData.map((sc, i) => {
+  const handleProcessingItemData = () => {
+    // Once the scene data has been fetched, process it for use in an item.
+    const processedItems: IitemData[] = allSceneData.map((sc) => {
       return {
-        index: queuedItems.length + i,
-        isFullscreen,
-        isMuted,
-        loadMoreVideosHandler: handleQueuingUpData,
-        loopOnEnd,
         scene: sc,
-        subtitlesOn: subtitlesOn,
+        subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
         toggleFullscreenHandler: handleTogglingFullscreen,
         toggleLoopHandler: handleTogglingLooping,
         toggleSubtitlesHandler: handleTogglingSubtitles,
         toggleUiHandler: handleTogglingUI,
-        uiIsVisible: showUI,
       };
     });
-    setQueuedItems((prev) => [...prev, ...processedData]);
+    setAllProcessedData(processedItems);
   };
 
   /* ---------------------------------- Audio --------------------------------- */
@@ -106,7 +97,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
   useEffect(() => {
     // Once scene data is loaded, process and queue it into the scroller.
-    handleQueuingUpData(ITEMS_TO_FETCH_PER_LOAD);
+    handleProcessingItemData();
   }, [allSceneData]);
 
   /* -------------------------------- Subtitles ------------------------------- */
@@ -129,8 +120,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         captionsDefault={props.captionsDefault}
         isFullscreen={isFullscreen}
         isMuted={isMuted}
-        items={queuedItems}
-        fetchVideos={handleQueuingUpData}
+        items={allProcessedData}
         loopOnEnd={loopOnEnd}
         subtitlesOn={subtitlesOn}
         uiIsVisible={showUI}

@@ -8,14 +8,10 @@ const meta = {
   component: VideoScroller,
   tags: ["autodocs"],
   args: {
-    fetchVideos: fn(),
+    isFullscreen: false,
+    isMuted: true,
     items: [
       {
-        index: 0,
-        isFullscreen: false,
-        isMuted: true,
-        loadMoreVideosHandler: fn(),
-        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2056",
@@ -30,14 +26,8 @@ const meta = {
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
-        uiIsVisible: true,
       },
       {
-        index: 1,
-        isFullscreen: false,
-        isMuted: true,
-        loadMoreVideosHandler: fn(),
-        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2057",
@@ -52,14 +42,8 @@ const meta = {
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
-        uiIsVisible: true,
       },
       {
-        index: 2,
-        isFullscreen: false,
-        isMuted: true,
-        loadMoreVideosHandler: fn(),
-        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2061",
@@ -74,14 +58,8 @@ const meta = {
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
-        uiIsVisible: true,
       },
       {
-        index: 3,
-        isFullscreen: false,
-        isMuted: true,
-        loadMoreVideosHandler: fn(),
-        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "2063",
@@ -96,14 +74,8 @@ const meta = {
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
-        uiIsVisible: true,
       },
       {
-        index: 4,
-        isFullscreen: false,
-        isMuted: true,
-        loadMoreVideosHandler: fn(),
-        loopOnEnd: false,
         scene: {
           captions: undefined,
           id: "3376",
@@ -118,9 +90,10 @@ const meta = {
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
-        uiIsVisible: true,
       },
     ],
+    loopOnEnd: false,
+    uiIsVisible: true,
   },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof VideoScroller>;
