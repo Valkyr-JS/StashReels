@@ -4,10 +4,20 @@ declare module "*.module.scss" {
 }
 
 interface IitemData {
-  /** The zero-based index of the scene in the video queue. */
-  index: number;
   /** The scene data. */
   scene: IsceneData;
+  /** The subtitles state set by the user. */
+  subtitlesOn: boolean;
+  /** Function for handling toggling video audio on and off. */
+  toggleAudioHandler: () => void;
+  /** Function for handling toggling fullscreen mode on and off. */
+  toggleFullscreenHandler: () => void;
+  /** Function for handling toggling video looping on and off. */
+  toggleLoopHandler: () => void;
+  /** Function for handling toggling video subtitles on and off. */
+  toggleSubtitlesHandler: () => void;
+  /** Function for handling toggling the UI button visibility */
+  toggleUiHandler: () => void;
 }
 
 interface IsceneData {

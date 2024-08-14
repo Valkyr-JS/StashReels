@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./Feed.scss";
 import VideoScroller from "../../components/VideoScroller";
-import { VideoItemProps } from "../../components/VideoItem";
 import { fetchData } from "../../helpers";
 import { ITEMS_TO_FETCH_PER_LOAD } from "../../constants";
 
@@ -14,7 +13,7 @@ interface FeedPageProps {
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
   const [allSceneData, setAllSceneData] = useState<IsceneData[]>([]);
-  const [queuedItems, setQueuedItems] = useState<VideoItemProps[]>([]);
+  const [queuedItems, setQueuedItems] = useState<IitemData[]>([]);
 
   /**
    * ? All scene data is fetched and from Stash on load. However, it is not
@@ -48,24 +47,18 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     const endIndex = startIndex + length;
     const sceneData = [...allSceneData].slice(startIndex, endIndex);
 
-    const processedData: VideoItemProps[] = sceneData.map((sc, i) => {
+    const processedItems: IitemData[] = sceneData.map((sc, i) => {
       return {
-        index: queuedItems.length + i,
-        isFullscreen,
-        isMuted,
-        loadMoreVideosHandler: handleQueuingUpData,
-        loopOnEnd,
         scene: sc,
-        subtitlesOn: subtitlesOn,
+        subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
         toggleFullscreenHandler: handleTogglingFullscreen,
         toggleLoopHandler: handleTogglingLooping,
         toggleSubtitlesHandler: handleTogglingSubtitles,
         toggleUiHandler: handleTogglingUI,
-        uiIsVisible: showUI,
       };
     });
-    setQueuedItems((prev) => [...prev, ...processedData]);
+    setQueuedItems((prev) => [...prev, ...processedItems]);
   };
 
   /* ---------------------------------- Audio --------------------------------- */

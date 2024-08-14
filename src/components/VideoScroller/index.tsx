@@ -11,7 +11,7 @@ interface VideoScrollerProps {
   /** The audio state set by the user. */
   isMuted: boolean;
   /** The data for each item in the queue. */
-  items: VideoItemProps[];
+  items: IitemData[];
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
@@ -56,8 +56,8 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
             isFullscreen={props.isFullscreen}
             isMuted={props.isMuted}
             key={i}
-            loopOnEnd={props.loopOnEnd}
             loadMoreVideosHandler={handleLoadingMoreVideos}
+            loopOnEnd={props.loopOnEnd}
             scene={item.scene}
             subtitlesOn={props.subtitlesOn}
             toggleAudioHandler={item.toggleAudioHandler}
