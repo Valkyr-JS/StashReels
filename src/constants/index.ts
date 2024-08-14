@@ -1,5 +1,5 @@
 /** The number of items to fetch data for. */
-export const ITEMS_TO_FETCH_PER_LOAD = 5 as const;
+export const ITEM_BUFFER_EACH_SIDE = 5 as const;
 
 /** The number of items remaining in the queue before new item data is fetched.
  * */

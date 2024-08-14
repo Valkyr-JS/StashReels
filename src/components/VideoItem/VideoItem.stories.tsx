@@ -8,10 +8,11 @@ const meta = {
   component: VideoItem,
   tags: ["autodocs"],
   args: {
+    currentIndex: 0,
     index: 0,
     isFullscreen: false,
     isMuted: true,
-    loadMoreVideosHandler: fn(),
+    changeItemHandler: fn(),
     loopOnEnd: false,
     scene: {
       date: "2021-02-18",

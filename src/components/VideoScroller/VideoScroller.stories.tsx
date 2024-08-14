@@ -8,7 +8,6 @@ const meta = {
   component: VideoScroller,
   tags: ["autodocs"],
   args: {
-    fetchVideos: fn(),
     isFullscreen: false,
     isMuted: true,
     items: [
