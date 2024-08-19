@@ -92,24 +92,43 @@ const processFilter = (filter: any) => {
   return updatedFilter;
 };
 
-/** Process the raw 1object_filter` data from Stash into GQL. */
-const processObjectFilter = (filter: any) => {
-  const updatedFilter = { ...filter };
+/** Process the raw `object_filter` data from Stash into GQL. */
+const processObjectFilter = (objectFilter: any) => {
+  const updatedFilter = { ...objectFilter };
+  console.log(objectFilter);
 
-  if (filter.orientation) {
-    updatedFilter.orientation = {
-      value: filter.orientation.value.map(
-        (v: string) => new EnumType(v.toUpperCase())
-      ),
-    };
-  }
+  // Loop through each property in the object filter
+  for (const filterType of Object.keys(objectFilter)) {
+    console.log(objectFilter[filterType]);
+    switch (filterType) {
+      // `MultiCriterionInput`
+      case "performers":
+        updatedFilter[filterType] = {
+          modifier: new EnumType(objectFilter[filterType].modifier),
+          value: objectFilter[filterType].value.items.map((i: any) => i.id),
+        };
+        break;
 
-  if (filter.performers) {
-    updatedFilter.performers = {
-      ...filter.performers,
-      modifier: new EnumType(filter.performers.modifier),
-      value: filter.performers.value.items.map((i: any) => i.id),
-    };
+      // `OrientationCriterionInput`
+      case "orientation":
+        updatedFilter[filterType] = {
+          value: objectFilter[filterType].value.map(
+            (v: string) => new EnumType(v.toUpperCase())
+          ),
+        };
+        break;
+
+      // `StringCriterionInput`
+      case "title":
+        updatedFilter[filterType] = {
+          modifier: new EnumType(updatedFilter[filterType].modifier),
+          value: objectFilter[filterType].value,
+        };
+        break;
+
+      default:
+        break;
+    }
   }
 
   return updatedFilter;
