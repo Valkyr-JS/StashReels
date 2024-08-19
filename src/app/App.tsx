@@ -100,6 +100,7 @@ const processObjectFilter = (objectFilter: any) => {
   // Loop through each property in the object filter
   for (const filterType of Object.keys(objectFilter)) {
     console.log(objectFilter[filterType]);
+
     switch (filterType) {
       // `MultiCriterionInput`
       case "performers":
@@ -119,7 +120,18 @@ const processObjectFilter = (objectFilter: any) => {
         break;
 
       // `StringCriterionInput`
+      case "audio_codec":
+      case "captions":
+      case "checksum": // ! Untested
+      case "code": // Studio code
+      case "details":
+      case "director":
+      case "oshash": // Hash
+      case "path":
+      case "phash": // ! Untested
       case "title":
+      case "url":
+      case "video_codec":
         updatedFilter[filterType] = {
           modifier: new EnumType(updatedFilter[filterType].modifier),
           value: objectFilter[filterType].value,
