@@ -102,6 +102,36 @@ const processObjectFilter = (objectFilter: any) => {
     console.log(objectFilter[filterType]);
 
     switch (filterType) {
+      // `IntCriterionInput`
+      case "bitrate":
+      case "duration":
+      case "file_count":
+      case "framerate":
+      case "id": // ! Untested
+      case "interactive_speed":
+      case "o_counter":
+      case "performer_age":
+      case "performer_count":
+      case "play_count":
+      case "play_duration":
+      case "rating100": // Rating
+      case "resume_time":
+      case "tag_count":
+        // Always update `modifier` and `value`
+        updatedFilter[filterType] = {
+          modifier: new EnumType(objectFilter[filterType].modifier),
+          value: objectFilter[filterType].value.value,
+        };
+
+        // Only set `value2` if it has been declared
+        if (typeof objectFilter[filterType].value.value2 !== "undefined") {
+          updatedFilter[filterType] = {
+            ...updatedFilter[filterType],
+            value2: objectFilter[filterType].value.value2,
+          };
+        }
+        break;
+
       // `MultiCriterionInput`
       case "performers":
         updatedFilter[filterType] = {
