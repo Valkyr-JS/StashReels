@@ -175,6 +175,13 @@ const processObjectFilter = (objectFilter: any) => {
         }
         break;
 
+      // `PHashDuplicationCriterionInput`
+      case "duplicated":
+        updatedFilter[filterType] = {
+          duplicated: objectFilter[filterType].value === "true",
+        };
+        break;
+
       // `StringCriterionInput`
       case "audio_codec":
       case "captions":
