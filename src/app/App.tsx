@@ -164,7 +164,11 @@ const processObjectFilter = (objectFilter: any) => {
 
       // `MultiCriterionInput`
       case "performers":
+        // value is either [] or {excludes: [], value: []}
         updatedFilter[filterType] = {
+          excludes: objectFilter[filterType].value.excluded.map(
+            (i: { id: string }) => i.id
+          ),
           modifier: new EnumType(objectFilter[filterType].modifier),
           value: objectFilter[filterType].value.items.map(
             (i: { id: string }) => i.id
@@ -284,6 +288,19 @@ const processObjectFilter = (objectFilter: any) => {
         updatedFilter[filterType] = {
           modifier: new EnumType(updatedFilter[filterType].modifier),
           value: objectFilter[filterType].value,
+        };
+        break;
+
+      // OTHER
+
+      // "galleries and "movies" are `MultiCriterionInput` but the output doesn't match.
+      case "galleries":
+      case "movies":
+        updatedFilter[filterType] = {
+          modifier: new EnumType(objectFilter[filterType].modifier),
+          value: objectFilter[filterType].value.map(
+            (i: { id: string }) => i.id
+          ),
         };
         break;
 
