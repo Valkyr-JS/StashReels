@@ -164,7 +164,6 @@ const processObjectFilter = (objectFilter: any) => {
 
       // `MultiCriterionInput`
       case "performers":
-        // value is either [] or {excludes: [], value: []}
         updatedFilter[filterType] = {
           excludes: objectFilter[filterType].value.excluded.map(
             (i: { id: string }) => i.id
@@ -264,6 +263,15 @@ const processObjectFilter = (objectFilter: any) => {
             modifier: new EnumType(objectFilter[filterType].modifier),
             value: new EnumType(resEnumString),
           };
+        break;
+
+      // `StashIDCriterionInput`
+      case "stash_id_endpoint":
+        updatedFilter[filterType] = {
+          endpoint: objectFilter[filterType].value.endpoint,
+          modifier: new EnumType(updatedFilter[filterType].modifier),
+          stash_id: objectFilter[filterType].value.stashID,
+        };
         break;
 
       // `String`
