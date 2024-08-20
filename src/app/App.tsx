@@ -132,6 +132,8 @@ const processObjectFilter = (objectFilter: any) => {
         }
         break;
 
+      // `DateCriterionInput`
+      case "date":
       // `IntCriterionInput`
       case "bitrate":
       case "duration":
