@@ -109,6 +109,29 @@ const processObjectFilter = (objectFilter: any) => {
         updatedFilter[filterType] = objectFilter[filterType].value === "true";
         break;
 
+      // `HierarchicalMultiCriterionInput`
+      case "performer_tags":
+      case "studios":
+      case "tags":
+        updatedFilter[filterType] = {
+          excludes: objectFilter[filterType].value.excluded.map(
+            (i: { id: string; label: string }) => i.id
+          ),
+          modifier: new EnumType(objectFilter[filterType].modifier),
+          value: objectFilter[filterType].value.items.map(
+            (i: { id: string; label: string }) => i.id
+          ),
+        };
+
+        // Only set `depth` if it has been declared
+        if (typeof objectFilter[filterType].value.depth !== "undefined") {
+          updatedFilter[filterType] = {
+            ...updatedFilter[filterType],
+            depth: objectFilter[filterType].value.depth,
+          };
+        }
+        break;
+
       // `IntCriterionInput`
       case "bitrate":
       case "duration":
