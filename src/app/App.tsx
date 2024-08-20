@@ -309,6 +309,7 @@ const processObjectFilter = (objectFilter: any) => {
 
       // "galleries and "movies" are `MultiCriterionInput` but the output doesn't match.
       case "galleries":
+      case "groups": // ! Untested
       case "movies":
         updatedFilter[filterType] = {
           modifier: new EnumType(objectFilter[filterType].modifier),
