@@ -136,7 +136,9 @@ const processObjectFilter = (objectFilter: any) => {
       case "performers":
         updatedFilter[filterType] = {
           modifier: new EnumType(objectFilter[filterType].modifier),
-          value: objectFilter[filterType].value.items.map((i: any) => i.id),
+          value: objectFilter[filterType].value.items.map(
+            (i: { id: string }) => i.id
+          ),
         };
         break;
 
@@ -147,6 +149,23 @@ const processObjectFilter = (objectFilter: any) => {
             (v: string) => new EnumType(v.toUpperCase())
           ),
         };
+        break;
+
+      // `PhashDistanceCriterionInput`
+      case "phash_distance":
+        // Value is either an object or a string
+        updatedFilter[filterType] = {
+          modifier: new EnumType(objectFilter[filterType].modifier),
+          value: objectFilter[filterType].value.value,
+        };
+
+        // Only set `distance` if it has been declared
+        if (typeof objectFilter[filterType].value.distance !== "undefined") {
+          updatedFilter[filterType] = {
+            ...updatedFilter[filterType],
+            distance: objectFilter[filterType].value.distance,
+          };
+        }
         break;
 
       // `StringCriterionInput`
