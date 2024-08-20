@@ -147,6 +147,10 @@ const processObjectFilter = (objectFilter: any) => {
       case "rating100": // Rating
       case "resume_time":
       case "tag_count":
+      // `TimestampCriterionInput`
+      case "created_at":
+      case "last_played_at":
+      case "updated_at":
         // Always update `modifier` and `value`
         updatedFilter[filterType] = {
           modifier: new EnumType(objectFilter[filterType].modifier),
