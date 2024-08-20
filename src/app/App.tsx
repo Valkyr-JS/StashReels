@@ -102,6 +102,13 @@ const processObjectFilter = (objectFilter: any) => {
     console.log(objectFilter[filterType]);
 
     switch (filterType) {
+      // `Boolean`
+      case "interactive":
+      case "organized":
+      case "performer_favorite":
+        updatedFilter[filterType] = objectFilter[filterType].value === "true";
+        break;
+
       // `IntCriterionInput`
       case "bitrate":
       case "duration":
