@@ -182,6 +182,63 @@ const processObjectFilter = (objectFilter: any) => {
         };
         break;
 
+      // `ResolutionCriterionInput`
+      case "resolution":
+        // Get ResolutionEnum from value
+        let resEnumString = "";
+        switch (objectFilter[filterType].value) {
+          case "144p":
+            resEnumString = "VERY_LOW";
+            break;
+          case "240p":
+            resEnumString = "LOW";
+            break;
+          case "360p":
+            resEnumString = "R360P";
+            break;
+          case "480p":
+            resEnumString = "STANDARD";
+            break;
+          case "540p":
+            resEnumString = "WEB_HD";
+            break;
+          case "720p":
+            resEnumString = "STANDARD_HD";
+            break;
+          case "1080p":
+            resEnumString = "FULL_HD";
+            break;
+          case "1440p":
+            resEnumString = "QUAD_HD";
+            break;
+          case "4K":
+            resEnumString = "FOUR_K";
+            break;
+          case "5K":
+            resEnumString = "FIVE_K";
+            break;
+          case "6K":
+            resEnumString = "SIX_K";
+            break;
+          case "7K":
+            resEnumString = "SEVEN_K";
+            break;
+          case "8K":
+            resEnumString = "EIGHT_K";
+            break;
+          case "8K+":
+            resEnumString = "HUGE";
+            break;
+        }
+
+        if (!resEnumString) updatedFilter[filterType] = undefined;
+        else
+          updatedFilter[filterType] = {
+            modifier: new EnumType(objectFilter[filterType].modifier),
+            value: new EnumType(resEnumString),
+          };
+        break;
+
       // `StringCriterionInput`
       case "audio_codec":
       case "captions":
