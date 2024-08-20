@@ -239,6 +239,12 @@ const processObjectFilter = (objectFilter: any) => {
           };
         break;
 
+      // `String`
+      case "has_markers":
+      case "is_missing":
+        updatedFilter[filterType] = objectFilter[filterType].value;
+        break;
+
       // `StringCriterionInput`
       case "audio_codec":
       case "captions":
