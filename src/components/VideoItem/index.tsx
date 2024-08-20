@@ -359,8 +359,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 />
               </button>
               <button
-                data-testid="VideoItem--configButton"
-                onClick={() => console.log("config settings")}
+                data-testid="VideoItem--settingsButton"
+                onClick={() => props.setSettingsTabHandler(true)}
                 type="button"
               >
                 <FontAwesomeIcon icon={faGearOff} />

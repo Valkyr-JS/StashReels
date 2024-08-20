@@ -1,14 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
-import Settings from ".";
+import SettingsTab from ".";
 
 const meta = {
-  title: "Components/Settings",
-  component: Settings,
+  title: "Components/Settings Tab",
+  component: SettingsTab,
   tags: ["autodocs"],
-  args: {},
+  args: {
+    transitionStatus: "entered",
+  },
   decorators: [setCssVHDecorator],
-} satisfies Meta<typeof Settings>;
+} satisfies Meta<typeof SettingsTab>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import "./Feed.scss";
 import VideoScroller from "../../components/VideoScroller";
 import { fetchData } from "../../helpers";
+import SettingsTab from "../../components/SettingsTab";
+import { Transition } from "react-transition-group";
 
 interface FeedPageProps {
   query: string;
@@ -48,6 +50,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     const processedItems: IitemData[] = allSceneData.map((sc) => {
       return {
         scene: sc,
+        setSettingsTabHandler: handleSetSettingsTab,
         subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
         toggleFullscreenHandler: handleTogglingFullscreen,
@@ -100,6 +103,12 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     handleProcessingItemData();
   }, [allSceneData]);
 
+  /* ------------------------------ Settings tab ------------------------------ */
+
+  const [showSettings, setShowSettings] = useState(false);
+  const settingsTabRef = useRef<HTMLDivElement>(null);
+  const handleSetSettingsTab = (show: boolean) => setShowSettings(show);
+
   /* -------------------------------- Subtitles ------------------------------- */
 
   const [subtitlesOn, setSubtitlesOn] = useState(true);
@@ -125,6 +134,16 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         subtitlesOn={subtitlesOn}
         uiIsVisible={showUI}
       />
+      <Transition
+        in={showSettings}
+        nodeRef={settingsTabRef}
+        timeout={150}
+        unmountOnExit
+      >
+        {(state) => (
+          <SettingsTab ref={settingsTabRef} transitionStatus={state} />
+        )}
+      </Transition>
     </main>
   );
 };

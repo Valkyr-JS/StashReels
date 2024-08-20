@@ -27,6 +27,7 @@ const meta = {
       studio: "Studio name",
       title: "Scene Title 1",
     },
+    setSettingsTabHandler: fn(),
     subtitlesOn: true,
     toggleAudioHandler: fn(),
     toggleFullscreenHandler: fn(),

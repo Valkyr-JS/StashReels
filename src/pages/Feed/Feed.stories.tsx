@@ -267,6 +267,41 @@ export const ToggleFullscreen: Story = {
   },
 };
 
+export const ToggleSettings: Story = {
+  name: "Toggle settings",
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const scroller: HTMLDivElement = canvas.getByTestId(
+      "VideoScroller--container"
+    );
+
+    // Await promise for videos to be fetched
+    await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
+
+    const toggleSettingsButton = canvas.getAllByTestId(
+      "VideoItem--settingsButton"
+    )[0];
+    const settingsTab = canvas.queryByTestId("SettingsTab");
+
+    // Expect settings not to be shown by default.
+    expect(settingsTab).not.toBeInTheDocument();
+
+    // Fire a click event to show the settings.
+    userEvent.click(toggleSettingsButton, { delay: 300 });
+    await waitFor(() => {
+      const settingsTab = canvas.queryByTestId("SettingsTab");
+      expect(settingsTab).toBeInTheDocument();
+    });
+
+    // Fire another click to hide the settings.
+    userEvent.click(toggleSettingsButton, { delay: 300 });
+    await waitFor(() => {
+      const settingsTab = canvas.queryByTestId("SettingsTab");
+      expect(settingsTab).not.toBeInTheDocument();
+    });
+  },
+};
+
 export const ToggleUiVisibility: Story = {
   name: "Toggle UI visibility",
   play: async ({ canvasElement }) => {

@@ -1,0 +1,18 @@
+.settings-tab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+
+  background-color: black;
+
+  &:global(.entering),
+  &:global(.entered) {
+    right: 0;
+  }
+  &:global(.exiting),
+  &:global(.exited) {
+    right: 100%;
+  }
+}

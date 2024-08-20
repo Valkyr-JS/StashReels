@@ -56,6 +56,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               key={i}
               loopOnEnd={props.loopOnEnd}
               scene={item.scene}
+              setSettingsTabHandler={item.setSettingsTabHandler}
               subtitlesOn={props.subtitlesOn}
               toggleAudioHandler={item.toggleAudioHandler}
               toggleFullscreenHandler={item.toggleFullscreenHandler}

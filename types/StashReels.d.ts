@@ -6,6 +6,8 @@ declare module "*.module.scss" {
 interface IitemData {
   /** The scene data. */
   scene: IsceneData;
+  /** Function for handling setting the settings tab visibility. */
+  setSettingsTabHandler: (show: boolean) => void;
   /** The subtitles state set by the user. */
   subtitlesOn: boolean;
   /** Function for handling toggling video audio on and off. */
