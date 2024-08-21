@@ -4,6 +4,7 @@ import { default as cx } from "classnames";
 import React, { forwardRef } from "react";
 import { TransitionStatus } from "react-transition-group";
 import * as styles from "./SettingsTab.module.scss";
+import { TRANSITION_DURATION } from "../../constants";
 
 interface SettingsTabProps {
   setSettingsTabHandler: (show: boolean) => void;
@@ -12,6 +13,10 @@ interface SettingsTabProps {
 
 const SettingsTab = forwardRef(
   (props: SettingsTabProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+    const toggleableUiStyles: React.CSSProperties = {
+      transitionDuration: TRANSITION_DURATION / 1000 + "s",
+    };
+
     const closeButtonHandler = () => props.setSettingsTabHandler(false);
 
     const classes = cx(styles["settings-tab"], props.transitionStatus);
@@ -22,6 +27,7 @@ const SettingsTab = forwardRef(
         onClick={closeButtonHandler}
         data-testid="SettingsTab"
         ref={ref}
+        style={toggleableUiStyles}
       >
         <div className={styles["settings-tab--body"]}>
           Settings tab component

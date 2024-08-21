@@ -28,6 +28,7 @@ import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
 import { faPause, faPlay } from "@fortawesome/pro-solid-svg-icons";
+import { TRANSITION_DURATION } from "../../constants";
 
 export interface VideoItemProps extends IitemData {
   /** Function for handling changing the current item. */
@@ -90,9 +91,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const uiButtonDrawerRef = useRef(null);
   const uiButtonRef = useRef(null);
-  const buttonsTransitionDuration = 150;
   const toggleableUiStyles: React.CSSProperties = {
-    transitionDuration: buttonsTransitionDuration / 1000 + "s",
+    transitionDuration: TRANSITION_DURATION / 1000 + "s",
   };
 
   const toggleableUiTransitionStyles = {
@@ -268,7 +268,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       <Transition
         in={showTapIcon}
         nodeRef={tapIconRef}
-        timeout={150}
+        timeout={TRANSITION_DURATION}
         unmountOnExit
       >
         {(state) => (
@@ -286,7 +286,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       <Transition
         in={sceneInfoOpen}
         nodeRef={sceneInfoPanelRef}
-        timeout={buttonsTransitionDuration}
+        timeout={TRANSITION_DURATION}
         mountOnEnter
         unmountOnExit
       >
@@ -305,7 +305,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <Transition
           in={props.uiIsVisible}
           nodeRef={uiButtonDrawerRef}
-          timeout={buttonsTransitionDuration}
+          timeout={TRANSITION_DURATION}
           unmountOnExit
         >
           {(state) => (
@@ -371,7 +371,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <Transition
           in={props.uiIsVisible}
           nodeRef={uiButtonRef}
-          timeout={buttonsTransitionDuration}
+          timeout={TRANSITION_DURATION}
         >
           {(state) => (
             <button
@@ -393,7 +393,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       <Transition
         in={props.uiIsVisible}
         nodeRef={scrubberRef}
-        timeout={buttonsTransitionDuration}
+        timeout={TRANSITION_DURATION}
       >
         {(state) => (
           <div

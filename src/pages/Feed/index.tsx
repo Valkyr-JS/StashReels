@@ -4,6 +4,7 @@ import VideoScroller from "../../components/VideoScroller";
 import { fetchData } from "../../helpers";
 import SettingsTab from "../../components/SettingsTab";
 import { Transition } from "react-transition-group";
+import { TRANSITION_DURATION } from "../../constants";
 
 interface FeedPageProps {
   query: string;
@@ -137,7 +138,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
       <Transition
         in={showSettings}
         nodeRef={settingsTabRef}
-        timeout={150}
+        timeout={TRANSITION_DURATION}
         unmountOnExit
       >
         {(state) => (

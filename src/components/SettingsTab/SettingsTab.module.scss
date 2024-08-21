@@ -11,6 +11,7 @@
   grid-template-rows: [canvas-top main-top] 1fr [main-bottom footer-top] max-content [footer-bottom canvas-bottom];
 
   background-color: black;
+  transition: right ease-in-out;
 
   &:global(.entering),
   &:global(.entered) {
