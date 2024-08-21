@@ -5,7 +5,7 @@
   top: 0;
   right: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
 
   display: grid;
   grid-template-rows: [canvas-top main-top] 1fr [main-bottom footer-top] max-content [footer-bottom canvas-bottom];
@@ -23,13 +23,21 @@
   }
 
   &--body {
+    padding: $spacer;
     grid-row: main-top / main-bottom;
+    overflow-y: scroll;
   }
 
   &--footer {
     display: flex;
-    justify-content: end;
+    align-items: center;
+    padding: $spacer;
     grid-row: footer-top / footer-bottom;
+
+    h2 {
+      margin-right: auto;
+      margin-bottom: 0;
+    }
 
     button {
       appearance: none;
