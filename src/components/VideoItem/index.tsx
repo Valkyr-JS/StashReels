@@ -44,6 +44,8 @@ export interface VideoItemProps extends IitemData {
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
+  /** Whether the settings tab is open. */
+  settingsTabIsVisible: boolean;
   /** Whether the UI buttons are visible. */
   uiIsVisible: boolean;
   /** The default captions language to show. `undefined` means no default
@@ -62,13 +64,16 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /* ------------------------------- Play/pause ------------------------------- */
 
   useEffect(() => {
-    // Play the video if it is currently in the viewport, otherwise pause it.
-    if (isInViewport && videoRef.current) videoRef.current.play();
+    // Pause the video if the settings tab is open
+    if (props.settingsTabIsVisible) videoRef.current?.pause();
+    // Play the video if it is currently in the viewport.
+    else if (isInViewport && videoRef.current) videoRef.current.play();
+    // Otherwise pause it.
     else videoRef.current?.pause();
 
     // Update the current item data
     if (isInViewport) props.changeItemHandler(props.index);
-  }, [isInViewport]);
+  }, [isInViewport, props.settingsTabIsVisible]);
 
   const [showTapIcon, setShowTapIcon] = useState(false);
   const tapIconRef = useRef(null);

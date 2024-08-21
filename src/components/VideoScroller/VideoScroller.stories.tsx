@@ -98,6 +98,7 @@ const meta = {
       },
     ],
     loopOnEnd: false,
+    settingsTabIsVisible: false,
     uiIsVisible: true,
   },
   decorators: [setCssVHDecorator],

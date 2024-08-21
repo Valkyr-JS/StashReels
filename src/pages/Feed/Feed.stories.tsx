@@ -278,31 +278,43 @@ export const ToggleSettings: Story = {
     // Await promise for videos to be fetched
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
 
-    const toggleSettingsButton = canvas.getAllByTestId(
-      "VideoItem--settingsButton"
-    )[0];
-    const settingsTab = canvas.queryByTestId("SettingsTab");
+    const allVideos: HTMLVideoElement[] =
+      canvas.getAllByTestId("VideoItem--video");
+    const video: HTMLVideoElement = allVideos[0];
 
-    // Expect settings not to be shown by default.
-    expect(settingsTab).not.toBeInTheDocument();
-
-    // Fire a click event to show the settings.
-    userEvent.click(toggleSettingsButton, { delay: 300 });
-    await waitFor(() => {
-      const settingsTab = canvas.getByTestId("SettingsTab");
-      expect(settingsTab).toBeInTheDocument();
-    });
-
-    await waitFor(() => {
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      const toggleSettingsButton = canvas.getAllByTestId(
+        "VideoItem--settingsButton"
+      )[0];
       const settingsTab = canvas.queryByTestId("SettingsTab");
 
-      // Fire a click on the close button in the settings tab to hide the
-      // settings.
-      const closeSettingsButton = canvas.queryByTestId(
-        "SettingsTab--closeButton"
-      );
-      userEvent.click(closeSettingsButton as HTMLButtonElement, { delay: 300 });
+      // Expect settings not to be shown and video to be playing by default.
       expect(settingsTab).not.toBeInTheDocument();
+      await expect(video.paused).toBe(false);
+
+      // Fire a click event to show the settings and pause the current video.
+      userEvent.click(toggleSettingsButton, { delay: 300 });
+      await waitFor(() => {
+        const settingsTab = canvas.getByTestId("SettingsTab");
+        expect(settingsTab).toBeInTheDocument();
+        expect(video.paused).toBe(true);
+      });
+
+      await waitFor(() => {
+        const settingsTab = canvas.queryByTestId("SettingsTab");
+
+        // Fire a click on the close button in the settings tab to hide the
+        // settings and resume the current video.
+        const closeSettingsButton = canvas.queryByTestId(
+          "SettingsTab--closeButton"
+        );
+        userEvent.click(closeSettingsButton as HTMLButtonElement, {
+          delay: 300,
+        });
+        expect(settingsTab).not.toBeInTheDocument();
+        expect(video.paused).toBe(false);
+      });
     });
   },
 };

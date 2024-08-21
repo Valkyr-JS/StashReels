@@ -132,6 +132,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         isMuted={isMuted}
         items={allProcessedData}
         loopOnEnd={loopOnEnd}
+        settingsTabIsVisible={showSettings}
         subtitlesOn={subtitlesOn}
         uiIsVisible={showUI}
       />
