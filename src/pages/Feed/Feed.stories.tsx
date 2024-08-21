@@ -289,14 +289,19 @@ export const ToggleSettings: Story = {
     // Fire a click event to show the settings.
     userEvent.click(toggleSettingsButton, { delay: 300 });
     await waitFor(() => {
-      const settingsTab = canvas.queryByTestId("SettingsTab");
+      const settingsTab = canvas.getByTestId("SettingsTab");
       expect(settingsTab).toBeInTheDocument();
     });
 
-    // Fire another click to hide the settings.
-    userEvent.click(toggleSettingsButton, { delay: 300 });
     await waitFor(() => {
       const settingsTab = canvas.queryByTestId("SettingsTab");
+
+      // Fire a click on the close button in the settings tab to hide the
+      // settings.
+      const closeSettingsButton = canvas.queryByTestId(
+        "SettingsTab--closeButton"
+      );
+      userEvent.click(closeSettingsButton as HTMLButtonElement, { delay: 300 });
       expect(settingsTab).not.toBeInTheDocument();
     });
   },

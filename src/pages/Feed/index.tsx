@@ -141,7 +141,11 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         unmountOnExit
       >
         {(state) => (
-          <SettingsTab ref={settingsTabRef} transitionStatus={state} />
+          <SettingsTab
+            setSettingsTabHandler={handleSetSettingsTab}
+            ref={settingsTabRef}
+            transitionStatus={state}
+          />
         )}
       </Transition>
     </main>
