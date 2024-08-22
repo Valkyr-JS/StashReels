@@ -3,6 +3,7 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+
   addons: [
     "@chromatic-com/storybook",
     "@storybook/addon-a11y",
@@ -11,6 +12,7 @@ const config: StorybookConfig = {
     "@storybook/addon-links",
     "@storybook/addon-webpack5-compiler-swc",
   ],
+
   framework: {
     name: "@storybook/react-webpack5",
     options: {},
@@ -29,6 +31,12 @@ const config: StorybookConfig = {
     );
 
     return config;
+  },
+
+  docs: {},
+
+  typescript: {
+    reactDocgen: "react-docgen-typescript",
   },
 };
 export default config;
