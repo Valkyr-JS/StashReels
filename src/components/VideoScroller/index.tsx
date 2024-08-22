@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as styles from "./VideoScroller.module.scss";
 import VideoItem from "../VideoItem";
 import * as videoItemStyles from "../VideoItem/VideoItem.module.scss";
@@ -26,12 +26,26 @@ interface VideoScrollerProps {
 }
 
 const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
   /* ------------------------ Handle loading new videos ----------------------- */
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleChangeItem = (newItemIndex: number) =>
     setCurrentIndex(newItemIndex);
+
+  // When a new set of items are loaded, e.g. a change in filter, scroll back to
+  // the top of the list.
+  useEffect(() => {
+    setCurrentIndex(0);
+    // ? Timeout required to use scroll :(
+    setTimeout(() => {
+      if (scrollerRef.current) {
+        scrollerRef.current.scroll({ top: 0, behavior: "instant" });
+      }
+    }, 100);
+  }, [items]);
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -40,6 +54,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
     <div
       className={styles.container}
       data-testid="VideoScroller--container"
+      ref={scrollerRef}
       tabIndex={0}
     >
       {items.map((item, i) => {
