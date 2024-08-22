@@ -54,12 +54,21 @@ export interface VideoItemProps extends IitemData {
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
+  console.log(props.scene.path);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /** Check if at least 80% of the video is in the viewport. */
   const isInViewport = useIsInViewport(videoRef, {
     threshold: 0.8,
   });
+
+  /* ---------------------------------- Load ---------------------------------- */
+
+  // Reload the video when path changes. Fixes old video source remaining when
+  // the filter changes
+  useEffect(() => {
+    videoRef.current?.load();
+  }, [props.scene.path]);
 
   /* ------------------------------- Play/pause ------------------------------- */
 
