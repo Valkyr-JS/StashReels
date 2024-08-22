@@ -32,6 +32,8 @@ interface SettingsTabProps {
       label: string;
     }>
   >;
+  /** Identifies whether the currently selected filter returns zero scenes. */
+  scenelessFilter: boolean;
   /** Function to set a given filter as a playlist. */
   setFilterHandler: (option: { value: string; label: string }) => void;
   /** Function to set the settings tab component visibility. */
@@ -60,6 +62,17 @@ const SettingsTab = forwardRef(
     const closeButtonHandler = () => props.setSettingsTabHandler(false);
 
     const classes = cx(styles["settings-tab"], props.transitionStatus);
+
+    const closeButton = props.scenelessFilter ? null : (
+      <button
+        data-testid="SettingsTab--closeButton"
+        onClick={closeButtonHandler}
+        type="button"
+      >
+        <FontAwesomeIcon icon={faXmark} />
+        <span className={styles["visually-hidden"]}>Close settings</span>
+      </button>
+    );
 
     /* ---------------------------------- Forms --------------------------------- */
 
@@ -92,6 +105,16 @@ const SettingsTab = forwardRef(
       }
     };
 
+    const scenelessFilterWarning = props.scenelessFilter ? (
+      <div className={styles["settings-tab--warning"]}>
+        <h2>Playlist contains no scenes!</h2>
+        <p>
+          No scenes were found in the currently selected playlist. Please choose
+          a different one.
+        </p>
+      </div>
+    ) : null;
+
     /* -------------------------------- Component ------------------------------- */
 
     return (
@@ -116,17 +139,11 @@ const SettingsTab = forwardRef(
               playlist
             </small>
           </label>
+          {scenelessFilterWarning}
         </div>
         <div className={styles["settings-tab--footer"]}>
           <h2>Settings</h2>
-          <button
-            data-testid="SettingsTab--closeButton"
-            onClick={closeButtonHandler}
-            type="button"
-          >
-            <FontAwesomeIcon icon={faXmark} />
-            <span className={styles["visually-hidden"]}>Close settings</span>
-          </button>
+          {closeButton}
         </div>
       </div>
     );

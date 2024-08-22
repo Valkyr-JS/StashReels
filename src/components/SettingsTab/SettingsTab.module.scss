@@ -8,7 +8,12 @@
   height: 100vh;
 
   display: grid;
-  grid-template-rows: [canvas-top main-top] 1fr [main-bottom footer-top] max-content [footer-bottom canvas-bottom];
+  grid-template-rows:
+    [canvas-top main-top] 1fr [main-bottom footer-top] minmax(
+      $ui-button-size + ($spacer * 2),
+      max-content
+    )
+    [footer-bottom canvas-bottom];
 
   background-color: black;
   transition: right ease-in-out;
@@ -66,5 +71,14 @@
         width: 1px;
       }
     }
+  }
+
+  &--warning {
+    margin-top: $spacer;
+    margin-bottom: $spacer;
+    padding-top: $spacer;
+    padding-bottom: $spacer;
+    border-top: 3px solid red;
+    border-bottom: 3px solid red;
   }
 }

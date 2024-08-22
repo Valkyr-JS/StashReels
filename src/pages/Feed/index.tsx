@@ -131,6 +131,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   const settingsTabRef = useRef<HTMLDivElement>(null);
   const handleSetSettingsTab = (show: boolean) => setShowSettings(show);
 
+  const noScenesAvailable = allProcessedData.length === 0;
+
   /* -------------------------------- Subtitles ------------------------------- */
 
   const [subtitlesOn, setSubtitlesOn] = useState(true);
@@ -161,16 +163,17 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         in={showSettings}
         nodeRef={settingsTabRef}
         timeout={TRANSITION_DURATION}
-        unmountOnExit
+        unmountOnExit={!noScenesAvailable}
       >
         {(state) => (
           <SettingsTab
             currentFilter={props.currentFilter}
             filterList={props.filterList}
             ref={settingsTabRef}
+            scenelessFilter={noScenesAvailable}
             setFilterHandler={props.setFilterHandler}
             setSettingsTabHandler={handleSetSettingsTab}
-            transitionStatus={state}
+            transitionStatus={noScenesAvailable ? "entered" : state}
           />
         )}
       </Transition>
