@@ -10,6 +10,40 @@ const meta = {
   tags: ["autodocs"],
   args: {
     captionsDefault: undefined,
+    filterList: [
+      {
+        value: "29",
+        label: "Portrait scenes of Mia Melano",
+      },
+      {
+        value: "20",
+        label: "Recently played scenes",
+      },
+      {
+        value: "5",
+        label: "Recently released scenes",
+      },
+      {
+        value: "12",
+        label: "Recently updated scenes",
+      },
+      {
+        value: "26",
+        label: "Stashbox pending",
+      },
+      {
+        value: "4",
+        label: "Unorganised scenes",
+      },
+      {
+        value: "24",
+        label: "Unscraped OF scenes",
+      },
+      {
+        value: "16",
+        label: "Unscraped scenes",
+      },
+    ],
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}

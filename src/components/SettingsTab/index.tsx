@@ -2,14 +2,42 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { default as cx } from "classnames";
 import React, { forwardRef } from "react";
+import Select, {
+  ActionMeta,
+  GroupBase,
+  OptionsOrGroups,
+  SingleValue,
+  ThemeConfig,
+} from "react-select";
 import { TransitionStatus } from "react-transition-group";
 import * as styles from "./SettingsTab.module.scss";
 import { TRANSITION_DURATION } from "../../constants";
 
 interface SettingsTabProps {
+  filterList: OptionsOrGroups<
+    {
+      value: string;
+      label: string;
+    },
+    GroupBase<{
+      value: string;
+      label: string;
+    }>
+  >;
   setSettingsTabHandler: (show: boolean) => void;
   transitionStatus: TransitionStatus;
 }
+
+type ReactSelectOnChange = (
+  newValue: SingleValue<{
+    value: string;
+    label: string;
+  }>,
+  actionMeta: ActionMeta<{
+    value: string;
+    label: string;
+  }>
+) => any;
 
 const SettingsTab = forwardRef(
   (props: SettingsTabProps, ref: React.ForwardedRef<HTMLDivElement>) => {
@@ -21,80 +49,66 @@ const SettingsTab = forwardRef(
 
     const classes = cx(styles["settings-tab"], props.transitionStatus);
 
+    /* ---------------------------------- Forms --------------------------------- */
+
+    // Theming
+    const reactSelectTheme: ThemeConfig = (theme) => ({
+      ...theme,
+      colors: {
+        ...theme.colors,
+        neutral0: theme.colors.neutral90,
+        neutral5: theme.colors.neutral80,
+        neutral10: theme.colors.neutral70,
+        neutral20: theme.colors.neutral60,
+        neutral30: theme.colors.neutral50,
+        neutral40: theme.colors.neutral40,
+        neutral50: theme.colors.neutral30,
+        neutral60: theme.colors.neutral20,
+        neutral70: theme.colors.neutral10,
+        neutral80: theme.colors.neutral5,
+        neutral90: theme.colors.neutral0,
+        primary: theme.colors.neutral30,
+        primary25: theme.colors.neutral60,
+        primary50: theme.colors.neutral80,
+      },
+    });
+
+    // 1. Select a playlist
+    const onChangeSelectPlaylist: ReactSelectOnChange = (value) => {
+      console.log("Selected playlist: ", value);
+    };
+
+    /* -------------------------------- Component ------------------------------- */
+
     return (
       <div
         className={classes}
-        onClick={closeButtonHandler}
         data-testid="SettingsTab"
         ref={ref}
         style={toggleableUiStyles}
       >
         <div className={styles["settings-tab--body"]}>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-            suscipit augue id quam elementum cursus. Proin et pulvinar felis.
-            Sed sit amet nisi at magna accumsan viverra. Pellentesque congue id
-            libero ut pharetra. Nam facilisis luctus mi sit amet fermentum.
-            Etiam id tincidunt eros. Etiam dapibus massa sit amet ullamcorper
-            sodales. Aliquam nec lectus ultricies, vehicula purus eu, venenatis
-            lacus. Morbi luctus sed sapien quis volutpat. Quisque diam leo,
-            scelerisque eu ante nec, lacinia ultricies nunc. Quisque efficitur
-            risus non ligula placerat sollicitudin.
-          </p>
-
-          <p>
-            Aliquam pulvinar bibendum magna, ac blandit lacus egestas sit amet.
-            Nam et tellus et neque pharetra ultrices a quis augue. Duis eu
-            libero fermentum, interdum arcu et, blandit est. Nullam ligula orci,
-            euismod sed auctor vulputate, tempus in odio. Aliquam vitae aliquet
-            mi. Nulla quis mi a sapien consectetur commodo a vel lorem. Integer
-            feugiat enim at arcu dapibus tincidunt. Ut ut dapibus odio, a
-            venenatis mauris.
-          </p>
-
-          <p>
-            Maecenas aliquam arcu eu mollis pellentesque. Vivamus neque eros,
-            sagittis vitae lectus et, elementum tempor turpis. Pellentesque
-            habitant morbi tristique senectus et netus et malesuada fames ac
-            turpis egestas. Nulla egestas nec justo eu interdum. Suspendisse
-            quis felis nec mi luctus porttitor sit amet sed mauris. Orci varius
-            natoque penatibus et magnis dis parturient montes, nascetur
-            ridiculus mus. Vestibulum blandit enim sit amet ante feugiat
-            vestibulum. Fusce sagittis erat arcu, a iaculis ante bibendum sit
-            amet. Etiam tristique gravida diam, quis tincidunt est ullamcorper
-            sed. Maecenas leo risus, egestas in nunc vel, sodales dignissim leo.
-          </p>
-
-          <p>
-            Donec consequat ultricies eros, vitae efficitur mauris porta sed.
-            Nam porta arcu vitae egestas viverra. Vivamus cursus vel ante at
-            vestibulum. Integer bibendum metus at nibh laoreet eleifend vel ut
-            ante. Pellentesque posuere, felis sed dapibus volutpat, sapien
-            tellus rutrum tellus, non tempor velit magna eget lorem. Vestibulum
-            consequat diam in tellus malesuada volutpat. Sed a dui purus. Cras
-            ultrices, massa in porttitor iaculis, velit justo cursus orci, sit
-            amet tempus nisl turpis vitae metus. Pellentesque a maximus odio.
-            Integer luctus nibh velit, in dictum est varius in. Phasellus eu
-            nulla ligula. Praesent molestie vitae justo sit amet scelerisque.
-            Nullam gravida, massa eget tincidunt pharetra, turpis enim ultricies
-            justo, quis rhoncus arcu diam vitae sem. Etiam tincidunt ex enim,
-            vel rhoncus urna varius id. Nullam in risus dui. Etiam vulputate
-            accumsan urna, eu ullamcorper erat tristique eget.
-          </p>
-
-          <p>
-            Integer sed gravida dolor. Nullam ultricies arcu quis est vestibulum
-            faucibus. Aenean consequat nisl vel erat suscipit euismod. Nulla
-            ante lacus, efficitur nec condimentum et, molestie vel libero.
-            Praesent leo magna, accumsan tempor elit eget, finibus condimentum
-            est. Nunc rhoncus hendrerit sagittis. Integer suscipit tellus et
-            eros scelerisque tincidunt. Ut sit amet turpis vel massa rhoncus
-            malesuada.
-          </p>
+          <label>
+            <h4>Select a playlist</h4>
+            <Select
+              onChange={onChangeSelectPlaylist}
+              options={props.filterList}
+              placeholder="Select a playlist..."
+              theme={reactSelectTheme}
+            />
+            <small>
+              Choose a scene filter from Stash to use as your Stash Reels
+              playlist
+            </small>
+          </label>
         </div>
         <div className={styles["settings-tab--footer"]}>
           <h2>Settings</h2>
-          <button data-testid="SettingsTab--closeButton" type="button">
+          <button
+            data-testid="SettingsTab--closeButton"
+            onClick={closeButtonHandler}
+            type="button"
+          >
             <FontAwesomeIcon icon={faXmark} />
             <span className={styles["visually-hidden"]}>Close settings</span>
           </button>

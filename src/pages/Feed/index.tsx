@@ -5,8 +5,19 @@ import { fetchData } from "../../helpers";
 import SettingsTab from "../../components/SettingsTab";
 import { Transition } from "react-transition-group";
 import { TRANSITION_DURATION } from "../../constants";
+import { GroupBase, OptionsOrGroups } from "react-select";
 
 interface FeedPageProps {
+  filterList: OptionsOrGroups<
+    {
+      value: string;
+      label: string;
+    },
+    GroupBase<{
+      value: string;
+      label: string;
+    }>
+  >;
   query: string;
   /** The default captions language to show. `undefined` means no default
    * captions. */
@@ -144,8 +155,9 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
       >
         {(state) => (
           <SettingsTab
-            setSettingsTabHandler={handleSetSettingsTab}
+            filterList={props.filterList}
             ref={settingsTabRef}
+            setSettingsTabHandler={handleSetSettingsTab}
             transitionStatus={state}
           />
         )}
