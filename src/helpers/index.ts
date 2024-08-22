@@ -20,10 +20,14 @@ export const fetchData = async (query: string) => {
   }
 };
 
-/** Fetch all scene filter data from Stash via GQL. */
+/** Fetch all scene filter data from Stash via GQL. Also fetches the user's
+ * config. */
 export const fetchSceneFilters = () => {
   const query = jsonToGraphQLQuery({
     query: {
+      configuration: {
+        plugins: true,
+      },
       findSavedFilters: {
         __args: {
           mode: new EnumType("SCENES"),
@@ -34,8 +38,21 @@ export const fetchSceneFilters = () => {
     },
   });
 
-  return fetchData(query);
+  return fetchData(query) as Promise<IfetchSceneFiltersResult>;
 };
+
+interface IfetchSceneFiltersResult {
+  data: {
+    configuration: {
+      plugins: {
+        [plugin: string]: {
+          [property: string]: string | number | boolean;
+        };
+      };
+    };
+    findSavedFilters: { id: string; name: string }[];
+  };
+}
 
 // Converts seconds to a hh:mm:ss timestamp.
 // A negative input will result in a -hh:mm:ss or -mm:ss output.

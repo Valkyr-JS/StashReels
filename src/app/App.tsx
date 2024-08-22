@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import FeedPage from "../pages/Feed";
 import { fetchData, fetchSceneFilters, setCssVH } from "../helpers";
 import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query";
-import { FALLBACK_FILTER } from "../constants";
+import {
+  FALLBACK_FILTER,
+  PLUGIN_CONFIG_PROPERTY,
+  PLUGIN_NAMESPACE,
+} from "../constants";
 
 const App = () => {
   setCssVH();
@@ -18,127 +22,124 @@ const App = () => {
   useEffect(() => {
     // Fetch all scene filters from Stash.
     fetchSceneFilters()
-      .then(
-        (res: {
-          data: { findSavedFilters: { id: string; name: string }[] };
-        }) => {
-          const filters = res.data.findSavedFilters.map((f) => ({
-            label: f.name,
-            value: f.id,
-          }));
+      .then((res) => {
+        const filters = res.data.findSavedFilters.map((f) => ({
+          label: f.name,
+          value: f.id,
+        }));
+        let inUseFilter = null;
 
-          // If there are no filters, create a fallback filter and set it as the
-          // current in the settings tab.
-          if (!filters.length) {
-            setAllFilters([FALLBACK_FILTER]);
-            setCurrentFilter(FALLBACK_FILTER);
-          } else {
-            setAllFilters([FALLBACK_FILTER]); // ! Dev temp
-            setCurrentFilter(FALLBACK_FILTER); // ! Dev temp
+        // If there are no filters, create a fallback filter and set it as the
+        // current in the settings tab.
+        if (!filters.length) {
+          setAllFilters([FALLBACK_FILTER]);
+          setCurrentFilter(FALLBACK_FILTER);
+          return null;
+        } else {
+          setAllFilters(filters);
 
-            // If there are filters, check the user's plugin config to see if a default
-            // filter has been set.
+          // If there are filters, check the user's plugin config to see if a default
+          // filter has been set.
+          const userPluginConfig =
+            res.data.configuration.plugins[PLUGIN_NAMESPACE];
 
-            // If one has been set, set it as the current in the settings tab.
+          // If one has been set, set it as the current in the settings tab.
+          if (
+            !!userPluginConfig &&
+            !!userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
+          ) {
+            const current = filters.find(
+              (f) =>
+                f.value ===
+                userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
+            );
 
-            // If one hasn't been set, or the default is no longer available, set the last
-            // used filter as the current in the settings tab.
+            setCurrentFilter(current);
+            inUseFilter = current;
           }
 
-          // Fetch the current filter data.
-          return !!currentFilter
-            ? fetchData(
-                jsonToGraphQLQuery({
-                  query: {
-                    findSavedFilter: {
-                      __args: {
-                        id: currentFilter.value, // ! Hardcoded for dev only
-                      },
-                      id: true,
+          // If one hasn't been set, or the default is no longer available, use
+          // the first one.
+          else {
+            setCurrentFilter(filters[0]);
+            inUseFilter = filters[0];
+          }
+        }
+
+        console.log(inUseFilter);
+
+        // Fetch the current filter data.
+        return fetchData(
+          jsonToGraphQLQuery({
+            query: {
+              findSavedFilter: {
+                __args: {
+                  id: inUseFilter?.value,
+                },
+                id: true,
+                name: true,
+                mode: true,
+                find_filter: {
+                  sort: true,
+                  direction: true,
+                },
+                object_filter: true,
+              },
+            },
+          })
+        );
+      })
+      .then((fil) => {
+        console.log(fil);
+        // If res is null, use the fallback filter (all portrait scenes)
+        if (!fil) {
+          const query = `query { findScenes(filter: { per_page: -1 }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
+          setSceneData(query);
+        } else {
+          // Otherwise, apply the filter
+          const query = jsonToGraphQLQuery({
+            query: {
+              findScenes: {
+                __args: {
+                  filter: processFilter(fil.data.findSavedFilter.find_filter),
+                  scene_filter: processObjectFilter(
+                    fil.data.findSavedFilter.object_filter
+                  ),
+                },
+                scenes: {
+                  captions: {
+                    caption_type: true,
+                    language_code: true,
+                  },
+                  date: true,
+                  id: true,
+                  files: {
+                    format: true,
+                  },
+                  paths: {
+                    caption: true,
+                    stream: true,
+                  },
+                  performers: {
+                    gender: true,
+                    name: true,
+                  },
+                  studio: {
+                    name: true,
+                    parent_studio: {
                       name: true,
-                      mode: true,
-                      find_filter: {
-                        sort: true,
-                        direction: true,
-                      },
-                      object_filter: true,
                     },
                   },
-                })
-              )
-            : null;
-        }
-      )
-      .then((flt) => {
-        // Fetch the filtered scenes
-        console.log(flt);
-      });
-
-    /* ---------------------------------- XXXX ---------------------------------- */
-
-    // Get the data for the user's chosen filter
-    fetchData(
-      jsonToGraphQLQuery({
-        query: {
-          findSavedFilter: {
-            __args: {
-              id: "29", // ! Hardcoded for dev only
-            },
-            id: true,
-            name: true,
-            mode: true,
-            find_filter: {
-              sort: true,
-              direction: true,
-            },
-            object_filter: true,
-          },
-        },
-      })
-    ).then((flt) => {
-      // Convert the filter to a GQL query to pass to the Feed page.
-      console.log(flt.data.findSavedFilter);
-      const query = jsonToGraphQLQuery({
-        query: {
-          findScenes: {
-            __args: {
-              filter: processFilter(flt.data.findSavedFilter.find_filter),
-              scene_filter: processObjectFilter(
-                flt.data.findSavedFilter.object_filter
-              ),
-            },
-            scenes: {
-              captions: {
-                caption_type: true,
-                language_code: true,
-              },
-              date: true,
-              id: true,
-              files: {
-                format: true,
-              },
-              paths: {
-                caption: true,
-                stream: true,
-              },
-              performers: {
-                gender: true,
-                name: true,
-              },
-              studio: {
-                name: true,
-                parent_studio: {
-                  name: true,
+                  title: true,
                 },
               },
-              title: true,
             },
-          },
-        },
+          });
+
+          // Set the filter data
+          setSceneData(query);
+        }
       });
-      console.log(query);
-      setSceneData(query);
-    });
   }, []);
 
   if (!allFilters) return <div>Loading filters</div>;

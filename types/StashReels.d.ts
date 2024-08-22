@@ -48,3 +48,7 @@ interface IsceneData {
   /** The title of the scene. */
   title?: string;
 }
+
+interface PluginConfig {
+  defaultFilterID: string;
+}

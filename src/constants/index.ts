@@ -12,5 +12,11 @@ export const ITEM_BUFFER_EACH_SIDE = 5 as const;
  * */
 export const ITEMS_BEFORE_END_ON_FETCH = 2 as const;
 
+export const PLUGIN_CONFIG_PROPERTY = {
+  DEFAULT_FILTER_ID: "defaultFilterID",
+} as const;
+
+export const PLUGIN_NAMESPACE = "stashreels" as const;
+
 /** The time it takes in milliseconds for a transition to complete. */
 export const TRANSITION_DURATION = 150 as const;
