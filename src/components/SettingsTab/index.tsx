@@ -14,12 +14,14 @@ import * as styles from "./SettingsTab.module.scss";
 import { TRANSITION_DURATION } from "../../constants";
 
 interface SettingsTabProps {
+  /** The scene filter currently being used as the playlist. */
   currentFilter:
     | {
         value: string;
         label: string;
       }
     | undefined;
+  /** The list of all user scene filters. */
   filterList: OptionsOrGroups<
     {
       value: string;
@@ -30,7 +32,11 @@ interface SettingsTabProps {
       label: string;
     }>
   >;
+  /** Function to set a given filter as a playlist. */
+  setFilterHandler: (option: { value: string; label: string }) => void;
+  /** Function to set the settings tab component visibility. */
   setSettingsTabHandler: (show: boolean) => void;
+  /** The ReactTransitionGroup transition status. */
   transitionStatus: TransitionStatus;
 }
 
@@ -80,8 +86,10 @@ const SettingsTab = forwardRef(
     });
 
     // 1. Select a playlist
-    const onChangeSelectPlaylist: ReactSelectOnChange = (value) => {
-      console.log("Selected playlist: ", value);
+    const onChangeSelectPlaylist: ReactSelectOnChange = (option) => {
+      if (option?.value) {
+        props.setFilterHandler(option);
+      }
     };
 
     /* -------------------------------- Component ------------------------------- */

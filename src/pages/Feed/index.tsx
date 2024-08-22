@@ -8,12 +8,17 @@ import { TRANSITION_DURATION } from "../../constants";
 import { GroupBase, OptionsOrGroups } from "react-select";
 
 interface FeedPageProps {
+  /** The default captions language to show. `undefined` means no default
+   * captions. */
+  captionsDefault: string | undefined;
+  /** The scene filter currently being used as the playlist. */
   currentFilter:
     | {
         value: string;
         label: string;
       }
     | undefined;
+  /** The list of all user scene filters. */
   filterList: OptionsOrGroups<
     {
       value: string;
@@ -25,9 +30,8 @@ interface FeedPageProps {
     }>
   >;
   query: string;
-  /** The default captions language to show. `undefined` means no default
-   * captions. */
-  captionsDefault: string | undefined;
+  /** Function to set a given filter as a playlist. */
+  setFilterHandler: (option: { value: string; label: string }) => void;
 }
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
@@ -60,7 +64,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [props.query]);
 
   /** Handles fetching video data */
   const handleProcessingItemData = () => {
@@ -164,6 +168,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
             currentFilter={props.currentFilter}
             filterList={props.filterList}
             ref={settingsTabRef}
+            setFilterHandler={props.setFilterHandler}
             setSettingsTabHandler={handleSetSettingsTab}
             transitionStatus={state}
           />

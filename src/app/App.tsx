@@ -19,138 +19,140 @@ const App = () => {
   >(undefined);
   const [sceneData, setSceneData] = useState<string | null>(null);
 
+  /* ------------------------------ Initial load ------------------------------ */
+
   useEffect(() => {
     // Fetch all scene filters from Stash.
-    fetchSceneFilters()
-      .then((res) => {
-        const filters = res.data.findSavedFilters.map((f) => ({
-          label: f.name,
-          value: f.id,
-        }));
-        let inUseFilter = null;
+    fetchSceneFilters().then((res) => {
+      const filters = res.data.findSavedFilters.map((f) => ({
+        label: f.name,
+        value: f.id,
+      }));
 
-        // If there are no filters, create a fallback filter and set it as the
-        // current in the settings tab.
-        if (!filters.length) {
-          setAllFilters([FALLBACK_FILTER]);
-          setCurrentFilter(FALLBACK_FILTER);
-          return null;
-        } else {
-          setAllFilters(filters);
+      // If there are no filters, create a fallback filter and set it as the
+      // current in the settings tab.
+      if (!filters.length) {
+        setAllFilters([FALLBACK_FILTER]);
+        setCurrentFilter(FALLBACK_FILTER);
+        return null;
+      } else {
+        setAllFilters(filters);
 
-          // If there are filters, check the user's plugin config to see if a default
-          // filter has been set.
-          const userPluginConfig =
-            res.data.configuration.plugins[PLUGIN_NAMESPACE];
+        // If there are filters, check the user's plugin config to see if a default
+        // filter has been set.
+        const userPluginConfig =
+          res.data.configuration.plugins[PLUGIN_NAMESPACE];
 
-          // If one has been set, set it as the current in the settings tab.
-          if (
-            !!userPluginConfig &&
-            !!userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
-          ) {
-            const current = filters.find(
-              (f) =>
-                f.value ===
-                userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
-            );
+        // If one has been set, set it as the current in the settings tab.
+        if (
+          !!userPluginConfig &&
+          !!userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
+        ) {
+          const current = filters.find(
+            (f) =>
+              f.value ===
+              userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
+          );
 
-            setCurrentFilter(current);
-            inUseFilter = current;
-          }
-
-          // If one hasn't been set, or the default is no longer available, use
-          // the first one.
-          else {
-            setCurrentFilter(filters[0]);
-            inUseFilter = filters[0];
-          }
+          setCurrentFilter(current);
         }
 
-        console.log(inUseFilter);
-
-        // Fetch the current filter data.
-        return fetchData(
-          jsonToGraphQLQuery({
-            query: {
-              findSavedFilter: {
-                __args: {
-                  id: inUseFilter?.value,
-                },
-                id: true,
-                name: true,
-                mode: true,
-                find_filter: {
-                  sort: true,
-                  direction: true,
-                },
-                object_filter: true,
-              },
-            },
-          })
-        );
-      })
-      .then((fil) => {
-        console.log(fil);
-        // If res is null, use the fallback filter (all portrait scenes)
-        if (!fil) {
-          const query = `query { findScenes(filter: { per_page: -1 }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
-          setSceneData(query);
-        } else {
-          // Otherwise, apply the filter
-          const query = jsonToGraphQLQuery({
-            query: {
-              findScenes: {
-                __args: {
-                  filter: processFilter(fil.data.findSavedFilter.find_filter),
-                  scene_filter: processObjectFilter(
-                    fil.data.findSavedFilter.object_filter
-                  ),
-                },
-                scenes: {
-                  captions: {
-                    caption_type: true,
-                    language_code: true,
-                  },
-                  date: true,
-                  id: true,
-                  files: {
-                    format: true,
-                  },
-                  paths: {
-                    caption: true,
-                    stream: true,
-                  },
-                  performers: {
-                    gender: true,
-                    name: true,
-                  },
-                  studio: {
-                    name: true,
-                    parent_studio: {
-                      name: true,
-                    },
-                  },
-                  title: true,
-                },
-              },
-            },
-          });
-
-          // Set the filter data
-          setSceneData(query);
+        // If one hasn't been set, or the default is no longer available, use
+        // the first one.
+        else {
+          setCurrentFilter(filters[0]);
         }
-      });
+      }
+    });
   }, []);
+
+  /* ----------------------------- Update playlist ---------------------------- */
+
+  useEffect(() => {
+    console.log("change", currentFilter);
+
+    // Fetch the current filter data.
+    if (!currentFilter) {
+      console.log("no filter");
+      const query = `query { findScenes(filter: { per_page: -1 }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
+      setSceneData(query);
+    } else {
+      fetchData(
+        jsonToGraphQLQuery({
+          query: {
+            findSavedFilter: {
+              __args: {
+                id: currentFilter?.value,
+              },
+              id: true,
+              name: true,
+              mode: true,
+              find_filter: {
+                sort: true,
+                direction: true,
+              },
+              object_filter: true,
+            },
+          },
+        })
+      ).then((fil) => {
+        console.log("change playlist: ", fil);
+
+        const query = jsonToGraphQLQuery({
+          query: {
+            findScenes: {
+              __args: {
+                filter: processFilter(fil.data.findSavedFilter.find_filter),
+                scene_filter: processObjectFilter(
+                  fil.data.findSavedFilter.object_filter
+                ),
+              },
+              scenes: {
+                captions: {
+                  caption_type: true,
+                  language_code: true,
+                },
+                date: true,
+                id: true,
+                files: {
+                  format: true,
+                },
+                paths: {
+                  caption: true,
+                  stream: true,
+                },
+                performers: {
+                  gender: true,
+                  name: true,
+                },
+                studio: {
+                  name: true,
+                  parent_studio: {
+                    name: true,
+                  },
+                },
+                title: true,
+              },
+            },
+          },
+        });
+
+        // Set the filter data
+        setSceneData(query);
+      });
+    }
+  }, [currentFilter]);
 
   if (!allFilters) return <div>Loading filters</div>;
   if (!sceneData) return <div>Loading scene data</div>;
 
   return (
     <FeedPage
+      captionsDefault={undefined}
       currentFilter={currentFilter}
       filterList={allFilters}
+      setFilterHandler={setCurrentFilter}
       query={sceneData}
-      captionsDefault={undefined}
     />
   );
 };

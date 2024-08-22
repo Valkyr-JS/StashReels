@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, userEvent, waitFor, within } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
@@ -78,6 +78,7 @@ const meta = {
         }
       }
     }`,
+    setFilterHandler: fn(),
   },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof FeedPage>;

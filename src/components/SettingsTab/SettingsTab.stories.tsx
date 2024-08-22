@@ -43,6 +43,7 @@ const meta = {
         label: "Unscraped scenes",
       },
     ],
+    setFilterHandler: fn(),
     setSettingsTabHandler: fn(),
     transitionStatus: "entered",
   },

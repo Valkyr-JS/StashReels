@@ -39,7 +39,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   return (
     <div
       className={styles.container}
-      data-testid={"VideoScroller--container"}
+      data-testid="VideoScroller--container"
       tabIndex={0}
     >
       {items.map((item, i) => {
