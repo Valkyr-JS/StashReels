@@ -1,3 +1,4 @@
+import { EnumType, jsonToGraphQLQuery } from "json-to-graphql-query";
 import { useWindowSize } from "../hooks";
 
 /** Fetch data from Stash via GQL. */
@@ -17,6 +18,23 @@ export const fetchData = async (query: string) => {
   } catch (err) {
     return console.log(err);
   }
+};
+
+/** Fetch all scene filter data from Stash via GQL. */
+export const fetchSceneFilters = () => {
+  const query = jsonToGraphQLQuery({
+    query: {
+      findSavedFilters: {
+        __args: {
+          mode: new EnumType("SCENES"),
+        },
+        id: true,
+        name: true,
+      },
+    },
+  });
+
+  return fetchData(query);
 };
 
 // Converts seconds to a hh:mm:ss timestamp.

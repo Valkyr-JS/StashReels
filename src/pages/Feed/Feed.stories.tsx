@@ -10,6 +10,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     captionsDefault: undefined,
+    currentFilter: undefined,
     filterList: [
       {
         value: "29",

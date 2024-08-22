@@ -8,6 +8,12 @@ import { TRANSITION_DURATION } from "../../constants";
 import { GroupBase, OptionsOrGroups } from "react-select";
 
 interface FeedPageProps {
+  currentFilter:
+    | {
+        value: string;
+        label: string;
+      }
+    | undefined;
   filterList: OptionsOrGroups<
     {
       value: string;
@@ -155,6 +161,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
       >
         {(state) => (
           <SettingsTab
+            currentFilter={props.currentFilter}
             filterList={props.filterList}
             ref={settingsTabRef}
             setSettingsTabHandler={handleSetSettingsTab}

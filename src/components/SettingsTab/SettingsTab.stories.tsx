@@ -8,6 +8,7 @@ const meta = {
   component: SettingsTab,
   tags: ["autodocs"],
   args: {
+    currentFilter: undefined,
     filterList: [
       {
         value: "29",

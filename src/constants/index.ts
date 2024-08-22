@@ -1,3 +1,10 @@
+/** The React Select-formatted filter info used as a fallback if no filters are
+ * available. */
+export const FALLBACK_FILTER = {
+  label: "All portrait scenes",
+  value: "A",
+} as const;
+
 /** The number of items to fetch data for. */
 export const ITEM_BUFFER_EACH_SIDE = 5 as const;
 

@@ -14,6 +14,12 @@ import * as styles from "./SettingsTab.module.scss";
 import { TRANSITION_DURATION } from "../../constants";
 
 interface SettingsTabProps {
+  currentFilter:
+    | {
+        value: string;
+        label: string;
+      }
+    | undefined;
   filterList: OptionsOrGroups<
     {
       value: string;
@@ -91,6 +97,7 @@ const SettingsTab = forwardRef(
           <label>
             <h4>Select a playlist</h4>
             <Select
+              defaultValue={props.currentFilter}
               onChange={onChangeSelectPlaylist}
               options={props.filterList}
               placeholder="Select a playlist..."
