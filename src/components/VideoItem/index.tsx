@@ -3,14 +3,14 @@ import { faExpand } from "@fortawesome/pro-solid-svg-icons/faExpand";
 import { faRepeat } from "@fortawesome/pro-solid-svg-icons/faRepeat";
 import { faSubtitles } from "@fortawesome/pro-solid-svg-icons/faSubtitles";
 import { faVolume } from "@fortawesome/pro-solid-svg-icons/faVolume";
-import { faBars } from "@fortawesome/pro-light-svg-icons/faBars";
+import { faEllipsisVertical } from "@fortawesome/pro-solid-svg-icons/faEllipsisVertical";
+import { faEllipsisStrokeVertical } from "@fortawesome/pro-light-svg-icons/faEllipsisStrokeVertical";
 import { faCircleInfo as faCircleInfoOff } from "@fortawesome/pro-light-svg-icons/faCircleInfo";
 import { faExpand as faExpandOff } from "@fortawesome/pro-light-svg-icons/faExpand";
 import { faGear as faGearOff } from "@fortawesome/pro-light-svg-icons/faGear";
 import { faRepeat as faRepeatOff } from "@fortawesome/pro-light-svg-icons/faRepeat";
 import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-light-svg-icons/faSubtitles";
 import { faVolumeXmark as faVolumeOff } from "@fortawesome/pro-light-svg-icons/faVolumeXmark";
-import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
@@ -410,11 +410,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           {(state) => (
             <UiButton
               active={props.uiIsVisible}
-              activeIcon={faXmark}
+              activeIcon={faEllipsisVertical}
               activeText="Hide UI"
               className={styles["toggleable-ui-button"]}
               data-testid="VideoItem--showUiButton"
-              inactiveIcon={faBars}
+              inactiveIcon={faEllipsisStrokeVertical}
               inactiveText="Show UI"
               onClick={toggleUiButtonClickHandler}
               ref={uiButtonRef}
