@@ -183,7 +183,25 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   useEffect(() => {
     if (!isInViewport) setSceneInfoOpen(false);
+    else console.log(props.scene);
   }, [isInViewport]);
+
+  // Only render the button if there is available data
+  const sceneInfoDataAvailable =
+    props.scene.performers.length > 0 ||
+    !!props.scene.studio ||
+    !!props.scene.title ||
+    !!props.scene.date;
+
+  const sceneInfoButton = sceneInfoDataAvailable ? (
+    <button
+      data-testid="VideoItem--infoButton"
+      onClick={sceneInfoButtonClickHandler}
+      type="button"
+    >
+      <FontAwesomeIcon icon={sceneInfoOpen ? faCircleInfo : faCircleInfoOff} />
+    </button>
+  ) : null;
 
   /* -------------------------------- Scrubber -------------------------------- */
 
@@ -354,15 +372,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 />
               </button>
               {subtitlesButton}
-              <button
-                data-testid="VideoItem--infoButton"
-                onClick={sceneInfoButtonClickHandler}
-                type="button"
-              >
-                <FontAwesomeIcon
-                  icon={sceneInfoOpen ? faCircleInfo : faCircleInfoOff}
-                />
-              </button>
+              {sceneInfoButton}
               <button
                 data-testid="VideoItem--loopButton"
                 onClick={loopButtonClickHandler}
