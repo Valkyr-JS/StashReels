@@ -362,6 +362,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   {props.isMuted ? "Unmute" : "Mute"}
                 </span>
               </button>
+
+              {subtitlesButton}
+
               <button
                 data-testid="VideoItem--fullscreenButton"
                 onClick={fullscreenButtonClickHandler}
@@ -371,8 +374,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   icon={props.isFullscreen ? faExpand : faExpandOff}
                 />
               </button>
-              {subtitlesButton}
-              {sceneInfoButton}
+
               <button
                 data-testid="VideoItem--loopButton"
                 onClick={loopButtonClickHandler}
@@ -382,6 +384,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   icon={props.loopOnEnd ? faRepeat : faRepeatOff}
                 />
               </button>
+
+              {sceneInfoButton}
+
               <button
                 data-testid="VideoItem--settingsButton"
                 onClick={() => props.setSettingsTabHandler(true)}
