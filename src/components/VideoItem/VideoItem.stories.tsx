@@ -63,6 +63,27 @@ export const Default: Story = {
   },
 };
 
+export const EmptySceneInfo: Story = {
+  name: "No scene info",
+  args: {
+    scene: {
+      format: "mp4",
+      id: "3097",
+      path: process.env.STASH_ADDRESS + "/scene/3097/stream",
+      performers: [],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const sceneInfoButton = canvas.queryByTestId("VideoItem--infoButton");
+    const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+
+    // The scene info button and panel should not be in the document.
+    expect(sceneInfoButton).not.toBeInTheDocument();
+    expect(sceneInfoPanel).not.toBeInTheDocument();
+  },
+};
+
 export const Subtitles: Story = {
   args: {
     captionsDefault: "uk",
