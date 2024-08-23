@@ -3,14 +3,14 @@ import { faExpand } from "@fortawesome/pro-solid-svg-icons/faExpand";
 import { faRepeat } from "@fortawesome/pro-solid-svg-icons/faRepeat";
 import { faSubtitles } from "@fortawesome/pro-solid-svg-icons/faSubtitles";
 import { faVolume } from "@fortawesome/pro-solid-svg-icons/faVolume";
-import { faBars } from "@fortawesome/pro-light-svg-icons/faBars";
+import { faEllipsisVertical } from "@fortawesome/pro-solid-svg-icons/faEllipsisVertical";
+import { faEllipsisStrokeVertical } from "@fortawesome/pro-light-svg-icons/faEllipsisStrokeVertical";
 import { faCircleInfo as faCircleInfoOff } from "@fortawesome/pro-light-svg-icons/faCircleInfo";
 import { faExpand as faExpandOff } from "@fortawesome/pro-light-svg-icons/faExpand";
 import { faGear as faGearOff } from "@fortawesome/pro-light-svg-icons/faGear";
 import { faRepeat as faRepeatOff } from "@fortawesome/pro-light-svg-icons/faRepeat";
 import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-light-svg-icons/faSubtitles";
 import { faVolumeXmark as faVolumeOff } from "@fortawesome/pro-light-svg-icons/faVolumeXmark";
-import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
@@ -27,7 +27,11 @@ import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
-import { faPause, faPlay } from "@fortawesome/pro-solid-svg-icons";
+import {
+  faPause,
+  faPlay,
+  IconDefinition,
+} from "@fortawesome/pro-solid-svg-icons";
 import { TRANSITION_DURATION } from "../../constants";
 
 export interface VideoItemProps extends IitemData {
@@ -194,13 +198,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     !!props.scene.date;
 
   const sceneInfoButton = sceneInfoDataAvailable ? (
-    <button
+    <UiButton
+      active={sceneInfoOpen}
+      activeIcon={faCircleInfo}
+      activeText="Close scene info"
       data-testid="VideoItem--infoButton"
+      inactiveIcon={faCircleInfoOff}
+      inactiveText="Show scene info"
       onClick={sceneInfoButtonClickHandler}
-      type="button"
-    >
-      <FontAwesomeIcon icon={sceneInfoOpen ? faCircleInfo : faCircleInfoOff} />
-    </button>
+    />
   ) : null;
 
   /* -------------------------------- Scrubber -------------------------------- */
@@ -257,15 +263,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       : null;
 
   const subtitlesButton = !!captionSources ? (
-    <button
+    <UiButton
+      active={props.subtitlesOn}
+      activeIcon={faSubtitles}
+      activeText="Hide subtitles"
       data-testid="VideoItem--subtitlesButton"
+      inactiveIcon={faSubtitlesOff}
+      inactiveText="Show subtitles"
       onClick={props.toggleSubtitlesHandler}
-      type="button"
-    >
-      <FontAwesomeIcon
-        icon={props.subtitlesOn ? faSubtitles : faSubtitlesOff}
-      />
-    </button>
+    />
   ) : null;
 
   // Update the subtitles track via the ref object
@@ -333,7 +339,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           />
         )}
       </Transition>
-      <div className={styles.controls}>
+      <div
+        className={cx(styles.controls, {
+          [styles["controls--active"]]: props.uiIsVisible,
+        })}
+      >
         <Transition
           in={props.uiIsVisible}
           nodeRef={uiButtonDrawerRef}
@@ -350,45 +360,49 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 ...toggleableUiTransitionStyles[state],
               }}
             >
-              <button
+              <UiButton
+                active={props.isMuted}
+                activeIcon={faVolumeOff}
+                activeText="Unmute"
                 data-testid="VideoItem--muteButton"
+                inactiveIcon={faVolume}
+                inactiveText="Mute"
                 onClick={muteButtonClickHandler}
-                type="button"
-              >
-                <FontAwesomeIcon
-                  icon={props.isMuted ? faVolumeOff : faVolume}
-                />
-                <span className={styles["visually-hidden"]}>
-                  {props.isMuted ? "Unmute" : "Mute"}
-                </span>
-              </button>
-              <button
-                data-testid="VideoItem--fullscreenButton"
-                onClick={fullscreenButtonClickHandler}
-                type="button"
-              >
-                <FontAwesomeIcon
-                  icon={props.isFullscreen ? faExpand : faExpandOff}
-                />
-              </button>
+              />
+
               {subtitlesButton}
-              {sceneInfoButton}
-              <button
+
+              <UiButton
+                active={props.isFullscreen}
+                activeIcon={faExpand}
+                activeText="Close fullscreen"
+                data-testid="VideoItem--fullscreenButton"
+                inactiveIcon={faExpandOff}
+                inactiveText="Open fullscreen"
+                onClick={fullscreenButtonClickHandler}
+              />
+
+              <UiButton
+                active={props.loopOnEnd}
+                activeIcon={faRepeat}
+                activeText="Stop looping scene"
                 data-testid="VideoItem--loopButton"
+                inactiveIcon={faRepeatOff}
+                inactiveText="Loop scene"
                 onClick={loopButtonClickHandler}
-                type="button"
-              >
-                <FontAwesomeIcon
-                  icon={props.loopOnEnd ? faRepeat : faRepeatOff}
-                />
-              </button>
-              <button
+              />
+
+              {sceneInfoButton}
+
+              <UiButton
+                active={false}
+                activeIcon={faGearOff}
+                activeText="Close settings"
                 data-testid="VideoItem--settingsButton"
+                inactiveIcon={faGearOff}
+                inactiveText="Show settings"
                 onClick={() => props.setSettingsTabHandler(true)}
-                type="button"
-              >
-                <FontAwesomeIcon icon={faGearOff} />
-              </button>
+              />
             </div>
           )}
         </Transition>
@@ -398,19 +412,21 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           timeout={TRANSITION_DURATION}
         >
           {(state) => (
-            <button
+            <UiButton
+              active={props.uiIsVisible}
+              activeIcon={faEllipsisVertical}
+              activeText="Hide UI"
               className={styles["toggleable-ui-button"]}
               data-testid="VideoItem--showUiButton"
+              inactiveIcon={faEllipsisStrokeVertical}
+              inactiveText="Show UI"
               onClick={toggleUiButtonClickHandler}
               ref={uiButtonRef}
-              type="button"
               style={{
                 ...toggleableUiStyles,
                 ...toggleUiButtonTransitionStyles[state],
               }}
-            >
-              <FontAwesomeIcon icon={props.uiIsVisible ? faXmark : faBars} />
-            </button>
+            />
           )}
         </Transition>
       </div>
@@ -445,6 +461,41 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 };
 
 export default VideoItem;
+
+/* -------------------------------------------------------------------------- */
+/*                                  UI Button                                 */
+/* -------------------------------------------------------------------------- */
+
+interface UiButtonProps
+  extends React.DetailedHTMLProps<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    HTMLButtonElement
+  > {
+  /** Indicates if the buttons associated action is active. */
+  active: boolean;
+  activeIcon: IconDefinition;
+  activeText: string;
+  inactiveIcon: IconDefinition;
+  inactiveText: string;
+}
+
+const UiButton: React.FC<UiButtonProps> = ({
+  active,
+  activeIcon,
+  activeText,
+  inactiveIcon,
+  inactiveText,
+  ...props
+}) => {
+  return (
+    <button {...props} onClick={props.onClick} type="button">
+      <FontAwesomeIcon icon={active ? activeIcon : inactiveIcon} />
+      <span className={styles["visually-hidden"]}>
+        {active ? activeText : inactiveText}
+      </span>
+    </button>
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /*                              Scene info panel                              */

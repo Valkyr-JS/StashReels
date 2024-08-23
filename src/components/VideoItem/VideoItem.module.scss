@@ -64,7 +64,6 @@
   display: flex;
   flex-direction: column;
   justify-content: end;
-  gap: $ui-spacer;
   margin-right: $ui-spacer;
   margin-bottom: $ui-spacer;
 
@@ -92,6 +91,12 @@
       position: absolute;
       white-space: nowrap;
       width: 1px;
+    }
+  }
+
+  &--active {
+    button {
+      background-color: $ui-active-bg-color;
     }
   }
 }
