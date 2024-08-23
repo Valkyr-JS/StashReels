@@ -1,3 +1,5 @@
+import { faRectanglePortrait } from "@fortawesome/pro-light-svg-icons/faRectanglePortrait";
+import { faDistributeSpacingHorizontal } from "@fortawesome/pro-light-svg-icons/faDistributeSpacingHorizontal";
 import { faCircleInfo } from "@fortawesome/pro-solid-svg-icons/faCircleInfo";
 import { faExpand } from "@fortawesome/pro-solid-svg-icons/faExpand";
 import { faRepeat } from "@fortawesome/pro-solid-svg-icons/faRepeat";
@@ -43,6 +45,8 @@ export interface VideoItemProps extends IitemData {
   index: number;
   /** The fullscreen state set by the user. */
   isFullscreen: boolean;
+  /** The letterboxing state set by the user. */
+  isLetterboxed: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
   /** Whether the video should loop on end. If false, the next video is scrolled
@@ -58,7 +62,7 @@ export interface VideoItemProps extends IitemData {
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
-  console.log(props.scene.path);
+  console.log(props.toggleLetterboxingHandler);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /** Check if at least 80% of the video is in the viewport. */
@@ -150,6 +154,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const fullscreenButtonClickHandler = () => {
     if (isInViewport) props.toggleFullscreenHandler();
+  };
+
+  /* ------------------------------ Letterboxing ------------------------------ */
+
+  const letterboxingButtonClickHandler = () => {
+    if (isInViewport) props.toggleLetterboxingHandler();
   };
 
   /* ------------------------------ On end event ------------------------------ */
@@ -291,6 +301,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       ref={itemRef}
     >
       <video
+        className={cx({ [styles["cover"]]: !props.isLetterboxed })}
         crossOrigin="anonymous"
         data-testid="VideoItem--video"
         id={props.scene.id}
@@ -380,6 +391,16 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 inactiveIcon={faExpandOff}
                 inactiveText="Open fullscreen"
                 onClick={fullscreenButtonClickHandler}
+              />
+
+              <UiButton
+                active={!props.isLetterboxed}
+                activeIcon={faRectanglePortrait}
+                activeText="Constrain to screen"
+                data-testid="VideoItem--letterboxButton"
+                inactiveIcon={faDistributeSpacingHorizontal}
+                inactiveText="Fill screen"
+                onClick={letterboxingButtonClickHandler}
               />
 
               <UiButton
@@ -479,23 +500,21 @@ interface UiButtonProps
   inactiveText: string;
 }
 
-const UiButton: React.FC<UiButtonProps> = ({
-  active,
-  activeIcon,
-  activeText,
-  inactiveIcon,
-  inactiveText,
-  ...props
-}) => {
-  return (
-    <button {...props} onClick={props.onClick} type="button">
-      <FontAwesomeIcon icon={active ? activeIcon : inactiveIcon} />
-      <span className={styles["visually-hidden"]}>
-        {active ? activeText : inactiveText}
-      </span>
-    </button>
-  );
-};
+const UiButton: React.FC<UiButtonProps> = forwardRef(
+  (
+    { active, activeIcon, activeText, inactiveIcon, inactiveText, ...props },
+    ref
+  ) => {
+    return (
+      <button {...props} onClick={props.onClick} type="button" ref={ref}>
+        <FontAwesomeIcon icon={active ? activeIcon : inactiveIcon} />
+        <span className={styles["visually-hidden"]}>
+          {active ? activeText : inactiveText}
+        </span>
+      </button>
+    );
+  }
+);
 
 /* -------------------------------------------------------------------------- */
 /*                              Scene info panel                              */

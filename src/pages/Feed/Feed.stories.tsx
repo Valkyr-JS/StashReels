@@ -3,6 +3,7 @@ import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
+import * as videoItemStyles from "../../components/VideoItem/VideoItem.module.scss";
 
 const meta = {
   title: "Pages/Feed",
@@ -173,6 +174,30 @@ export const ToggleAudio: Story = {
     // Trigger a second click on the mute button to mute it again.
     await userEvent.click(muteButton0);
     await expect(video0.muted).toBe(true);
+  },
+};
+
+export const ToggleLetterboxing: Story = {
+  play: async (context) => {
+    const canvas = within(context.canvasElement);
+
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+    const letterboxButton = canvas.getAllByTestId(
+      "VideoItem--letterboxButton"
+    )[0];
+    const video = canvas.getAllByTestId("VideoItem--video")[0];
+
+    // Default state should be to fill the screen.
+    await expect(video).not.toHaveClass(videoItemStyles["cover"]);
+
+    // Fire a click to change the video to be letterboxed.
+    await userEvent.click(letterboxButton, { delay: 100 });
+    await expect(video).toHaveClass(videoItemStyles["cover"]);
+
+    // Fire a second click to change the video back to fill the screen.
+    await userEvent.click(letterboxButton, { delay: 100 });
+    await expect(video).not.toHaveClass(videoItemStyles["cover"]);
   },
 };
 

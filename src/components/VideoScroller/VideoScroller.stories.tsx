@@ -9,6 +9,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     isFullscreen: false,
+    isLetterboxed: true,
     isMuted: true,
     items: [
       {
@@ -24,6 +25,7 @@ const meta = {
         subtitlesOn: false,
         toggleAudioHandler: fn(),
         toggleFullscreenHandler: fn(),
+        toggleLetterboxingHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -41,6 +43,7 @@ const meta = {
         subtitlesOn: false,
         toggleAudioHandler: fn(),
         toggleFullscreenHandler: fn(),
+        toggleLetterboxingHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -58,6 +61,7 @@ const meta = {
         subtitlesOn: false,
         toggleAudioHandler: fn(),
         toggleFullscreenHandler: fn(),
+        toggleLetterboxingHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -75,6 +79,7 @@ const meta = {
         subtitlesOn: false,
         toggleAudioHandler: fn(),
         toggleFullscreenHandler: fn(),
+        toggleLetterboxingHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
@@ -92,6 +97,7 @@ const meta = {
         subtitlesOn: false,
         toggleAudioHandler: fn(),
         toggleFullscreenHandler: fn(),
+        toggleLetterboxingHandler: fn(),
         toggleLoopHandler: fn(),
         toggleSubtitlesHandler: fn(),
         toggleUiHandler: fn(),
