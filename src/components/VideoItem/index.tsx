@@ -1,3 +1,5 @@
+import { faRectanglePortrait } from "@fortawesome/pro-solid-svg-icons/faRectanglePortrait";
+import { faDistributeSpacingHorizontal } from "@fortawesome/pro-light-svg-icons/faDistributeSpacingHorizontal";
 import { faCircleInfo } from "@fortawesome/pro-solid-svg-icons/faCircleInfo";
 import { faExpand } from "@fortawesome/pro-solid-svg-icons/faExpand";
 import { faRepeat } from "@fortawesome/pro-solid-svg-icons/faRepeat";
@@ -380,6 +382,16 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 inactiveIcon={faExpandOff}
                 inactiveText="Open fullscreen"
                 onClick={fullscreenButtonClickHandler}
+              />
+
+              <UiButton
+                active={false}
+                activeIcon={faRectanglePortrait}
+                activeText="Constrain to screen"
+                data-testid="VideoItem--letterboxButton"
+                inactiveIcon={faDistributeSpacingHorizontal}
+                inactiveText="Fill screen"
+                onClick={() => console.log("letterboxing")}
               />
 
               <UiButton

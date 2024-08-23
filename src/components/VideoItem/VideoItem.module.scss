@@ -20,7 +20,7 @@
     grid-row: canvas-top / canvas-bottom;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 
     justify-content: center;
     align-items: center;

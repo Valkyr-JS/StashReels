@@ -176,6 +176,30 @@ export const ToggleAudio: Story = {
   },
 };
 
+export const ToggleLetterboxing: Story = {
+  play: async (context) => {
+    const canvas = within(context.canvasElement);
+
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+    const letterboxButton = canvas.getAllByTestId(
+      "VideoItem--letterboxButton"
+    )[0];
+    const video = canvas.getAllByTestId("VideoItem--video")[0];
+
+    // Default state should be to fill the screen.
+    await expect(video).toHaveStyle({ objectFit: "contain" });
+
+    // Fire a click to change the video to be letterboxed.
+    userEvent.click(letterboxButton);
+    await expect(video).toHaveStyle({ objectFit: "cover" });
+
+    // Fire a second click to change the video back to fill the screen.
+    userEvent.click(letterboxButton);
+    await expect(video).toHaveStyle({ objectFit: "contain" });
+  },
+};
+
 export const ToggleLoop: Story = {
   play: async (context) => {
     const canvas = within(context.canvasElement);
