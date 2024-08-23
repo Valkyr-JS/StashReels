@@ -339,7 +339,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           />
         )}
       </Transition>
-      <div className={styles.controls}>
+      <div
+        className={cx(styles.controls, {
+          [styles["controls--active"]]: props.uiIsVisible,
+        })}
+      >
         <Transition
           in={props.uiIsVisible}
           nodeRef={uiButtonDrawerRef}
