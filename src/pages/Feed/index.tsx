@@ -29,6 +29,8 @@ interface FeedPageProps {
       label: string;
     }>
   >;
+  /** The user's plugin config from Stash. */
+  pluginConfig: PluginConfig;
   query: string;
   /** Function to set a given filter as a playlist. */
   setFilterHandler: (option: { value: string; label: string }) => void;
@@ -169,6 +171,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
           <SettingsTab
             currentFilter={props.currentFilter}
             filterList={props.filterList}
+            pluginConfig={props.pluginConfig}
             ref={settingsTabRef}
             scenelessFilter={noScenesAvailable}
             setFilterHandler={props.setFilterHandler}

@@ -73,6 +73,12 @@
     }
   }
 
+  &--item {
+    &:not(:last-child) {
+      margin-bottom: $spacer * 2;
+    }
+  }
+
   &--warning {
     margin-top: $spacer;
     margin-bottom: $spacer;

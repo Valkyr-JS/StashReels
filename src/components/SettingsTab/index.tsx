@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { default as cx } from "classnames";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 import Select, {
   ActionMeta,
   GroupBase,
@@ -12,6 +12,7 @@ import Select, {
 import { TransitionStatus } from "react-transition-group";
 import * as styles from "./SettingsTab.module.scss";
 import { TRANSITION_DURATION } from "../../constants";
+import { updateUserConfig } from "../../helpers";
 
 interface SettingsTabProps {
   /** The scene filter currently being used as the playlist. */
@@ -32,6 +33,8 @@ interface SettingsTabProps {
       label: string;
     }>
   >;
+  /** The user's plugin config from Stash. */
+  pluginConfig: PluginConfig;
   /** Identifies whether the currently selected filter returns zero scenes. */
   scenelessFilter: boolean;
   /** Function to set a given filter as a playlist. */
@@ -115,6 +118,26 @@ const SettingsTab = forwardRef(
       </div>
     ) : null;
 
+    // 2. Set current playlist as default
+    const [defaultPlaylist, setDefaultPlaylist] = useState<string | null>(
+      props.pluginConfig?.defaultFilterID ?? null
+    );
+    console.log("defaultPlaylist: ", defaultPlaylist);
+
+    const onChangeDefaultPlaylist: React.ChangeEventHandler<
+      HTMLInputElement
+    > = (_e) => {
+      if (props.currentFilter) {
+        const newDefaultID = props.currentFilter.value;
+        console.log(newDefaultID);
+        setDefaultPlaylist(newDefaultID);
+        updateUserConfig({
+          ...props.pluginConfig,
+          defaultFilterID: newDefaultID,
+        });
+      }
+    };
+
     /* -------------------------------- Component ------------------------------- */
 
     return (
@@ -125,20 +148,36 @@ const SettingsTab = forwardRef(
         style={toggleableUiStyles}
       >
         <div className={styles["settings-tab--body"]}>
-          <label>
-            <h4>Select a playlist</h4>
-            <Select
-              defaultValue={props.currentFilter}
-              onChange={onChangeSelectPlaylist}
-              options={props.filterList}
-              placeholder="Select a playlist..."
-              theme={reactSelectTheme}
-            />
+          <div className={styles["settings-tab--item"]}>
+            <label>
+              <h3>Select a playlist</h3>
+              <Select
+                defaultValue={props.currentFilter}
+                onChange={onChangeSelectPlaylist}
+                options={props.filterList}
+                placeholder="Select a playlist..."
+                theme={reactSelectTheme}
+              />
+            </label>
             <small>
               Choose a scene filter from Stash to use as your Stash Reels
               playlist
             </small>
-          </label>
+          </div>
+          <div className={styles["settings-tab--item"]}>
+            <label>
+              <input
+                checked={defaultPlaylist === props.currentFilter?.value}
+                onChange={onChangeDefaultPlaylist}
+                type="checkbox"
+              />
+              <h3>Set current playlist as default</h3>
+            </label>
+            <small>
+              Set the currently selected scene filter as the default playlist
+              when opening Stash Reels.
+            </small>
+          </div>
           {scenelessFilterWarning}
         </div>
         <div className={styles["settings-tab--footer"]}>

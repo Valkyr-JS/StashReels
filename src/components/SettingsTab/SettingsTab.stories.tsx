@@ -43,6 +43,9 @@ const meta = {
         label: "Unscraped scenes",
       },
     ],
+    pluginConfig: {
+      defaultFilterID: "29",
+    },
     scenelessFilter: false,
     setFilterHandler: fn(),
     setSettingsTabHandler: fn(),

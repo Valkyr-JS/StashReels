@@ -50,5 +50,5 @@ interface IsceneData {
 }
 
 interface PluginConfig {
-  defaultFilterID: string;
+  defaultFilterID?: string;
 }

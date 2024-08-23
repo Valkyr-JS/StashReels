@@ -18,12 +18,21 @@ const App = () => {
     { value: string; label: string } | undefined
   >(undefined);
   const [sceneData, setSceneData] = useState<string | null>(null);
+  const [pluginConfig, setPluginConfig] = useState<PluginConfig | null>(null);
 
   /* ------------------------------ Initial load ------------------------------ */
 
   useEffect(() => {
     // Fetch all scene filters from Stash.
     fetchSceneFilters().then((res) => {
+      console.log(res.data.configuration.plugins);
+      // Set the config in the state
+      setPluginConfig(
+        res.data.configuration.plugins[
+          PLUGIN_NAMESPACE
+        ] as unknown as PluginConfig
+      );
+
       const filters = res.data.findSavedFilters.map((f) => ({
         label: f.name,
         value: f.id,
@@ -43,7 +52,7 @@ const App = () => {
         const userPluginConfig =
           res.data.configuration.plugins[PLUGIN_NAMESPACE];
 
-        // If one has been set, set it as the current in the settings tab.
+        // If a filter has been set, set it as the current in the settings tab.
         if (
           !!userPluginConfig &&
           !!userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
@@ -53,7 +62,7 @@ const App = () => {
               f.value ===
               userPluginConfig[PLUGIN_CONFIG_PROPERTY.DEFAULT_FILTER_ID]
           );
-
+          console.log("current: ", current);
           setCurrentFilter(current);
         }
 
@@ -151,6 +160,7 @@ const App = () => {
       captionsDefault={undefined}
       currentFilter={currentFilter}
       filterList={allFilters}
+      pluginConfig={pluginConfig as PluginConfig}
       setFilterHandler={setCurrentFilter}
       query={sceneData}
     />

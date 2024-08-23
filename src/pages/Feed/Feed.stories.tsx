@@ -45,6 +45,9 @@ const meta = {
         label: "Unscraped scenes",
       },
     ],
+    pluginConfig: {
+      defaultFilterID: "29",
+    },
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}
