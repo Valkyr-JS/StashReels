@@ -1,4 +1,6 @@
+import { EnumType, jsonToGraphQLQuery } from "json-to-graphql-query";
 import { useWindowSize } from "../hooks";
+import { PLUGIN_NAMESPACE } from "../constants";
 
 /** Fetch data from Stash via GQL. */
 export const fetchData = async (query: string) => {
@@ -18,6 +20,40 @@ export const fetchData = async (query: string) => {
     return console.log(err);
   }
 };
+
+/** Fetch all scene filter data from Stash via GQL. Also fetches the user's
+ * config. */
+export const fetchSceneFilters = () => {
+  const query = jsonToGraphQLQuery({
+    query: {
+      configuration: {
+        plugins: true,
+      },
+      findSavedFilters: {
+        __args: {
+          mode: new EnumType("SCENES"),
+        },
+        id: true,
+        name: true,
+      },
+    },
+  });
+
+  return fetchData(query) as Promise<IfetchSceneFiltersResult>;
+};
+
+interface IfetchSceneFiltersResult {
+  data: {
+    configuration: {
+      plugins: {
+        [plugin: string]: {
+          [property: string]: string | number | boolean;
+        };
+      };
+    };
+    findSavedFilters: { id: string; name: string }[];
+  };
+}
 
 // Converts seconds to a hh:mm:ss timestamp.
 // A negative input will result in a -hh:mm:ss or -mm:ss output.
@@ -72,6 +108,25 @@ export function sortPerformers<T extends IPerformerFragment>(performers: T[]) {
 
   return ret;
 }
+
+/** Update the user's plugin config for Stash Reels. NOTE: This overwrites the
+ * entire plugin config, not just the updated properties. Be sure to pass the
+ * entire config object. */
+export const updateUserConfig = async (config: PluginConfig) => {
+  const mutation = jsonToGraphQLQuery({
+    mutation: {
+      configurePlugin: {
+        __args: {
+          plugin_id: PLUGIN_NAMESPACE,
+          input: config,
+        },
+      },
+    },
+  });
+  const f = fetchData(mutation);
+  console.log(f);
+  return f;
+};
 
 interface IPerformerFragment {
   name?: Maybe<string>;

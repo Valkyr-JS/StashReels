@@ -1,0 +1,90 @@
+@import "../../styles/variables.scss";
+
+.settings-tab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100vh;
+
+  display: grid;
+  grid-template-rows:
+    [canvas-top main-top] 1fr [main-bottom footer-top] minmax(
+      $ui-button-size + ($spacer * 2),
+      max-content
+    )
+    [footer-bottom canvas-bottom];
+
+  background-color: black;
+  transition: right ease-in-out;
+
+  &:global(.entering),
+  &:global(.entered) {
+    right: 0;
+  }
+  &:global(.exiting),
+  &:global(.exited) {
+    right: 100%;
+  }
+
+  &--body {
+    padding: $spacer;
+    grid-row: main-top / main-bottom;
+    overflow-y: auto;
+  }
+
+  &--footer {
+    display: flex;
+    align-items: center;
+    padding: $spacer;
+    grid-row: footer-top / footer-bottom;
+
+    h2 {
+      margin-right: auto;
+      margin-bottom: 0;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: $ui-button-size;
+      width: $ui-button-size;
+
+      background-color: transparent;
+      color: white;
+      font-size: 28px;
+      line-height: 1;
+
+      .visually-hidden {
+        clip: rect(0 0 0 0);
+        clip-path: inset(100%);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+    }
+  }
+
+  &--item {
+    &:not(:last-child) {
+      margin-bottom: $spacer * 2;
+    }
+  }
+
+  &--warning {
+    margin-top: $spacer;
+    margin-bottom: $spacer;
+    padding-top: $spacer;
+    padding-bottom: $spacer;
+    border-top: 3px solid red;
+    border-bottom: 3px solid red;
+  }
+}

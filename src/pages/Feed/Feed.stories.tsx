@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, userEvent, waitFor, within } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
@@ -10,6 +10,44 @@ const meta = {
   tags: ["autodocs"],
   args: {
     captionsDefault: undefined,
+    currentFilter: undefined,
+    filterList: [
+      {
+        value: "29",
+        label: "Portrait scenes of Mia Melano",
+      },
+      {
+        value: "20",
+        label: "Recently played scenes",
+      },
+      {
+        value: "5",
+        label: "Recently released scenes",
+      },
+      {
+        value: "12",
+        label: "Recently updated scenes",
+      },
+      {
+        value: "26",
+        label: "Stashbox pending",
+      },
+      {
+        value: "4",
+        label: "Unorganised scenes",
+      },
+      {
+        value: "24",
+        label: "Unscraped OF scenes",
+      },
+      {
+        value: "16",
+        label: "Unscraped scenes",
+      },
+    ],
+    pluginConfig: {
+      defaultFilterID: "29",
+    },
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}
@@ -43,6 +81,7 @@ const meta = {
         }
       }
     }`,
+    setFilterHandler: fn(),
   },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof FeedPage>;
@@ -264,6 +303,58 @@ export const ToggleFullscreen: Story = {
     // Fire another click event to exit fullscreen.
     await userEvent.click(toggleFullscreenButton, { delay: 300 });
     await waitFor(() => expect(document.fullscreenElement).toBeNull());
+  },
+};
+
+export const ToggleSettings: Story = {
+  name: "Toggle settings",
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const scroller: HTMLDivElement = canvas.getByTestId(
+      "VideoScroller--container"
+    );
+
+    // Await promise for videos to be fetched
+    await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
+
+    const allVideos: HTMLVideoElement[] =
+      canvas.getAllByTestId("VideoItem--video");
+    const video: HTMLVideoElement = allVideos[0];
+
+    // Wait for the video to load
+    video.addEventListener("canplaythrough", async () => {
+      const toggleSettingsButton = canvas.getAllByTestId(
+        "VideoItem--settingsButton"
+      )[0];
+      const settingsTab = canvas.queryByTestId("SettingsTab");
+
+      // Expect settings not to be shown and video to be playing by default.
+      expect(settingsTab).not.toBeInTheDocument();
+      await expect(video.paused).toBe(false);
+
+      // Fire a click event to show the settings and pause the current video.
+      userEvent.click(toggleSettingsButton, { delay: 300 });
+      await waitFor(() => {
+        const settingsTab = canvas.getByTestId("SettingsTab");
+        expect(settingsTab).toBeInTheDocument();
+        expect(video.paused).toBe(true);
+      });
+
+      await waitFor(() => {
+        const settingsTab = canvas.queryByTestId("SettingsTab");
+
+        // Fire a click on the close button in the settings tab to hide the
+        // settings and resume the current video.
+        const closeSettingsButton = canvas.queryByTestId(
+          "SettingsTab--closeButton"
+        );
+        userEvent.click(closeSettingsButton as HTMLButtonElement, {
+          delay: 300,
+        });
+        expect(settingsTab).not.toBeInTheDocument();
+        expect(video.paused).toBe(false);
+      });
+    });
   },
 };
 

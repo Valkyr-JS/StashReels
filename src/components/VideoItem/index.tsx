@@ -28,6 +28,7 @@ import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
 import { faPause, faPlay } from "@fortawesome/pro-solid-svg-icons";
+import { TRANSITION_DURATION } from "../../constants";
 
 export interface VideoItemProps extends IitemData {
   /** Function for handling changing the current item. */
@@ -43,6 +44,8 @@ export interface VideoItemProps extends IitemData {
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
+  /** Whether the settings tab is open. */
+  settingsTabIsVisible: boolean;
   /** Whether the UI buttons are visible. */
   uiIsVisible: boolean;
   /** The default captions language to show. `undefined` means no default
@@ -51,6 +54,7 @@ export interface VideoItemProps extends IitemData {
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
+  console.log(props.scene.path);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /** Check if at least 80% of the video is in the viewport. */
@@ -58,16 +62,27 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     threshold: 0.8,
   });
 
+  /* ---------------------------------- Load ---------------------------------- */
+
+  // Reload the video when path changes. Fixes old video source remaining when
+  // the filter changes
+  useEffect(() => {
+    videoRef.current?.load();
+  }, [props.scene.path]);
+
   /* ------------------------------- Play/pause ------------------------------- */
 
   useEffect(() => {
-    // Play the video if it is currently in the viewport, otherwise pause it.
-    if (isInViewport && videoRef.current) videoRef.current.play();
+    // Pause the video if the settings tab is open
+    if (props.settingsTabIsVisible) videoRef.current?.pause();
+    // Play the video if it is currently in the viewport.
+    else if (isInViewport && videoRef.current) videoRef.current.play();
+    // Otherwise pause it.
     else videoRef.current?.pause();
 
     // Update the current item data
     if (isInViewport) props.changeItemHandler(props.index);
-  }, [isInViewport]);
+  }, [isInViewport, props.settingsTabIsVisible]);
 
   const [showTapIcon, setShowTapIcon] = useState(false);
   const tapIconRef = useRef(null);
@@ -90,9 +105,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const uiButtonDrawerRef = useRef(null);
   const uiButtonRef = useRef(null);
-  const buttonsTransitionDuration = 150;
   const toggleableUiStyles: React.CSSProperties = {
-    transitionDuration: buttonsTransitionDuration / 1000 + "s",
+    transitionDuration: TRANSITION_DURATION / 1000 + "s",
   };
 
   const toggleableUiTransitionStyles = {
@@ -268,7 +282,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       <Transition
         in={showTapIcon}
         nodeRef={tapIconRef}
-        timeout={150}
+        timeout={TRANSITION_DURATION}
         unmountOnExit
       >
         {(state) => (
@@ -286,7 +300,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       <Transition
         in={sceneInfoOpen}
         nodeRef={sceneInfoPanelRef}
-        timeout={buttonsTransitionDuration}
+        timeout={TRANSITION_DURATION}
         mountOnEnter
         unmountOnExit
       >
@@ -305,7 +319,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <Transition
           in={props.uiIsVisible}
           nodeRef={uiButtonDrawerRef}
-          timeout={buttonsTransitionDuration}
+          timeout={TRANSITION_DURATION}
           unmountOnExit
         >
           {(state) => (
@@ -359,8 +373,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 />
               </button>
               <button
-                data-testid="VideoItem--configButton"
-                onClick={() => console.log("config settings")}
+                data-testid="VideoItem--settingsButton"
+                onClick={() => props.setSettingsTabHandler(true)}
                 type="button"
               >
                 <FontAwesomeIcon icon={faGearOff} />
@@ -371,7 +385,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         <Transition
           in={props.uiIsVisible}
           nodeRef={uiButtonRef}
-          timeout={buttonsTransitionDuration}
+          timeout={TRANSITION_DURATION}
         >
           {(state) => (
             <button
@@ -393,7 +407,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       <Transition
         in={props.uiIsVisible}
         nodeRef={scrubberRef}
-        timeout={buttonsTransitionDuration}
+        timeout={TRANSITION_DURATION}
       >
         {(state) => (
           <div

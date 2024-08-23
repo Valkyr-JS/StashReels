@@ -2,12 +2,38 @@ import React, { useEffect, useRef, useState } from "react";
 import "./Feed.scss";
 import VideoScroller from "../../components/VideoScroller";
 import { fetchData } from "../../helpers";
+import SettingsTab from "../../components/SettingsTab";
+import { Transition } from "react-transition-group";
+import { TRANSITION_DURATION } from "../../constants";
+import { GroupBase, OptionsOrGroups } from "react-select";
 
 interface FeedPageProps {
-  query: string;
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault: string | undefined;
+  /** The scene filter currently being used as the playlist. */
+  currentFilter:
+    | {
+        value: string;
+        label: string;
+      }
+    | undefined;
+  /** The list of all user scene filters. */
+  filterList: OptionsOrGroups<
+    {
+      value: string;
+      label: string;
+    },
+    GroupBase<{
+      value: string;
+      label: string;
+    }>
+  >;
+  /** The user's plugin config from Stash. */
+  pluginConfig: PluginConfig;
+  query: string;
+  /** Function to set a given filter as a playlist. */
+  setFilterHandler: (option: { value: string; label: string }) => void;
 }
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
@@ -40,7 +66,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [props.query]);
 
   /** Handles fetching video data */
   const handleProcessingItemData = () => {
@@ -48,6 +74,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     const processedItems: IitemData[] = allSceneData.map((sc) => {
       return {
         scene: sc,
+        setSettingsTabHandler: handleSetSettingsTab,
         subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
         toggleFullscreenHandler: handleTogglingFullscreen,
@@ -100,6 +127,14 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     handleProcessingItemData();
   }, [allSceneData]);
 
+  /* ------------------------------ Settings tab ------------------------------ */
+
+  const [showSettings, setShowSettings] = useState(false);
+  const settingsTabRef = useRef<HTMLDivElement>(null);
+  const handleSetSettingsTab = (show: boolean) => setShowSettings(show);
+
+  const noScenesAvailable = allProcessedData.length === 0;
+
   /* -------------------------------- Subtitles ------------------------------- */
 
   const [subtitlesOn, setSubtitlesOn] = useState(true);
@@ -122,9 +157,29 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         isMuted={isMuted}
         items={allProcessedData}
         loopOnEnd={loopOnEnd}
+        settingsTabIsVisible={showSettings}
         subtitlesOn={subtitlesOn}
         uiIsVisible={showUI}
       />
+      <Transition
+        in={showSettings}
+        nodeRef={settingsTabRef}
+        timeout={TRANSITION_DURATION}
+        unmountOnExit={!noScenesAvailable}
+      >
+        {(state) => (
+          <SettingsTab
+            currentFilter={props.currentFilter}
+            filterList={props.filterList}
+            pluginConfig={props.pluginConfig}
+            ref={settingsTabRef}
+            scenelessFilter={noScenesAvailable}
+            setFilterHandler={props.setFilterHandler}
+            setSettingsTabHandler={handleSetSettingsTab}
+            transitionStatus={noScenesAvailable ? "entered" : state}
+          />
+        )}
+      </Transition>
     </main>
   );
 };
