@@ -155,7 +155,7 @@ const SettingsTab = forwardRef(
                 defaultValue={props.currentFilter}
                 onChange={onChangeSelectPlaylist}
                 options={props.filterList}
-                placeholder="Select a playlist..."
+                placeholder="None selected. Defaulted to all portrait scenes."
                 theme={reactSelectTheme}
               />
             </label>
