@@ -25,6 +25,10 @@
     justify-content: center;
     align-items: center;
     display: flex;
+
+    &.cover {
+      object-fit: cover;
+    }
   }
 }
 

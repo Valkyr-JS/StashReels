@@ -3,6 +3,7 @@ import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
+import * as videoItemStyles from "../../components/VideoItem/VideoItem.module.scss";
 
 const meta = {
   title: "Pages/Feed",
@@ -188,15 +189,15 @@ export const ToggleLetterboxing: Story = {
     const video = canvas.getAllByTestId("VideoItem--video")[0];
 
     // Default state should be to fill the screen.
-    await expect(video).toHaveStyle({ objectFit: "contain" });
+    await expect(video).not.toHaveClass(videoItemStyles["cover"]);
 
     // Fire a click to change the video to be letterboxed.
-    userEvent.click(letterboxButton);
-    await expect(video).toHaveStyle({ objectFit: "cover" });
+    await userEvent.click(letterboxButton, { delay: 100 });
+    await expect(video).toHaveClass(videoItemStyles["cover"]);
 
     // Fire a second click to change the video back to fill the screen.
-    userEvent.click(letterboxButton);
-    await expect(video).toHaveStyle({ objectFit: "contain" });
+    await userEvent.click(letterboxButton, { delay: 100 });
+    await expect(video).not.toHaveClass(videoItemStyles["cover"]);
   },
 };
 

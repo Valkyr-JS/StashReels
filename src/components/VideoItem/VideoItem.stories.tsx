@@ -10,6 +10,7 @@ const meta = {
   args: {
     currentIndex: 0,
     index: 0,
+    isLetterboxed: true,
     isFullscreen: false,
     isMuted: true,
     changeItemHandler: fn(),
@@ -32,6 +33,7 @@ const meta = {
     subtitlesOn: true,
     toggleAudioHandler: fn(),
     toggleFullscreenHandler: fn(),
+    toggleLetterboxingHandler: fn(),
     toggleLoopHandler: fn(),
     toggleSubtitlesHandler: fn(),
     toggleUiHandler: fn(),

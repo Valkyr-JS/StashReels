@@ -78,6 +78,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         subtitlesOn,
         toggleAudioHandler: handleTogglingAudio,
         toggleFullscreenHandler: handleTogglingFullscreen,
+        toggleLetterboxingHandler: handleTogglingFillScreen,
         toggleLoopHandler: handleTogglingLooping,
         toggleSubtitlesHandler: handleTogglingSubtitles,
         toggleUiHandler: handleTogglingUI,
@@ -117,6 +118,14 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
       document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
+  /* ------------------------------ Letterboxing ------------------------------ */
+
+  const [isLetterboxed, setIsLetterboxed] = useState(true);
+  const handleTogglingFillScreen = () => {
+    console.log("set: ", !isLetterboxed);
+    setIsLetterboxed((prev) => !prev);
+  };
+
   /* --------------------------------- Looping -------------------------------- */
 
   const [loopOnEnd, setLoopOnEnd] = useState(false);
@@ -154,6 +163,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
       <VideoScroller
         captionsDefault={props.captionsDefault}
         isFullscreen={isFullscreen}
+        isLetterboxed={isLetterboxed}
         isMuted={isMuted}
         items={allProcessedData}
         loopOnEnd={loopOnEnd}

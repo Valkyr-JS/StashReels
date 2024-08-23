@@ -7,6 +7,8 @@ import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 interface VideoScrollerProps {
   /** The fullscreen state set by the user. */
   isFullscreen: boolean;
+  /** The letterboxing state set by the user. */
+  isLetterboxed: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
   /** The data for each item in the queue. */
@@ -69,6 +71,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               currentIndex={currentIndex}
               index={i}
               isFullscreen={props.isFullscreen}
+              isLetterboxed={props.isLetterboxed}
               isMuted={props.isMuted}
               key={i}
               loopOnEnd={props.loopOnEnd}
@@ -78,6 +81,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               subtitlesOn={props.subtitlesOn}
               toggleAudioHandler={item.toggleAudioHandler}
               toggleFullscreenHandler={item.toggleFullscreenHandler}
+              toggleLetterboxingHandler={item.toggleLetterboxingHandler}
               toggleLoopHandler={item.toggleLoopHandler}
               toggleSubtitlesHandler={item.toggleSubtitlesHandler}
               toggleUiHandler={item.toggleUiHandler}
