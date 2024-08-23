@@ -363,10 +363,25 @@ const processObjectFilter = (objectFilter: any) => {
       // `StashIDCriterionInput`
       case "stash_id_endpoint":
         updatedFilter[filterType] = {
-          endpoint: objectFilter[filterType].value.endpoint,
           modifier: new EnumType(updatedFilter[filterType].modifier),
-          stash_id: objectFilter[filterType].value.stashID,
         };
+
+        // Only set `enpoint` if it has been declared
+        if (typeof objectFilter[filterType].endpoint !== "undefined") {
+          updatedFilter[filterType] = {
+            ...updatedFilter[filterType],
+            endpoint: objectFilter[filterType].endpoint,
+          };
+        }
+
+        // Only set `stash_id` if it has been declared
+        if (typeof objectFilter[filterType].stashID !== "undefined") {
+          updatedFilter[filterType] = {
+            ...updatedFilter[filterType],
+            stash_id: objectFilter[filterType].stashID,
+          };
+        }
+
         break;
 
       // `String`
