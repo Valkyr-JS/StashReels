@@ -220,7 +220,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         in={showSettings}
         nodeRef={settingsTabRef}
         timeout={TRANSITION_DURATION}
-        unmountOnExit={!noScenesAvailable}
+        mountOnEnter
+        unmountOnExit
       >
         {(state) => (
           <SettingsTab
