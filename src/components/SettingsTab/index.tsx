@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { default as cx } from "classnames";
+import ISO6391 from "iso-639-1";
 import React, { forwardRef, useState } from "react";
 import Select, {
   ActionMeta,
@@ -162,6 +163,41 @@ const SettingsTab = forwardRef(
       props.setIsRandomised();
     };
 
+    // 4. Set subtitles lanuage
+    const subtitlesList = ISO6391.getAllNames()
+      .map((name) => ({
+        label: name,
+        value: ISO6391.getCode(name),
+      }))
+      .sort((a, b) => {
+        if (a.label < b.label) {
+          return -1;
+        }
+        if (a.label > b.label) {
+          return 1;
+        }
+        return 0;
+      });
+
+    const defaultSubtitles = props.pluginConfig.subtitleLanguage
+      ? {
+          label: ISO6391.getName(props.pluginConfig.subtitleLanguage),
+          value: props.pluginConfig.subtitleLanguage,
+        }
+      : undefined;
+
+    const onChangeSubLanguage: ReactSelectOnChange = (option) => {
+      console.log("subtitles now in: ", option);
+
+      // Update the config with the new language.
+      updateUserConfig({
+        ...props.pluginConfig,
+        subtitleLanguage: option?.value ?? undefined,
+      });
+
+      // Refresh the scene list without changing the current index.
+    };
+
     /* -------------------------------- Component ------------------------------- */
 
     return (
@@ -227,6 +263,21 @@ const SettingsTab = forwardRef(
               <h3>Randomise playlist order</h3>
             </label>
             <small>Randomise the order of scenes in the playlist.</small>
+          </div>
+
+          <div className={styles["settings-tab--item"]}>
+            <label>
+              <h3>Subtitle language</h3>
+              <Select
+                defaultValue={defaultSubtitles}
+                onChange={onChangeSubLanguage}
+                options={subtitlesList}
+                theme={reactSelectTheme}
+              />
+            </label>
+            <small>
+              Select the language to use for subtitles if available.
+            </small>
           </div>
         </div>
 

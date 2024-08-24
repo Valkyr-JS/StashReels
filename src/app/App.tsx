@@ -156,7 +156,6 @@ const App = () => {
 
   return (
     <FeedPage
-      captionsDefault={undefined}
       currentFilter={currentFilter}
       filterList={allFilters}
       pluginConfig={pluginConfig as PluginConfig}

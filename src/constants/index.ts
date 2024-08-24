@@ -14,6 +14,7 @@ export const ITEMS_BEFORE_END_ON_FETCH = 2 as const;
 
 export const PLUGIN_CONFIG_PROPERTY = {
   DEFAULT_FILTER_ID: "defaultFilterID",
+  SUBTITLE_LANGUAGE: "subtitleLanguage",
 } as const;
 
 export const PLUGIN_NAMESPACE = "stashreels" as const;

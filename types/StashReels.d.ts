@@ -52,5 +52,8 @@ interface IsceneData {
 }
 
 interface PluginConfig {
+  /** The ID of the default filter to be loaded on startup. */
   defaultFilterID?: string;
+  /** The subtitle language code to be used when available. */
+  subtitleLanguage?: string;
 }
