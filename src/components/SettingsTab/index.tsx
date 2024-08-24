@@ -33,12 +33,16 @@ interface SettingsTabProps {
       label: string;
     }>
   >;
+  /** Whether the current playlist is randomised or not. */
+  isRandomised: boolean;
   /** The user's plugin config from Stash. */
   pluginConfig: PluginConfig;
   /** Identifies whether the currently selected filter returns zero scenes. */
   scenelessFilter: boolean;
   /** Function to set a given filter as a playlist. */
   setFilterHandler: (option: { value: string; label: string }) => void;
+  /** Function to set playlist as randomised or not. */
+  setIsRandomised: () => void;
   /** Function to set the settings tab component visibility. */
   setSettingsTabHandler: (show: boolean) => void;
   /** The ReactTransitionGroup transition status. */
@@ -105,6 +109,9 @@ const SettingsTab = forwardRef(
     const onChangeSelectPlaylist: ReactSelectOnChange = (option) => {
       if (option?.value) {
         props.setFilterHandler(option);
+
+        // Turn off randomiser
+        if (props.isRandomised) props.setIsRandomised();
       }
     };
 
@@ -122,20 +129,25 @@ const SettingsTab = forwardRef(
     const [defaultPlaylist, setDefaultPlaylist] = useState<string | null>(
       props.pluginConfig?.defaultFilterID ?? null
     );
-    console.log("defaultPlaylist: ", defaultPlaylist);
 
     const onChangeDefaultPlaylist: React.ChangeEventHandler<
       HTMLInputElement
     > = (_e) => {
       if (props.currentFilter) {
         const newDefaultID = props.currentFilter.value;
-        console.log(newDefaultID);
         setDefaultPlaylist(newDefaultID);
         updateUserConfig({
           ...props.pluginConfig,
           defaultFilterID: newDefaultID,
         });
       }
+    };
+
+    // 3. Randomise playlist order
+    const onChangeRandomise: React.ChangeEventHandler<
+      HTMLInputElement
+    > = () => {
+      props.setIsRandomised();
     };
 
     /* -------------------------------- Component ------------------------------- */
@@ -164,6 +176,7 @@ const SettingsTab = forwardRef(
               playlist
             </small>
           </div>
+
           <div className={styles["settings-tab--item"]}>
             <label>
               <input
@@ -178,8 +191,22 @@ const SettingsTab = forwardRef(
               when opening Stash Reels.
             </small>
           </div>
+
+          <div className={styles["settings-tab--item"]}>
+            <label>
+              <input
+                checked={props.isRandomised}
+                onChange={onChangeRandomise}
+                type="checkbox"
+              />
+              <h3>Randomise playlist order</h3>
+            </label>
+            <small>Randomise the order of scenes in the playlist.</small>
+          </div>
+
           {scenelessFilterWarning}
         </div>
+
         <div className={styles["settings-tab--footer"]}>
           <h2>Settings</h2>
           {closeButton}

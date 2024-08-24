@@ -136,6 +136,39 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
     handleProcessingItemData();
   }, [allSceneData]);
 
+  /* ---------------------------- Randomise scenes ---------------------------- */
+
+  const [isRandomised, setIsRandomised] = useState(false);
+
+  /** Randomise the order of the items in the current playlist. */
+  const handleRandomisingItemOrder = (items: IitemData[]) => {
+    const newOrder = [...items];
+    for (let i = newOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newOrder[i], newOrder[j]] = [newOrder[j], newOrder[i]];
+    }
+    setAllProcessedData(newOrder);
+  };
+
+  /** Reset the item order back to its original. */
+  const handleResetItemOrder = () => handleProcessingItemData();
+
+  /** Toggle randomising item order on and off. */
+  const handleTogglingRandomise = () => {
+    let currentState = false;
+    setIsRandomised((prev) => {
+      const newState = !prev;
+      currentState = newState;
+      return newState;
+    });
+
+    if (currentState) {
+      handleRandomisingItemOrder(allProcessedData);
+    } else {
+      handleResetItemOrder();
+    }
+  };
+
   /* ------------------------------ Settings tab ------------------------------ */
 
   const [showSettings, setShowSettings] = useState(false);
@@ -181,10 +214,12 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
           <SettingsTab
             currentFilter={props.currentFilter}
             filterList={props.filterList}
+            isRandomised={isRandomised}
             pluginConfig={props.pluginConfig}
             ref={settingsTabRef}
             scenelessFilter={noScenesAvailable}
             setFilterHandler={props.setFilterHandler}
+            setIsRandomised={handleTogglingRandomise}
             setSettingsTabHandler={handleSetSettingsTab}
             transitionStatus={noScenesAvailable ? "entered" : state}
           />
