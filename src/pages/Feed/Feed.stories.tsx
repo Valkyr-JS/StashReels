@@ -10,7 +10,6 @@ const meta = {
   component: FeedPage,
   tags: ["autodocs"],
   args: {
-    captionsDefault: undefined,
     currentFilter: undefined,
     filterList: [
       {
@@ -48,7 +47,9 @@ const meta = {
     ],
     pluginConfig: {
       defaultFilterID: "29",
+      subtitleLanguage: "en",
     },
+    pluginUpdateHandler: fn(),
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}
@@ -231,7 +232,6 @@ export const ToggleLoop: Story = {
 
 export const ToggleCaptions: Story = {
   args: {
-    captionsDefault: "uk",
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}
@@ -274,6 +274,7 @@ export const ToggleCaptions: Story = {
 
     // Await promise for videos to be fetched
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
+    console.log("cont");
 
     const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
     const subtitlesButton = canvas.getByTestId("VideoItem--subtitlesButton");
@@ -281,11 +282,13 @@ export const ToggleCaptions: Story = {
     // Wait for the video to load
     video.addEventListener("canplaythrough", async () => {
       // Show default track automatically
+      expect(!!video.textTracks[0]).toBe(true);
       expect(video.textTracks[0].mode).toBe("showing");
 
       // Only render the track that matches the user's selected default.
       expect(video.textTracks.length).toBe(1);
-      expect(video.textTracks[0].language).toBe("uk");
+      expect(video.textTracks[0].language).toBe("en");
+      expect(video.textTracks[0].language).not.toBe("uk");
 
       // Subtitle buttons should not be rendered if there are no tracks to
       // toggle.

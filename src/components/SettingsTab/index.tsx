@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { default as cx } from "classnames";
+import ISO6391 from "iso-639-1";
 import React, { forwardRef, useState } from "react";
 import Select, {
   ActionMeta,
@@ -12,7 +13,6 @@ import Select, {
 import { TransitionStatus } from "react-transition-group";
 import * as styles from "./SettingsTab.module.scss";
 import { TRANSITION_DURATION } from "../../constants";
-import { updateUserConfig } from "../../helpers";
 
 interface SettingsTabProps {
   /** The scene filter currently being used as the playlist. */
@@ -39,6 +39,8 @@ interface SettingsTabProps {
   isRandomised: boolean;
   /** The user's plugin config from Stash. */
   pluginConfig: PluginConfig;
+  /** Function to handle updating the user config. */
+  pluginUpdateHandler: (partialConfig: PluginConfig) => void;
   /** Identifies whether the currently selected filter returns zero scenes. */
   scenelessFilter: boolean;
   /** Function to set a given filter as a playlist. */
@@ -148,8 +150,7 @@ const SettingsTab = forwardRef(
       if (props.currentFilter) {
         const newDefaultID = props.currentFilter.value;
         setDefaultPlaylist(newDefaultID);
-        updateUserConfig({
-          ...props.pluginConfig,
+        props.pluginUpdateHandler({
           defaultFilterID: newDefaultID,
         });
       }
@@ -160,6 +161,40 @@ const SettingsTab = forwardRef(
       HTMLInputElement
     > = () => {
       props.setIsRandomised();
+    };
+
+    // 4. Set subtitles lanuage
+    const subtitlesList = ISO6391.getAllNames()
+      .map((name) => ({
+        label: name,
+        value: ISO6391.getCode(name),
+      }))
+      .sort((a, b) => {
+        if (a.label < b.label) {
+          return -1;
+        }
+        if (a.label > b.label) {
+          return 1;
+        }
+        return 0;
+      });
+
+    const defaultSubtitles = props.pluginConfig.subtitleLanguage
+      ? {
+          label: ISO6391.getName(props.pluginConfig.subtitleLanguage),
+          value: props.pluginConfig.subtitleLanguage,
+        }
+      : undefined;
+
+    const onChangeSubLanguage: ReactSelectOnChange = (option) => {
+      console.log("subtitles now in: ", option);
+
+      // Update the config with the new language.
+      props.pluginUpdateHandler({
+        subtitleLanguage: option?.value ?? undefined,
+      });
+
+      // Refresh the scene list without changing the current index.
     };
 
     /* -------------------------------- Component ------------------------------- */
@@ -227,6 +262,21 @@ const SettingsTab = forwardRef(
               <h3>Randomise playlist order</h3>
             </label>
             <small>Randomise the order of scenes in the playlist.</small>
+          </div>
+
+          <div className={styles["settings-tab--item"]}>
+            <label>
+              <h3>Subtitle language</h3>
+              <Select
+                defaultValue={defaultSubtitles}
+                onChange={onChangeSubLanguage}
+                options={subtitlesList}
+                theme={reactSelectTheme}
+              />
+            </label>
+            <small>
+              Select the language to use for subtitles if available.
+            </small>
           </div>
         </div>
 

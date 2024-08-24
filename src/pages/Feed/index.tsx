@@ -8,9 +8,6 @@ import { TRANSITION_DURATION } from "../../constants";
 import { GroupBase, OptionsOrGroups } from "react-select";
 
 interface FeedPageProps {
-  /** The default captions language to show. `undefined` means no default
-   * captions. */
-  captionsDefault: string | undefined;
   /** The scene filter currently being used as the playlist. */
   currentFilter:
     | {
@@ -31,6 +28,9 @@ interface FeedPageProps {
   >;
   /** The user's plugin config from Stash. */
   pluginConfig: PluginConfig;
+  /** Function to handle updating the user config. */
+  pluginUpdateHandler: (partialConfig: PluginConfig) => void;
+  /** The GQL query for fetching data. */
   query: string;
   /** Function to set a given filter as a playlist. */
   setFilterHandler: (option: { value: string; label: string }) => void;
@@ -206,7 +206,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   return (
     <main data-testid="FeedPage" ref={pageRef}>
       <VideoScroller
-        captionsDefault={props.captionsDefault}
+        captionsDefault={props.pluginConfig?.subtitleLanguage}
         isFullscreen={isFullscreen}
         isLetterboxed={isLetterboxed}
         isMuted={isMuted}
@@ -230,6 +230,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
             filterList={props.filterList}
             isRandomised={isRandomised}
             pluginConfig={props.pluginConfig}
+            pluginUpdateHandler={props.pluginUpdateHandler}
             ref={settingsTabRef}
             scenelessFilter={noScenesAvailable}
             setFilterHandler={props.setFilterHandler}
