@@ -267,12 +267,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               );
             }
           })
-          .filter((c) => !!c)
+          .find((c) => !!c)
       : null;
 
   const subtitlesButton = !!captionSources ? (
     <UiButton
-      active={props.subtitlesOn}
+      active={!!captionSources && props.subtitlesOn}
       activeIcon={faSubtitles}
       activeText="Hide subtitles"
       data-testid="VideoItem--subtitlesButton"
