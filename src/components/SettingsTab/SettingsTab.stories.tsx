@@ -43,11 +43,13 @@ const meta = {
         label: "Unscraped scenes",
       },
     ],
+    isRandomised: false,
     pluginConfig: {
       defaultFilterID: "29",
     },
     scenelessFilter: false,
     setFilterHandler: fn(),
+    setIsRandomised: fn(),
     setSettingsTabHandler: fn(),
     transitionStatus: "entered",
   },

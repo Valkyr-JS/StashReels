@@ -62,7 +62,6 @@ export interface VideoItemProps extends IitemData {
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
-  console.log(props.toggleLetterboxingHandler);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /** Check if at least 80% of the video is in the viewport. */
@@ -197,7 +196,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   useEffect(() => {
     if (!isInViewport) setSceneInfoOpen(false);
-    else console.log(props.scene);
   }, [isInViewport]);
 
   // Only render the button if there is available data
