@@ -43,15 +43,23 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /** Get and set the processed scene data. */
   const [allProcessedData, setAllProcessedData] = useState<IitemData[]>([]);
 
+  /** Indicates if the app is currently fetching data */
+  const [fetchingData, setFetchingData] = useState(false);
+
   /**
    * ? All scene data is fetched and from Stash on load. However, it is not
    * loaded into the scroller until the user reaches the appropriate point. This
    * reduces the amount of videos loaded at once.
    */
   useEffect(() => {
+    // Component is mounted
     let isMounted = true;
+
+    // Set fetching as started
+    setFetchingData(true);
     fetchData(props.query).then(
       (res: { data: { findScenes: FindScenesResultType } }) => {
+        console.log("fetched");
         if (isMounted) {
           // Process fetched scene data, filtering out invalid scenes
           const processedData = res.data.findScenes.scenes
@@ -60,10 +68,14 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
           // Update the full scene data
           setAllSceneData(processedData);
+
+          // Set fetching as ended
+          setFetchingData(false);
         }
       }
     );
     return () => {
+      // Unmount component before re-render
       isMounted = false;
     };
   }, [props.query]);
@@ -175,7 +187,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   const settingsTabRef = useRef<HTMLDivElement>(null);
   const handleSetSettingsTab = (show: boolean) => setShowSettings(show);
 
-  const noScenesAvailable = allProcessedData.length === 0;
+  const noScenesAvailable = !fetchingData && allProcessedData.length === 0;
 
   /* -------------------------------- Subtitles ------------------------------- */
 
@@ -213,6 +225,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         {(state) => (
           <SettingsTab
             currentFilter={props.currentFilter}
+            fetchingData={fetchingData}
             filterList={props.filterList}
             isRandomised={isRandomised}
             pluginConfig={props.pluginConfig}

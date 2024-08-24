@@ -152,8 +152,7 @@ const App = () => {
     }
   }, [currentFilter]);
 
-  if (!allFilters) return <div>Loading filters</div>;
-  if (!sceneData) return <div>Loading scene data</div>;
+  if (!sceneData) return <div>Fetching scene data...</div>;
 
   return (
     <FeedPage

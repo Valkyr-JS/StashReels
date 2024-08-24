@@ -94,12 +94,20 @@
     }
   }
 
-  &--warning {
+  &--error, &--warning {
     margin-top: $spacer;
     margin-bottom: $spacer;
     padding-top: $spacer;
     padding-bottom: $spacer;
-    border-top: 3px solid red;
-    border-bottom: 3px solid red;
+    border-top: 3px solid;
+    border-bottom: 3px solid;
+  }
+
+  &--error {
+    border-color: red;
+  }
+
+  &--warning {
+    border-color: gold;
   }
 }

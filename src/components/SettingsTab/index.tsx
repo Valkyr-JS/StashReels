@@ -22,6 +22,8 @@ interface SettingsTabProps {
         label: string;
       }
     | undefined;
+  /** Whether the app is currently fetching scene data. */
+  fetchingData: boolean;
   /** The list of all user scene filters. */
   filterList: OptionsOrGroups<
     {
@@ -70,16 +72,26 @@ const SettingsTab = forwardRef(
 
     const classes = cx(styles["settings-tab"], props.transitionStatus);
 
-    const closeButton = props.scenelessFilter ? null : (
-      <button
-        data-testid="SettingsTab--closeButton"
-        onClick={closeButtonHandler}
-        type="button"
-      >
-        <FontAwesomeIcon icon={faXmark} />
-        <span className={styles["visually-hidden"]}>Close settings</span>
-      </button>
-    );
+    const closeButton =
+      props.scenelessFilter || props.fetchingData ? null : (
+        <button
+          data-testid="SettingsTab--closeButton"
+          onClick={closeButtonHandler}
+          type="button"
+        >
+          <FontAwesomeIcon icon={faXmark} />
+          <span className={styles["visually-hidden"]}>Close settings</span>
+        </button>
+      );
+
+    /* --------------------------- Fetching data alert -------------------------- */
+
+    const fetchingDataWarning = props.fetchingData ? (
+      <div className={styles["settings-tab--warning"]}>
+        <h2>Fetching data from Stash...</h2>
+        <p>Please wait whilst data is loaded.</p>
+      </div>
+    ) : null;
 
     /* ---------------------------------- Forms --------------------------------- */
 
@@ -115,8 +127,8 @@ const SettingsTab = forwardRef(
       }
     };
 
-    const scenelessFilterWarning = props.scenelessFilter ? (
-      <div className={styles["settings-tab--warning"]}>
+    const scenelessFilterError = props.scenelessFilter ? (
+      <div className={styles["settings-tab--error"]}>
         <h2>Playlist contains no scenes!</h2>
         <p>
           No scenes were found in the currently selected playlist. Please choose
@@ -175,6 +187,9 @@ const SettingsTab = forwardRef(
               Choose a scene filter from Stash to use as your Stash Reels
               playlist
             </small>
+
+            {fetchingDataWarning}
+            {scenelessFilterError}
           </div>
 
           <div
@@ -213,8 +228,6 @@ const SettingsTab = forwardRef(
             </label>
             <small>Randomise the order of scenes in the playlist.</small>
           </div>
-
-          {scenelessFilterWarning}
         </div>
 
         <div className={styles["settings-tab--footer"]}>

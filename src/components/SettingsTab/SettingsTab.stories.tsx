@@ -9,6 +9,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     currentFilter: undefined,
+    fetchingData: false,
     filterList: [
       {
         value: "29",
