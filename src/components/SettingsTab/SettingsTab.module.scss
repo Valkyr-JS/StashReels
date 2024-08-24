@@ -5,7 +5,8 @@
   top: 0;
   right: 0;
   width: 100%;
-  height: 100vh;
+  height: 100vh; // Fallback
+  height: calc(var(--vsr-vh, 1vh) * 100);
 
   display: grid;
   grid-template-rows:
