@@ -54,6 +54,8 @@ interface IsceneData {
 interface PluginConfig {
   /** The ID of the default filter to be loaded on startup. */
   defaultFilterID?: string;
+  /** Hide the main navigation link to Stash Reels.  */
+  hideNavButton?: boolean;
   /** The subtitle language code to be used when available. */
   subtitleLanguage?: string;
 }

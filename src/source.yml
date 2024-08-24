@@ -7,3 +7,8 @@ ui:
     /: .
   javascript:
     - StashReels.js
+settings:
+  hideNavButton:
+    displayName: Hide navigation button
+    description: Hide the main navigation link to Stash Reels.
+    type: BOOLEAN

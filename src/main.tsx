@@ -2,6 +2,8 @@ import React from "react";
 import { faMobile } from "@fortawesome/pro-solid-svg-icons/faMobile";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { createRoot } from "react-dom/client";
+import { fetchPluginConfig } from "./helpers";
+import { PLUGIN_NAMESPACE } from "./constants";
 
 /** https://stackoverflow.com/questions/5525071/how-to-wait-until-an-element-exists */
 function waitForElm(selector: string) {
@@ -26,7 +28,7 @@ function waitForElm(selector: string) {
   });
 }
 
-const link = "/plugin/stashreels/assets/app/";
+const link = "/plugin/" + PLUGIN_NAMESPACE + "/assets/app/";
 const reelsButton = document.createElement("div");
 
 reelsButton.id = "StashReelsButton";
@@ -47,8 +49,21 @@ const ReelsButtonInner = () => (
   </a>
 );
 
-waitForElm(".top-nav .navbar-nav").then((elm) => {
-  elm.appendChild(reelsButton);
-  const root = createRoot(reelsButton!);
-  root.render(<ReelsButtonInner />);
+/* ---------------------------------- Init ---------------------------------- */
+
+fetchPluginConfig().then((res) => {
+  // Check if plugin config exists
+  if (res.data.configuration.plugins[PLUGIN_NAMESPACE]) {
+    const pluginConfig = res.data.configuration.plugins[
+      PLUGIN_NAMESPACE
+    ] as PluginConfig;
+
+    if (pluginConfig.hideNavButton !== true) {
+      waitForElm(".top-nav .navbar-nav").then((elm) => {
+        elm.appendChild(reelsButton);
+        const root = createRoot(reelsButton!);
+        root.render(<ReelsButtonInner />);
+      });
+    }
+  }
 });
