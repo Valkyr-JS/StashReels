@@ -13,7 +13,10 @@ import { faGear as faGearOff } from "@fortawesome/pro-light-svg-icons/faGear";
 import { faRepeat as faRepeatOff } from "@fortawesome/pro-light-svg-icons/faRepeat";
 import { faSubtitles as faSubtitlesOff } from "@fortawesome/pro-light-svg-icons/faSubtitles";
 import { faVolumeXmark as faVolumeOff } from "@fortawesome/pro-light-svg-icons/faVolumeXmark";
+import { faPause } from "@fortawesome/pro-solid-svg-icons/faPause";
+import { faPlay } from "@fortawesome/pro-solid-svg-icons/faPlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconDefinition } from "@fortawesome/pro-solid-svg-icons";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
 import React, {
@@ -29,11 +32,6 @@ import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
-import {
-  faPause,
-  faPlay,
-  IconDefinition,
-} from "@fortawesome/pro-solid-svg-icons";
 import { TRANSITION_DURATION } from "../../constants";
 
 export interface VideoItemProps extends IitemData {

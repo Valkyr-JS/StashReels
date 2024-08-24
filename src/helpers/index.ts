@@ -21,6 +21,18 @@ export const fetchData = async (query: string) => {
   }
 };
 
+export const fetchPluginConfig = () => {
+  const query = jsonToGraphQLQuery({
+    query: {
+      configuration: {
+        plugins: true,
+      },
+    },
+  });
+
+  return fetchData(query) as Promise<IfetchPluginConfigResults>;
+};
+
 /** Fetch all scene filter data from Stash via GQL. Also fetches the user's
  * config. */
 export const fetchSceneFilters = () => {
@@ -52,6 +64,18 @@ interface IfetchSceneFiltersResult {
       };
     };
     findSavedFilters: { id: string; name: string }[];
+  };
+}
+
+interface IfetchPluginConfigResults {
+  data: {
+    configuration: {
+      plugins: {
+        [plugin: string]: {
+          [property: string]: string | number | boolean;
+        };
+      };
+    };
   };
 }
 

@@ -179,7 +179,7 @@ const SettingsTab = forwardRef(
         return 0;
       });
 
-    const defaultSubtitles = props.pluginConfig.subtitleLanguage
+    const defaultSubtitles = props.pluginConfig?.subtitleLanguage
       ? {
           label: ISO6391.getName(props.pluginConfig.subtitleLanguage),
           value: props.pluginConfig.subtitleLanguage,

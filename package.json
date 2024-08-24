@@ -6,8 +6,9 @@
   "scripts": {
     "app:build": "webpack --config webpack/app.prod.js",
     "app:serve": "webpack serve --config webpack/app.dev.js",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build": "npm run app:build && npm run plugin:build",
+    "plugin:build": "webpack --config webpack/plugin.config.js",
+    "storybook": "storybook dev -p 6006"
   },
   "repository": {
     "type": "git",
@@ -47,6 +48,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/react-transition-group": "^4.4.10",
+    "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.0",
     "dotenv-webpack": "^8.1.0",
