@@ -37,6 +37,7 @@ const ReelsButtonInner = () => (
   <a
     href={link}
     className="minimal p-4 p-xl-2 d-flex d-xl-inline-block flex-column justify-content-between align-items-center btn btn-primary"
+    target="_blank"
   >
     <FontAwesomeIcon
       className="fa-icon nav-menu-icon d-block d-xl-inline mb-2 mb-xl-0"
