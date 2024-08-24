@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import FeedPage from "../pages/Feed";
-import { fetchData, fetchSceneFilters, setCssVH } from "../helpers";
+import {
+  fetchData,
+  fetchSceneFilters,
+  setCssVH,
+  updateUserConfig,
+} from "../helpers";
 import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query";
 import {
   FALLBACK_FILTER,
@@ -18,7 +23,6 @@ const App = () => {
     { value: string; label: string } | undefined
   >(undefined);
   const [sceneData, setSceneData] = useState<string | null>(null);
-  const [pluginConfig, setPluginConfig] = useState<PluginConfig | null>(null);
 
   /* ------------------------------ Initial load ------------------------------ */
 
@@ -74,6 +78,23 @@ const App = () => {
       }
     });
   }, []);
+
+  /* ------------------------------ Update plugin ----------------------------- */
+
+  // Handle all plugin updates here for consistency
+
+  const [pluginConfig, setPluginConfig] = useState<PluginConfig | null>(null);
+
+  const handlePluginUpdate = (partialConfig: PluginConfig) => {
+    // Update the config
+    const updatedConfig = { ...pluginConfig, ...partialConfig };
+    updateUserConfig(updatedConfig)
+      .then(() => {
+        // Update the state
+        setPluginConfig(updatedConfig);
+      })
+      .catch((err) => console.log(err));
+  };
 
   /* ----------------------------- Update playlist ---------------------------- */
 
@@ -159,6 +180,7 @@ const App = () => {
       currentFilter={currentFilter}
       filterList={allFilters}
       pluginConfig={pluginConfig as PluginConfig}
+      pluginUpdateHandler={handlePluginUpdate}
       setFilterHandler={setCurrentFilter}
       query={sceneData}
     />

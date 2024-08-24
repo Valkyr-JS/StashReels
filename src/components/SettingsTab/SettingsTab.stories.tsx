@@ -49,6 +49,7 @@ const meta = {
       defaultFilterID: "29",
       subtitleLanguage: "en",
     },
+    pluginUpdateHandler: fn(),
     scenelessFilter: false,
     setFilterHandler: fn(),
     setIsRandomised: fn(),

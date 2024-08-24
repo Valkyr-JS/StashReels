@@ -13,7 +13,6 @@ import Select, {
 import { TransitionStatus } from "react-transition-group";
 import * as styles from "./SettingsTab.module.scss";
 import { TRANSITION_DURATION } from "../../constants";
-import { updateUserConfig } from "../../helpers";
 
 interface SettingsTabProps {
   /** The scene filter currently being used as the playlist. */
@@ -40,6 +39,8 @@ interface SettingsTabProps {
   isRandomised: boolean;
   /** The user's plugin config from Stash. */
   pluginConfig: PluginConfig;
+  /** Function to handle updating the user config. */
+  pluginUpdateHandler: (partialConfig: PluginConfig) => void;
   /** Identifies whether the currently selected filter returns zero scenes. */
   scenelessFilter: boolean;
   /** Function to set a given filter as a playlist. */
@@ -149,8 +150,7 @@ const SettingsTab = forwardRef(
       if (props.currentFilter) {
         const newDefaultID = props.currentFilter.value;
         setDefaultPlaylist(newDefaultID);
-        updateUserConfig({
-          ...props.pluginConfig,
+        props.pluginUpdateHandler({
           defaultFilterID: newDefaultID,
         });
       }
@@ -190,8 +190,7 @@ const SettingsTab = forwardRef(
       console.log("subtitles now in: ", option);
 
       // Update the config with the new language.
-      updateUserConfig({
-        ...props.pluginConfig,
+      props.pluginUpdateHandler({
         subtitleLanguage: option?.value ?? undefined,
       });
 

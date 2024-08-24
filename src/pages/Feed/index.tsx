@@ -28,6 +28,9 @@ interface FeedPageProps {
   >;
   /** The user's plugin config from Stash. */
   pluginConfig: PluginConfig;
+  /** Function to handle updating the user config. */
+  pluginUpdateHandler: (partialConfig: PluginConfig) => void;
+  /** The GQL query for fetching data. */
   query: string;
   /** Function to set a given filter as a playlist. */
   setFilterHandler: (option: { value: string; label: string }) => void;
@@ -227,6 +230,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
             filterList={props.filterList}
             isRandomised={isRandomised}
             pluginConfig={props.pluginConfig}
+            pluginUpdateHandler={props.pluginUpdateHandler}
             ref={settingsTabRef}
             scenelessFilter={noScenesAvailable}
             setFilterHandler={props.setFilterHandler}

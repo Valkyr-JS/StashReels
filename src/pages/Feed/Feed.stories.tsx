@@ -49,6 +49,7 @@ const meta = {
       defaultFilterID: "29",
       subtitleLanguage: "en",
     },
+    pluginUpdateHandler: fn(),
     query: `{
       findScenes(
         filter: {per_page: -1, sort: "random"}
