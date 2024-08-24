@@ -79,6 +79,20 @@
     }
   }
 
+  &--checkbox-item {
+    label {
+      display: flex;
+
+      input[type="checkbox"] {
+        margin-right: $spacer;
+      }
+    }
+
+    h3 {
+      margin-bottom: 0;
+    }
+  }
+
   &--warning {
     margin-top: $spacer;
     margin-bottom: $spacer;

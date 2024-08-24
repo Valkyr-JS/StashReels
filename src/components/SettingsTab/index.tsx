@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
 import { default as cx } from "classnames";
-import React, { forwardRef, useEffect, useState } from "react";
+import React, { forwardRef, useState } from "react";
 import Select, {
   ActionMeta,
   GroupBase,
@@ -177,7 +177,12 @@ const SettingsTab = forwardRef(
             </small>
           </div>
 
-          <div className={styles["settings-tab--item"]}>
+          <div
+            className={cx(
+              styles["settings-tab--item"],
+              styles["settings-tab--checkbox-item"]
+            )}
+          >
             <label>
               <input
                 checked={defaultPlaylist === props.currentFilter?.value}
@@ -192,7 +197,12 @@ const SettingsTab = forwardRef(
             </small>
           </div>
 
-          <div className={styles["settings-tab--item"]}>
+          <div
+            className={cx(
+              styles["settings-tab--item"],
+              styles["settings-tab--checkbox-item"]
+            )}
+          >
             <label>
               <input
                 checked={props.isRandomised}
