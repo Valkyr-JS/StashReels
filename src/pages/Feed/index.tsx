@@ -6,6 +6,7 @@ import SettingsTab from "../../components/SettingsTab";
 import { Transition } from "react-transition-group";
 import { TRANSITION_DURATION } from "../../constants";
 import { GroupBase, OptionsOrGroups } from "react-select";
+import Loading from "../../components/Loading";
 
 interface FeedPageProps {
   /** The scene filter currently being used as the playlist. */
@@ -203,6 +204,11 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   };
 
   /* -------------------------------- component ------------------------------- */
+
+  // Show loading icon when fetching data
+  if (fetchingData && !showSettings)
+    return <Loading heading="Fetching scenes..." />;
+
   return (
     <main data-testid="FeedPage" ref={pageRef}>
       <VideoScroller

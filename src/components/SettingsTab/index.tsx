@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
+import { faSpinner } from "@fortawesome/pro-solid-svg-icons/faSpinner";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
 import React, { forwardRef, useState } from "react";
@@ -90,8 +91,11 @@ const SettingsTab = forwardRef(
 
     const fetchingDataWarning = props.fetchingData ? (
       <div className={styles["settings-tab--warning"]}>
-        <h2>Fetching data from Stash...</h2>
-        <p>Please wait whilst data is loaded.</p>
+        <h2>
+          <FontAwesomeIcon icon={faSpinner} pulse />
+          <span>Fetching data from Stash...</span>
+        </h2>
+        <p>Please wait while data is loaded.</p>
       </div>
     ) : null;
 

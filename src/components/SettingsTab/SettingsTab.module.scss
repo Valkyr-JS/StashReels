@@ -1,12 +1,12 @@
+@import "../../styles/mixins.scss";
 @import "../../styles/variables.scss";
 
 .settings-tab {
+  @include fullHeight;
   position: absolute;
   top: 0;
   right: 0;
   width: 100%;
-  height: 100vh; // Fallback
-  height: calc(var(--vsr-vh, 1vh) * 100);
 
   display: grid;
   grid-template-rows:
@@ -94,13 +94,18 @@
     }
   }
 
-  &--error, &--warning {
+  &--error,
+  &--warning {
     margin-top: $spacer;
     margin-bottom: $spacer;
     padding-top: $spacer;
     padding-bottom: $spacer;
     border-top: 3px solid;
     border-bottom: 3px solid;
+
+    h2 span {
+      margin-left: $ui-spacer * 2;
+    }
   }
 
   &--error {
