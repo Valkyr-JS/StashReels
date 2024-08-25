@@ -102,6 +102,10 @@
     padding-bottom: $spacer;
     border-top: 3px solid;
     border-bottom: 3px solid;
+
+    h2 span {
+      margin-left: $ui-spacer * 2;
+    }
   }
 
   &--error {
