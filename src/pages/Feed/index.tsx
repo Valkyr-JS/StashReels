@@ -206,7 +206,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /* -------------------------------- component ------------------------------- */
 
   // Show loading icon when fetching data
-  if (fetchingData) return <Loading heading="Fetching scenes..." />;
+  if (fetchingData && !showSettings)
+    return <Loading heading="Fetching scenes..." />;
 
   return (
     <main data-testid="FeedPage" ref={pageRef}>
