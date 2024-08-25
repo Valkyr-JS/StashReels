@@ -96,15 +96,15 @@ export const Default: Story = {};
 export const LoadVideosOnRender: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const scroller: HTMLDivElement = canvas.getByTestId(
-      "VideoScroller--container"
-    );
+    const loader = canvas.getByTestId("Loader");
 
     // No videos should be loaded on initial render. They still need to be fetched.
-    expect(scroller.childNodes.length).toBe(0);
+    expect(loader).toBeInTheDocument();
 
-    // Await promise for videos to be fetched
     await waitFor(() => {
+      // Wait for loader to be removed
+      expect(loader).not.toBeInTheDocument();
+
       // No more than 11 videos should be loaded at once
       const allItems = canvas.getAllByTestId("VideoItem--container");
       expect(allItems.length).not.toBeGreaterThan(ITEM_BUFFER_EACH_SIDE + 1);
@@ -114,13 +114,13 @@ export const LoadVideosOnRender: Story = {
 
 export const LoadVideosOnScroll: Story = {
   play: async (context) => {
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+
     const canvas = within(context.canvasElement);
     const scroller: HTMLDivElement = canvas.getByTestId(
       "VideoScroller--container"
     );
-
-    // Run the previous story
-    await LoadVideosOnRender.play!(context);
 
     // Fire 15 scroll events, and check that there are never more than 11 videos at once (current plus five either side)
 
@@ -266,8 +266,11 @@ export const ToggleCaptions: Story = {
       }
     }`,
   },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
+  play: async (context) => {
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+
+    const canvas = within(context.canvasElement);
     const scroller: HTMLDivElement = canvas.getByTestId(
       "VideoScroller--container"
     );
@@ -307,8 +310,11 @@ export const ToggleCaptions: Story = {
 
 export const ToggleFullscreen: Story = {
   name: "Toggle fullscreen mode",
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
+  play: async (context) => {
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+
+    const canvas = within(context.canvasElement);
     const scroller: HTMLDivElement = canvas.getByTestId(
       "VideoScroller--container"
     );
@@ -336,8 +342,11 @@ export const ToggleFullscreen: Story = {
 
 export const ToggleSettings: Story = {
   name: "Toggle settings",
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
+  play: async (context) => {
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+
+    const canvas = within(context.canvasElement);
     const scroller: HTMLDivElement = canvas.getByTestId(
       "VideoScroller--container"
     );
@@ -388,8 +397,11 @@ export const ToggleSettings: Story = {
 
 export const ToggleUiVisibility: Story = {
   name: "Toggle UI visibility",
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
+  play: async (context) => {
+    // Run the previous story
+    await LoadVideosOnRender.play!(context);
+
+    const canvas = within(context.canvasElement);
     const scroller: HTMLDivElement = canvas.getByTestId(
       "VideoScroller--container"
     );
