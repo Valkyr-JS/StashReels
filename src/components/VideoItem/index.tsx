@@ -305,6 +305,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         onClick={togglePlayHandler}
         onEnded={handleOnEnded}
         onTimeUpdate={handleTimeUpdate}
+        playsInline
         ref={videoRef}
       >
         <source src={props.scene.path} type={`video/${props.scene.format}`} />
