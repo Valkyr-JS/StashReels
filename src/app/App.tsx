@@ -8,6 +8,7 @@ import {
 } from "../helpers";
 import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query";
 import {
+  DEFAULT_FILTER,
   FALLBACK_FILTER,
   PLUGIN_CONFIG_PROPERTY,
   PLUGIN_NAMESPACE,
@@ -23,6 +24,9 @@ const App = () => {
     { value: string; label: string } | undefined
   >(undefined);
   const [sceneData, setSceneData] = useState<string | null>(null);
+  const [stashConfiguration, setStashConfiguration] = useState<
+    ConfigResult | undefined
+  >();
 
   /* ------------------------------ Initial load ------------------------------ */
 
@@ -30,6 +34,7 @@ const App = () => {
     // Fetch all scene filters from Stash.
     fetchSceneFilters().then((res) => {
       console.log(res.data.configuration.plugins);
+      setStashConfiguration(res.data.configuration as ConfigResult);
       // Set the config in the state
       setPluginConfig(
         res.data.configuration.plugins[
@@ -42,17 +47,27 @@ const App = () => {
         value: f.id,
       }));
 
-      // If there are no filters, create a fallback filter and set it as the
-      // current in the settings tab.
-      if (!filters.length) {
+      // If there are no saved filters but there is a default scene filter, try
+      // fetching the default filter from the config
+      if (
+        !filters.length &&
+        !!res.data.configuration.ui?.defaultFilters?.scenes
+      ) {
+        setAllFilters([DEFAULT_FILTER]);
+        setCurrentFilter(DEFAULT_FILTER);
+      }
+
+      // If there are no filters at all, create a fallback filter and set it as
+      // the current in the settings tab.
+      else if (!filters.length) {
         setAllFilters([FALLBACK_FILTER]);
         setCurrentFilter(FALLBACK_FILTER);
         return null;
       } else {
         setAllFilters(filters);
 
-        // If there are filters, check the user's plugin config to see if a default
-        // filter has been set.
+        // If there are filters, check the user's plugin config to see if a
+        // default plugin filter has been set.
         const userPluginConfig =
           res.data.configuration.plugins[PLUGIN_NAMESPACE];
 
@@ -102,9 +117,58 @@ const App = () => {
     console.log("change", currentFilter);
 
     // Fetch the current filter data.
-    if (!currentFilter) {
+    if (!currentFilter || currentFilter.value === FALLBACK_FILTER.value) {
+      // Create a playlist as a fallback
       console.log("no filter");
       const query = `query { findScenes(filter: { per_page: -1 }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
+      setSceneData(query);
+    } else if (
+      currentFilter.value === DEFAULT_FILTER.value &&
+      stashConfiguration?.ui?.defaultFilters?.scenes
+    ) {
+      console.log("default filter");
+      const query = jsonToGraphQLQuery({
+        query: {
+          findScenes: {
+            __args: {
+              filter: processFilter(
+                stashConfiguration?.ui?.defaultFilters?.scenes?.find_filter ??
+                  {}
+              ),
+              scene_filter: processObjectFilter(
+                stashConfiguration?.ui?.defaultFilters?.scenes?.object_filter
+              ),
+            },
+            scenes: {
+              captions: {
+                caption_type: true,
+                language_code: true,
+              },
+              date: true,
+              id: true,
+              files: {
+                format: true,
+              },
+              paths: {
+                caption: true,
+                stream: true,
+              },
+              performers: {
+                gender: true,
+                name: true,
+              },
+              studio: {
+                name: true,
+                parent_studio: {
+                  name: true,
+                },
+              },
+              title: true,
+            },
+          },
+        },
+      });
+
       setSceneData(query);
     } else {
       fetchData(

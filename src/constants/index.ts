@@ -1,8 +1,15 @@
-/** The React Select-formatted filter info used as a fallback if no filters are
- * available. */
+/** The React Select-formatted filter info used as a fallback if no saved
+ * filters are available. */
+export const DEFAULT_FILTER = {
+  label: "Default",
+  value: "default",
+} as const;
+
+/** The React Select-formatted filter info used as a fallback if no default
+ * filter is available. */
 export const FALLBACK_FILTER = {
   label: "All portrait scenes",
-  value: "A",
+  value: "portrait",
 } as const;
 
 /** The number of items to fetch data for. */

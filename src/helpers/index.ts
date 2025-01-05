@@ -40,6 +40,7 @@ export const fetchSceneFilters = () => {
     query: {
       configuration: {
         plugins: true,
+        ui: true,
       },
       findSavedFilters: {
         __args: {
@@ -60,6 +61,11 @@ interface IfetchSceneFiltersResult {
       plugins: {
         [plugin: string]: {
           [property: string]: string | number | boolean;
+        };
+      };
+      ui?: {
+        defaultFilters?: {
+          scenes?: SaveFilterInput;
         };
       };
     };
