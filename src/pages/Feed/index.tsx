@@ -223,7 +223,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         uiIsVisible={showUI}
       />
       <Transition
-        in={showSettings}
+        in={showSettings || noScenesAvailable}
         nodeRef={settingsTabRef}
         timeout={TRANSITION_DURATION}
         mountOnEnter

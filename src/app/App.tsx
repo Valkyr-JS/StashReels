@@ -85,6 +85,10 @@ const App = () => {
           setCurrentFilter(current);
         }
 
+        // TODO - Check that the first filter returns at least one scene. If
+        // not, move on to the next until all are depleted, at which point
+        // return to the default filter then fallback filter
+
         // If one hasn't been set, or the default is no longer available, use
         // the first one.
         else {
