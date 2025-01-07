@@ -56,6 +56,8 @@ interface PluginConfig {
   defaultFilterID?: string;
   /** Hide the main navigation link to Stash Reels.  */
   hideNavButton?: boolean;
+  /** Set the maximum number of scenes that included in a playlist. The default value is 500. High values may result in long loading times or crashes. */
+  maximumScenes?: number;
   /** The subtitle language code to be used when available. */
   subtitleLanguage?: string;
 }

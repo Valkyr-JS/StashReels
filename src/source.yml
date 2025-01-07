@@ -12,3 +12,7 @@ settings:
     displayName: Hide navigation button
     description: Hide the main navigation link to Stash Reels.
     type: BOOLEAN
+  maximumScenes:
+    displayName: Maximum scenes
+    description: Set the maximum number of scenes that included in a playlist. The default value is 500. High values may result in long loading times or crashes.
+    type: NUMBER

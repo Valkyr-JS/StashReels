@@ -8,6 +8,8 @@ import {
 } from "../helpers";
 import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query";
 import {
+  DEFAULT_FILTER,
+  DEFAULT_MAXIMUM_SCENES,
   FALLBACK_FILTER,
   PLUGIN_CONFIG_PROPERTY,
   PLUGIN_NAMESPACE,
@@ -23,6 +25,9 @@ const App = () => {
     { value: string; label: string } | undefined
   >(undefined);
   const [sceneData, setSceneData] = useState<string | null>(null);
+  const [stashConfiguration, setStashConfiguration] = useState<
+    ConfigResult | undefined
+  >();
 
   /* ------------------------------ Initial load ------------------------------ */
 
@@ -30,6 +35,7 @@ const App = () => {
     // Fetch all scene filters from Stash.
     fetchSceneFilters().then((res) => {
       console.log(res.data.configuration.plugins);
+      setStashConfiguration(res.data.configuration as ConfigResult);
       // Set the config in the state
       setPluginConfig(
         res.data.configuration.plugins[
@@ -42,17 +48,27 @@ const App = () => {
         value: f.id,
       }));
 
-      // If there are no filters, create a fallback filter and set it as the
-      // current in the settings tab.
-      if (!filters.length) {
+      // If there are no saved filters but there is a default scene filter, try
+      // fetching the default filter from the config
+      if (
+        !filters.length &&
+        !!res.data.configuration.ui?.defaultFilters?.scenes
+      ) {
+        setAllFilters([DEFAULT_FILTER]);
+        setCurrentFilter(DEFAULT_FILTER);
+      }
+
+      // If there are no filters at all, create a fallback filter and set it as
+      // the current in the settings tab.
+      else if (!filters.length) {
         setAllFilters([FALLBACK_FILTER]);
         setCurrentFilter(FALLBACK_FILTER);
         return null;
       } else {
         setAllFilters(filters);
 
-        // If there are filters, check the user's plugin config to see if a default
-        // filter has been set.
+        // If there are filters, check the user's plugin config to see if a
+        // default plugin filter has been set.
         const userPluginConfig =
           res.data.configuration.plugins[PLUGIN_NAMESPACE];
 
@@ -69,6 +85,10 @@ const App = () => {
           console.log("current: ", current);
           setCurrentFilter(current);
         }
+
+        // TODO - Check that the first filter returns at least one scene. If
+        // not, move on to the next until all are depleted, at which point
+        // return to the default filter then fallback filter
 
         // If one hasn't been set, or the default is no longer available, use
         // the first one.
@@ -102,9 +122,59 @@ const App = () => {
     console.log("change", currentFilter);
 
     // Fetch the current filter data.
-    if (!currentFilter) {
+    if (!currentFilter || currentFilter.value === FALLBACK_FILTER.value) {
+      // Create a playlist as a fallback
       console.log("no filter");
-      const query = `query { findScenes(filter: { per_page: -1 }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
+      const query = `query { findScenes(filter: { per_page: ${pluginConfig?.maximumScenes ?? DEFAULT_MAXIMUM_SCENES} }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
+      setSceneData(query);
+    } else if (
+      currentFilter.value === DEFAULT_FILTER.value &&
+      stashConfiguration?.ui?.defaultFilters?.scenes
+    ) {
+      console.log("default filter");
+      const query = jsonToGraphQLQuery({
+        query: {
+          findScenes: {
+            __args: {
+              filter: processFilter(
+                stashConfiguration?.ui?.defaultFilters?.scenes?.find_filter ??
+                  {},
+                pluginConfig ?? {}
+              ),
+              scene_filter: processObjectFilter(
+                stashConfiguration?.ui?.defaultFilters?.scenes?.object_filter
+              ),
+            },
+            scenes: {
+              captions: {
+                caption_type: true,
+                language_code: true,
+              },
+              date: true,
+              id: true,
+              files: {
+                format: true,
+              },
+              paths: {
+                caption: true,
+                stream: true,
+              },
+              performers: {
+                gender: true,
+                name: true,
+              },
+              studio: {
+                name: true,
+                parent_studio: {
+                  name: true,
+                },
+              },
+              title: true,
+            },
+          },
+        },
+      });
+
       setSceneData(query);
     } else {
       fetchData(
@@ -132,7 +202,10 @@ const App = () => {
           query: {
             findScenes: {
               __args: {
-                filter: processFilter(fil.data.findSavedFilter.find_filter),
+                filter: processFilter(
+                  fil.data.findSavedFilter.find_filter,
+                  pluginConfig ?? {}
+                ),
                 scene_filter: processObjectFilter(
                   fil.data.findSavedFilter.object_filter
                 ),
@@ -190,13 +263,15 @@ const App = () => {
 export default App;
 
 /** Process the raw `filter` data from Stash into GQL.  */
-const processFilter = (filter: any) => {
+const processFilter = (filter: any, pluginConfig: PluginConfig) => {
   const updatedFilter = { ...filter };
   if (filter.direction)
     updatedFilter.direction = new EnumType(filter.direction);
 
-  // Always get all data, irrelevant of what the original filter states.
-  updatedFilter.per_page = -1;
+  // Always get the set number of scenes, irrelevant of what the original filter
+  // states.
+  updatedFilter.per_page =
+    pluginConfig?.maximumScenes ?? DEFAULT_MAXIMUM_SCENES;
 
   return updatedFilter;
 };

@@ -1,8 +1,15 @@
-/** The React Select-formatted filter info used as a fallback if no filters are
- * available. */
+/** The React Select-formatted filter info used as a fallback if no saved
+ * filters are available. */
+export const DEFAULT_FILTER = {
+  label: "Default",
+  value: "default",
+} as const;
+
+/** The React Select-formatted filter info used as a fallback if no default
+ * filter is available. */
 export const FALLBACK_FILTER = {
   label: "All portrait scenes",
-  value: "A",
+  value: "portrait",
 } as const;
 
 /** The number of items to fetch data for. */
@@ -21,3 +28,5 @@ export const PLUGIN_NAMESPACE = "StashReels" as const;
 
 /** The time it takes in milliseconds for a transition to complete. */
 export const TRANSITION_DURATION = 150 as const;
+
+export const DEFAULT_MAXIMUM_SCENES = 500 as const;
