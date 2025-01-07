@@ -2,11 +2,11 @@
 
 Stash Reels allows you to swipe through scene playlists based on your Stash filters. Featuring a non-instrusive, hideable UI, Stash Reels is based heavily on apps like TikTok and Instagram.
 
-## Beta warning - Here there be bugs!
+## Beta notice - rebuild in progress
 
-This plugin is still in beta! As such, there are likely to be bugs, which I encourage you to [report via GitHub](https://github.com/Valkyr-JS/StashReels/issues), or [via Discord](https://discord.com/channels/559159668438728723/1277296128684982312). GitHub is preferred.
+Thanks to the great feedback for this plugin, I've decided to rebuild it from the ground up to better incorporate suggestions. This current build will only be updated to fix breaking issues; no new features will be added before the rebuild release.
 
-There should be no risk to your Stash installation. Stash Reels is almost exclusively read-only, only writing to update its own configuration file. However, like all plugins, I take no responsibility for any loss or corruption of data that could be caused directly or indirectly through the use of Stash Reels.
+The rebuild will feature a full user interface for browsing all Stash content, not just scenes. At least scenes and markers will be supported on initial release, with more added later. If you have any suggestions for features you'd like to see, please raise them in [the GitHub repository for the rebuild](https://github.com/Valkyr-JS/StashReelsRedux/issues).
 
 ## Installation
 
@@ -40,12 +40,16 @@ The following buttons appear on the right-hand side of the screen for each scene
 At the bottom of the screen is the scene scrubber, showing the current scene progress and timecode. This can be tapped to move back/forward in the scene.
 
 ### Settings
+
 1. Select a playlist - Choose from one of your Stash scene filters in the dropdown to use as a playlist. If you don't have any scene filters, all portrait scenes will be fetched as a default playlist.
 2. Set current playlist as default - Makes the currently selected playlist the default when Stash Reels is launched.
 3. Randomise playlist order
 4. Subtitle lanugage - Set your preferred subtitle language. If subtitles are available for a scene in this language, they will be displayed. These can be toggled on or off in the main scene UI.
 
 ## Technical info
+
 The user experience quality of Stash Reels is highly dependant on the setup of each user. A slow server and a poor network speed can result in longer buffering times between scenes.
 
 Stash Reels only loads up to eleven scenes at once - the current scene, and up to five before and after it - in order to provide as smooth an experience when swiping through scenes, without overloading the browser's memory.
+
+As of version 0.1.2, a config option has been added in the Stash plugin settings to set the maximum number of scenes loaded in a playlist. The default is 500. Increasing or decreasing this number will reduce or increase load times respectively.
