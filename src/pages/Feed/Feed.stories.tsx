@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
-import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
+import { DEFAULT_MAXIMUM_SCENES, ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
 import * as videoItemStyles from "../../components/VideoItem/VideoItem.module.scss";
 
@@ -52,7 +52,7 @@ const meta = {
     pluginUpdateHandler: fn(),
     query: `{
       findScenes(
-        filter: {per_page: -1, sort: "random"}
+        filter: {per_page: 500, sort: "random"}
         scene_filter: {orientation: {value: PORTRAIT}}
       ) {
         scenes {
@@ -234,7 +234,7 @@ export const ToggleCaptions: Story = {
   args: {
     query: `{
       findScenes(
-        filter: {per_page: -1, sort: "random"}
+        filter: {per_page: ${DEFAULT_MAXIMUM_SCENES}, sort: "random"}
         scene_filter: {orientation: {value: PORTRAIT}, captions: {modifier: NOT_NULL, value:""}}
       ) {
         scenes {

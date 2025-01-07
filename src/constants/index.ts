@@ -28,3 +28,5 @@ export const PLUGIN_NAMESPACE = "StashReels" as const;
 
 /** The time it takes in milliseconds for a transition to complete. */
 export const TRANSITION_DURATION = 150 as const;
+
+export const DEFAULT_MAXIMUM_SCENES = 500 as const;

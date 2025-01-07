@@ -9,6 +9,7 @@ import {
 import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query";
 import {
   DEFAULT_FILTER,
+  DEFAULT_MAXIMUM_SCENES,
   FALLBACK_FILTER,
   PLUGIN_CONFIG_PROPERTY,
   PLUGIN_NAMESPACE,
@@ -124,7 +125,7 @@ const App = () => {
     if (!currentFilter || currentFilter.value === FALLBACK_FILTER.value) {
       // Create a playlist as a fallback
       console.log("no filter");
-      const query = `query { findScenes(filter: { per_page: -1 }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
+      const query = `query { findScenes(filter: { per_page: ${pluginConfig?.maximumScenes ?? DEFAULT_MAXIMUM_SCENES} }, scene_filter: { orientation: {value: [PORTRAIT] } }) { scenes { captions { caption_type language_code } date id files { format } paths { caption stream } performers { gender name } studio { name parent_studio { name } } title } } }`;
       setSceneData(query);
     } else if (
       currentFilter.value === DEFAULT_FILTER.value &&
@@ -137,7 +138,8 @@ const App = () => {
             __args: {
               filter: processFilter(
                 stashConfiguration?.ui?.defaultFilters?.scenes?.find_filter ??
-                  {}
+                  {},
+                pluginConfig ?? {}
               ),
               scene_filter: processObjectFilter(
                 stashConfiguration?.ui?.defaultFilters?.scenes?.object_filter
@@ -200,7 +202,10 @@ const App = () => {
           query: {
             findScenes: {
               __args: {
-                filter: processFilter(fil.data.findSavedFilter.find_filter),
+                filter: processFilter(
+                  fil.data.findSavedFilter.find_filter,
+                  pluginConfig ?? {}
+                ),
                 scene_filter: processObjectFilter(
                   fil.data.findSavedFilter.object_filter
                 ),
@@ -258,13 +263,15 @@ const App = () => {
 export default App;
 
 /** Process the raw `filter` data from Stash into GQL.  */
-const processFilter = (filter: any) => {
+const processFilter = (filter: any, pluginConfig: PluginConfig) => {
   const updatedFilter = { ...filter };
   if (filter.direction)
     updatedFilter.direction = new EnumType(filter.direction);
 
-  // Always get all data, irrelevant of what the original filter states.
-  updatedFilter.per_page = -1;
+  // Always get the set number of scenes, irrelevant of what the original filter
+  // states.
+  updatedFilter.per_page =
+    pluginConfig?.maximumScenes ?? DEFAULT_MAXIMUM_SCENES;
 
   return updatedFilter;
 };
