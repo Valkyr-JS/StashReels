@@ -73,7 +73,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   // the filter changes
   useEffect(() => {
     videoRef.current?.load();
-  }, [props.scene.path + "?resolution=FULL_HD"]);
+  }, [props.scene.path + ".mp4?resolution=FULL_HD"]);
 
   /* ------------------------------- Play/pause ------------------------------- */
 
@@ -308,7 +308,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         playsInline
         ref={videoRef}
       >
-        <source src={props.scene.path + "?resolution=FULL_HD"} type={`video/${props.scene.format === "matroska" ? "mp4" : props.scene.format}`} />
+        <source src={props.scene.path + ".mp4?resolution=FULL_HD"} type={`video/${props.scene.format === "matroska" ? "mp4" : props.scene.format}`} />
         {captionSources}
       </video>
       <Transition
