@@ -2,7 +2,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 const TerserPlugin = require("terser-webpack-plugin");
 
-const pluginID = "StashReels";
+const pluginID = "stash-swipe";
 
 module.exports = {
   entry: "./src/main.tsx",

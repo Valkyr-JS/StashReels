@@ -139,7 +139,7 @@ export function sortPerformers<T extends IPerformerFragment>(performers: T[]) {
   return ret;
 }
 
-/** Update the user's plugin config for Stash Reels. NOTE: This overwrites the
+/** Update the user's plugin config for Stash Swipe. NOTE: This overwrites the
  * entire plugin config, not just the updated properties. Be sure to pass the
  * entire config object. */
 export const updateUserConfig = async (config: PluginConfig) => {

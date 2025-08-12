@@ -1,6 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark } from "@fortawesome/pro-light-svg-icons/faXmark";
-import { faSpinner } from "@fortawesome/pro-solid-svg-icons/faSpinner";
+import { faXmark, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
 import React, { forwardRef, useState } from "react";
@@ -223,7 +222,7 @@ const SettingsTab = forwardRef(
               />
             </label>
             <small>
-              Choose a scene filter from Stash to use as your Stash Reels
+              Choose a scene filter from Stash to use as your Stash Swipe
               playlist
             </small>
 
@@ -247,7 +246,7 @@ const SettingsTab = forwardRef(
             </label>
             <small>
               Set the currently selected scene filter as the default playlist
-              when opening Stash Reels.
+              when opening Stash Swipe.
             </small>
           </div>
 

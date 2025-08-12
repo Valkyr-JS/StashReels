@@ -1,4 +1,4 @@
-import { faMobile } from "@fortawesome/pro-solid-svg-icons/faMobile";
+import { faMobile } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fetchPluginConfig } from "./helpers";
 import { PLUGIN_NAMESPACE } from "./constants";
@@ -43,7 +43,7 @@ const ReelsButtonInner = () => {
     <div
       data-rb-event-key={link}
       className="col-4 col-sm-3 col-md-2 col-lg-auto nav-link"
-      id="StashReelsButton"
+      id="StashSwipeButton"
     >
       <a
         href={link}

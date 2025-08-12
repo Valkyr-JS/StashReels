@@ -54,7 +54,7 @@ interface IsceneData {
 interface PluginConfig {
   /** The ID of the default filter to be loaded on startup. */
   defaultFilterID?: string;
-  /** Hide the main navigation link to Stash Reels.  */
+  /** Hide the main navigation link to Stash Swipe.  */
   hideNavButton?: boolean;
   /** Set the maximum number of scenes that included in a playlist. The default value is 500. High values may result in long loading times or crashes. */
   maximumScenes?: number;

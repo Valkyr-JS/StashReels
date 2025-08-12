@@ -1,5 +1,5 @@
 {
-  "name": "stashreels",
+  "name": "stash-swipe",
   "version": "0.1.2",
   "description": "TikTok for Stash.",
   "main": "index.js",
@@ -12,19 +12,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Valkyr-JS/StashReels.git"
+    "url": "git+https://github.com/Valkyr-JS/StashSwipe.git"
   },
   "author": "Valkyr-JS",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Valkyr-JS/StashReels/issues"
+    "url": "https://github.com/Valkyr-JS/StashSwipe/issues"
   },
-  "homepage": "https://github.com/Valkyr-JS/StashReels#readme",
+  "homepage": "https://github.com/Valkyr-JS/StashSwipe#readme",
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.6.0",
-    "@fortawesome/pro-light-svg-icons": "^6.6.0",
-    "@fortawesome/pro-solid-svg-icons": "^6.6.0",
-    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@fortawesome/fontawesome-svg-core": "^7.0.0",
+    "@fortawesome/free-regular-svg-icons": "^7.0.0",
+    "@fortawesome/free-solid-svg-icons": "^7.0.0",
+    "@fortawesome/react-fontawesome": "^0.2.3",
     "classnames": "^2.5.1",
     "iso-639-1": "^3.1.2",
     "json-to-graphql-query": "^2.2.5",
