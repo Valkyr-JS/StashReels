@@ -497,7 +497,7 @@ interface UiButtonProps
   inactiveText: string;
 }
 
-const UiButton: React.FC<UiButtonProps> = forwardRef(
+const UiButton = forwardRef<HTMLButtonElement, UiButtonProps>(
   (
     { active, activeIcon, activeText, inactiveIcon, inactiveText, ...props },
     ref

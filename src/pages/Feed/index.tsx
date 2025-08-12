@@ -7,6 +7,9 @@ import { Transition } from "react-transition-group";
 import { TRANSITION_DURATION } from "../../constants";
 import { GroupBase, OptionsOrGroups } from "react-select";
 import Loading from "../../components/Loading";
+import * as GQL from "../../../stash/ui/v2.5/build/src/core/generated-graphql";
+
+export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesQuery>[0]
 
 interface FeedPageProps {
   /** The scene filter currently being used as the playlist. */
@@ -32,7 +35,7 @@ interface FeedPageProps {
   /** Function to handle updating the user config. */
   pluginUpdateHandler: (partialConfig: PluginConfig) => void;
   /** The GQL query for fetching data. */
-  query: string;
+  queryOptions: ScenesQueryOptions;
   /** Function to set a given filter as a playlist. */
   setFilterHandler: (option: { value: string; label: string }) => void;
 }
@@ -47,39 +50,28 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /** Indicates if the app is currently fetching data */
   const [fetchingData, setFetchingData] = useState(false);
 
-  /**
-   * ? All scene data is fetched and from Stash on load. However, it is not
-   * loaded into the scroller until the user reaches the appropriate point. This
-   * reduces the amount of videos loaded at once.
-   */
+
+  const { data: rawSceneData } = GQL.useFindScenesQuery(props.queryOptions)
+  
+  
   useEffect(() => {
-    // Component is mounted
-    let isMounted = true;
-
-    // Set fetching as started
+    if (!rawSceneData || !rawSceneData.findScenes) {
+      console.warn("No scene data found in GQL response.");
+      return;
+    }
+    
     setFetchingData(true);
-    fetchData(props.query).then(
-      (res: { data: { findScenes: FindScenesResultType } }) => {
-        console.log("fetched");
-        if (isMounted) {
-          // Process fetched scene data, filtering out invalid scenes
-          const processedData = res.data.findScenes.scenes
-            .map(processSceneData)
-            .filter((d) => !!d);
+    // Process fetched scene data, filtering out invalid scenes
+    const processedData = rawSceneData.findScenes.scenes
+      .map(processSceneData)
+      .filter((d) => !!d);
 
-          // Update the full scene data
-          setAllSceneData(processedData);
+    // Update the full scene data
+    setAllSceneData(processedData);
 
-          // Set fetching as ended
-          setFetchingData(false);
-        }
-      }
-    );
-    return () => {
-      // Unmount component before re-render
-      isMounted = false;
-    };
-  }, [props.query]);
+    // Set fetching as ended
+    setFetchingData(false);
+  }, [rawSceneData]);
 
   /** Handles fetching video data */
   const handleProcessingItemData = () => {
@@ -253,21 +245,21 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 export default FeedPage;
 
 /** Process individual scene data from Stash to app format. */
-const processSceneData = (sc: Scene): IsceneData | null => {
+const processSceneData = (sc: GQL.FindScenesQuery["findScenes"]["scenes"][number]): IsceneData | null => {
   if (!sc.paths.stream) return null;
 
   const processedData: IsceneData = {
     date: sc.date ?? undefined,
-    format: sc.files[0].format,
+    format: "mp4", // sc.files[0].format,
     id: sc.id,
-    parentStudio: sc.studio?.parent_studio?.name ?? undefined,
+    parentStudio: undefined, // sc.studio?.parent_studio?.name ?? undefined,
     path: sc.paths.stream,
-    performers: sc.performers.map((pf) => {
+    performers: [], /* sc.performers.map((pf) => {
       return { name: pf.name, gender: pf.gender || ("UNKNOWN" as GenderEnum) };
-    }),
+    }) */
     studio: sc.studio?.name ?? undefined,
     title: sc.title ?? undefined,
-    captions: sc.captions
+    captions: [] /* sc.captions
       ?.map((cap) => {
         if (typeof sc.paths.caption === "string") {
           return {
@@ -277,7 +269,7 @@ const processSceneData = (sc: Scene): IsceneData | null => {
           };
         }
       })
-      .filter((c) => !!c),
+      .filter((c) => !!c), */
   };
 
   return processedData;

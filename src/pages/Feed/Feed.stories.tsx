@@ -4,6 +4,7 @@ import FeedPage from ".";
 import { DEFAULT_MAXIMUM_SCENES, ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
 import * as videoItemStyles from "../../components/VideoItem/VideoItem.module.scss";
+import * as GQL from "../../../stash/ui/v2.5/build/src/core/generated-graphql";
 
 const meta = {
   title: "Pages/Feed",
@@ -50,39 +51,14 @@ const meta = {
       subtitleLanguage: "en",
     },
     pluginUpdateHandler: fn(),
-    query: `{
-      findScenes(
-        filter: {per_page: 500, sort: "random"}
-        scene_filter: {orientation: {value: PORTRAIT}}
-      ) {
-        scenes {
-          captions {
-            caption_type
-            language_code
-          }
-          date
-          id
-          files {
-            format
-          }
-          paths {
-            caption
-            stream
-          }
-          performers {
-            gender
-            name
-          }
-          studio {
-            name
-            parent_studio {
-              name
-            }
-          }
-          title
+    queryOptions: {
+      variables: {
+        filter: {per_page: 500, sort: "random"},
+        scene_filter: {
+          orientation: {value: [GQL.OrientationEnum.Portrait]}
         }
       }
-    }`,
+    },
     setFilterHandler: fn(),
   },
   decorators: [setCssVHDecorator],
@@ -232,39 +208,15 @@ export const ToggleLoop: Story = {
 
 export const ToggleCaptions: Story = {
   args: {
-    query: `{
-      findScenes(
-        filter: {per_page: ${DEFAULT_MAXIMUM_SCENES}, sort: "random"}
-        scene_filter: {orientation: {value: PORTRAIT}, captions: {modifier: NOT_NULL, value:""}}
-      ) {
-        scenes {
-          captions {
-            caption_type
-            language_code
-          }
-          date
-          id
-          files {
-            format
-          }
-          paths {
-            caption
-            stream
-          }
-          performers {
-            gender
-            name
-          }
-          studio {
-            name
-            parent_studio {
-              name
-            }
-          }
-          title
+    queryOptions: {
+      variables: {
+        filter: { per_page: DEFAULT_MAXIMUM_SCENES, sort: "random" },
+        scene_filter: {
+          orientation: { value: [GQL.OrientationEnum.Portrait] }, 
+          captions: { modifier: GQL.CriterionModifier.NotNull, value: "" },
         }
       }
-    }`,
+    },
   },
   play: async (context) => {
     // Run the previous story

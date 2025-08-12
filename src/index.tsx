@@ -1,8 +1,15 @@
 import React from "react";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom";
 import App from "./app/App";
 import "./styles/globals.scss";
 
+import { ApolloProvider } from "@apollo/client";
+import { getClient } from "../stash/ui/v2.5/build/src/core/StashService";
+
 const container = document.getElementById("app");
-const root = createRoot(container!);
-root.render(<App />);
+ReactDOM.render(
+    <ApolloProvider client={getClient()}>
+        <App />
+    </ApolloProvider>,
+    container
+);
