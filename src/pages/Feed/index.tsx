@@ -7,7 +7,7 @@ import { Transition } from "react-transition-group";
 import { TRANSITION_DURATION } from "../../constants";
 import { GroupBase, OptionsOrGroups } from "react-select";
 import Loading from "../../components/Loading";
-import * as GQL from "../../../stash/ui/v2.5/build/src/core/generated-graphql";
+import * as GQL from "../../../vendor/stash/ui/v2.5/build/src/core/generated-graphql";
 
 export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesQuery>[0]
 

@@ -4,7 +4,7 @@ import FeedPage from ".";
 import { DEFAULT_MAXIMUM_SCENES, ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../.storybook/decorators";
 import * as videoItemStyles from "../../components/VideoItem/VideoItem.module.scss";
-import * as GQL from "../../../stash/ui/v2.5/build/src/core/generated-graphql";
+import * as GQL from "../../../vendor/stash/ui/v2.5/build/src/core/generated-graphql";
 
 const meta = {
   title: "Pages/Feed",

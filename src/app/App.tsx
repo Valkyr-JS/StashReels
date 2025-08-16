@@ -14,9 +14,9 @@ import {
   PLUGIN_CONFIG_PROPERTY,
   PLUGIN_NAMESPACE,
 } from "../constants";
-import * as GQL from "../../stash/ui/v2.5/build/src/core/generated-graphql";
+import * as GQL from "../../vendor/stash/ui/v2.5/build/src/core/generated-graphql";
 import { type ScenesQueryOptions } from "../pages/Feed/index";
-import { ListFilterModel } from "../../stash/ui/v2.5/build/src/models/list-filter/filter";
+import { ListFilterModel } from "../../vendor/stash/ui/v2.5/build/src/models/list-filter/filter";
 
 const App = () => {
   setCssVH();

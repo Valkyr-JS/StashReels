@@ -9,7 +9,9 @@
     "build": "npm run app:build && npm run plugin:build",
     "plugin:build": "webpack --config webpack/plugin.config.js",
     "storybook": "storybook dev -p 6006",
-    "stash-ui:build": "cd stash/ui/v2.5 && yarn install && npm run gqlgen && ./node_modules/.bin/tsc --outDir ./build --noEmit false --declaration true --rootDir . && npx -y tsc-alias --outDir build && rm -rf node_modules"
+    "stash-ui:build": "cd vendor/ui/v2.5 && yarn install && npm run gqlgen && ./node_modules/.bin/tsc --outDir ./build --noEmit false --declaration true --rootDir . && npx -y tsc-alias --outDir build && rm -rf node_modules",
+    "stash-ui:update-repo": "echo git subtree pull --prefix=vendor/stash https://github.com/stashapp/stash.git \"$(yarn run -s stash-ui:get-latest-tag)\" --squash",
+    "stash-ui:get-latest-tag": "node -e \"fetch('https://api.github.com/repos/stashapp/stash/releases/latest').then(res=>res.json()).then(data=>console.log(data.tag_name))\""
   },
   "repository": {
     "type": "git",
@@ -70,6 +72,5 @@
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.0.4",
     "webpack-merge": "^6.0.1"
-  },
-  "packageManager": "pnpm@9.6.0+sha512.38dc6fba8dba35b39340b9700112c2fe1e12f10b17134715a4aa98ccf7bb035e76fd981cf0bb384dfa98f8d6af5481c2bef2f4266a24bfa20c34eb7147ce0b5e"
+  }
 }
