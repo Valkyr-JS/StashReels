@@ -4,6 +4,10 @@
   .VideoPlayer {
     max-height: initial;
     padding-bottom: initial;
+
+    &.portrait .video-wrapper {
+      height: 100%; /* override stash style */
+    }
   }
   
   &.hide-controls {
