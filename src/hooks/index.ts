@@ -17,6 +17,10 @@ export function useIsInViewport(
   );
 
   useEffect(() => {
+    if (!ref.current) {
+      console.warn("‼️ useIsInViewport: ref is null or undefined");
+      return;
+    }
     if (ref.current) observer.observe(ref.current);
 
     return () => {

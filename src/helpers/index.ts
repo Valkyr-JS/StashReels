@@ -6,9 +6,7 @@ import { PLUGIN_NAMESPACE } from "../constants";
 export const fetchData = async (query: string) => {
   try {
     const res = await fetch(
-      process.env.NODE_ENV === "production"
-        ? "/graphql"
-        : process.env.STASH_ADDRESS + "/graphql",
+      "/graphql",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
