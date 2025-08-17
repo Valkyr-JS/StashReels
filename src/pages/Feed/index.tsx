@@ -122,9 +122,12 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
   /* ------------------------------ Force Landscape ------------------------------ */
 
-  const [isForceLandscape, setIsForceLandscape] = useState(true);
+  const [isForceLandscape, setIsForceLandscape] = useState<boolean>(
+    JSON.parse(window.localStorage.getItem("forceLandscape") || "false")
+  );
   const handleTogglingForceLandscape = () => {
     console.log("set: ", !isForceLandscape);
+    window.localStorage.setItem("forceLandscape", JSON.stringify(!isForceLandscape));
     setIsForceLandscape((prev) => !prev);
   };
 
