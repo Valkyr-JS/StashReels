@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./Feed.scss";
 import VideoScroller from "../../components/VideoScroller";
-import { fetchData } from "../../helpers";
 import SettingsTab from "../../components/SettingsTab";
 import { Transition } from "react-transition-group";
 import { TRANSITION_DURATION } from "../../constants";
@@ -9,7 +8,7 @@ import { GroupBase, OptionsOrGroups } from "react-select";
 import Loading from "../../components/Loading";
 import * as GQL from "../../../vendor/stash/ui/v2.5/build/src/core/generated-graphql";
 
-export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesQuery>[0]
+export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesAllInfoQuery>[0]
 
 interface FeedPageProps {
   /** The scene filter currently being used as the playlist. */
@@ -47,20 +46,12 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /** Get and set the processed scene data. */
   const [allProcessedData, setAllProcessedData] = useState<IitemData[]>([]);
 
-  /** Indicates if the app is currently fetching data */
-  const [fetchingData, setFetchingData] = useState(false);
 
-
-  const { data: rawSceneData } = GQL.useFindScenesQuery(props.queryOptions)
+  const { data: rawSceneData, loading: rawSceneDataLoading } = GQL.useFindScenesAllInfoQuery(props.queryOptions)
   
   
   useEffect(() => {
-    if (!rawSceneData || !rawSceneData.findScenes) {
-      console.warn("No scene data found in GQL response.");
-      return;
-    }
-    
-    setFetchingData(true);
+    if (!rawSceneData) return;
     // Process fetched scene data, filtering out invalid scenes
     const processedData = rawSceneData.findScenes.scenes
       .map(processSceneData)
@@ -68,9 +59,6 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
     // Update the full scene data
     setAllSceneData(processedData);
-
-    // Set fetching as ended
-    setFetchingData(false);
   }, [rawSceneData]);
 
   /** Handles fetching video data */
@@ -180,7 +168,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   const settingsTabRef = useRef<HTMLDivElement>(null);
   const handleSetSettingsTab = (show: boolean) => setShowSettings(show);
 
-  const noScenesAvailable = !fetchingData && allProcessedData.length === 0;
+  const noScenesAvailable = !rawSceneDataLoading && rawSceneData?.findScenes.scenes.length === 0;
 
   /* -------------------------------- Subtitles ------------------------------- */
 
@@ -198,7 +186,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /* -------------------------------- component ------------------------------- */
 
   // Show loading icon when fetching data
-  if (fetchingData && !showSettings)
+  if (rawSceneDataLoading && !showSettings)
     return <Loading heading="Fetching scenes..." />;
 
   return (
@@ -224,7 +212,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         {(state) => (
           <SettingsTab
             currentFilter={props.currentFilter}
-            fetchingData={fetchingData}
+            fetchingData={rawSceneDataLoading}
             filterList={props.filterList}
             isRandomised={isRandomised}
             pluginConfig={props.pluginConfig}
@@ -259,7 +247,7 @@ const processSceneData = (sc: GQL.FindScenesQuery["findScenes"]["scenes"][number
     }) */
     studio: sc.studio?.name ?? undefined,
     title: sc.title ?? undefined,
-    captions: [] /* sc.captions
+    captions: [], /* sc.captions
       ?.map((cap) => {
         if (typeof sc.paths.caption === "string") {
           return {
@@ -270,6 +258,7 @@ const processSceneData = (sc: GQL.FindScenesQuery["findScenes"]["scenes"][number
         }
       })
       .filter((c) => !!c), */
+    rawScene: sc,
   };
 
   return processedData;

@@ -102,3 +102,22 @@ query FindScenesForSelect(
     }
   }
 }
+
+query FindScenesAllInfo(
+  $filter: FindFilterType
+  $scene_filter: SceneFilterType
+  $scene_ids: [Int!]
+) {
+  findScenes(
+    filter: $filter
+    scene_filter: $scene_filter
+    scene_ids: $scene_ids
+  ) {
+    count
+    filesize
+    duration
+    scenes {
+      ...SceneData
+    }
+  }
+}

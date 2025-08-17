@@ -32,6 +32,7 @@ import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
 import { TRANSITION_DURATION } from "../../constants";
+import ScenePlayer from "../ScenePlayer";
 
 export interface VideoItemProps extends IitemData {
   /** Function for handling changing the current item. */
@@ -93,11 +94,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   /** Handle toggling the video play state. */
   const togglePlayHandler = () => {
-    if (videoRef.current?.paused) {
-      videoRef.current.play();
-    } else {
-      videoRef.current?.pause();
-    }
     // Display the tap icon, then hide it after some time.
     setShowTapIcon(true);
     setTimeout(() => {
@@ -220,8 +216,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const scrubberRef = useRef(null);
 
   /** Handle updating the scrubber position when the scene is playing */
-  const handleTimeUpdate: React.ReactEventHandler<HTMLVideoElement> = (e) => {
-    const target = e.target as HTMLVideoElement;
+  const handleTimeUpdate = (e: Event) => {
+    if (!(e.target instanceof HTMLVideoElement)) {
+      console.warn("Time update event target is not a video element", e);
+      return;
+    }
+    const target = e.target;
     const { currentTime, duration } = target;
     const newTimePercentage = (currentTime / duration) * 100;
     setSceneProgress(newTimePercentage);
@@ -293,23 +293,29 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     <div
       className="VideoItem"
       data-testid="VideoItem--container"
+      data-index={props.index}
+      data-scene-id={props.scene.id}
       ref={itemRef}
     >
-      <video
+      <ScenePlayer
         className={cx({ 'cover': !props.isLetterboxed })}
-        crossOrigin="anonymous"
-        data-testid="VideoItem--video"
-        id={props.scene.id}
+        scene={props.scene.rawScene}
+        hideScrubberOverride={true}
+        autoplay={false}
+        permitLoop={true}
+        initialTimestamp={0}
+        sendSetTimestamp={() => {}}
+        onTimeUpdate={handleTimeUpdate}
+        onComplete={() => {}}
+        onNext={() => {}}
+        onPrevious={() => {}}
+        ref={videoRef}
+        hideControls={true}
+        hideProgressBar={true}
         muted={props.isMuted || !isInViewport}
         onClick={togglePlayHandler}
         onEnded={handleOnEnded}
-        onTimeUpdate={handleTimeUpdate}
-        playsInline
-        ref={videoRef}
-      >
-        <source src={props.scene.path} type={`video/${props.scene.format}`} />
-        {captionSources}
-      </video>
+      />
       <Transition
         in={showTapIcon}
         nodeRef={tapIconRef}
@@ -475,7 +481,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   );
 };
 
-export default VideoItem;
+export default React.memo(VideoItem);
 
 /* -------------------------------------------------------------------------- */
 /*                                  UI Button                                 */

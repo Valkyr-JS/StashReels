@@ -49,6 +49,8 @@ interface IsceneData {
   studio?: string;
   /** The title of the scene. */
   title?: string;
+  /** The unmodified scene info returned from Stash. */
+  rawScene: any;
 }
 
 interface PluginConfig {

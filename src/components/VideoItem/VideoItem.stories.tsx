@@ -27,6 +27,7 @@ const meta = {
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
       studio: "Studio name",
       title: "Scene Title 1",
+          rawScene: {},
     },
     settingsTabIsVisible: false,
     setSettingsTabHandler: fn(),
@@ -73,6 +74,7 @@ export const EmptySceneInfo: Story = {
       id: "3097",
       path: process.env.STASH_ADDRESS + "/scene/3097/stream",
       performers: [],
+      rawScene: {},
     },
   },
   play: async ({ canvasElement }) => {
@@ -116,6 +118,7 @@ export const Subtitles: Story = {
       id: "5133",
       path: process.env.STASH_ADDRESS + "/scene/5133/stream",
       title: "Scene Title 2",
+      rawScene: {},
     },
   },
   play: async ({ canvasElement }) => {

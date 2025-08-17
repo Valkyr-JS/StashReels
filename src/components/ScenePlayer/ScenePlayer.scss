@@ -1,0 +1,24 @@
+@import "./stash-styles.scss";
+
+.ScenePlayer {
+  .VideoPlayer {
+    max-height: initial;
+    padding-bottom: initial;
+  }
+  
+  &.hide-controls {
+    .VideoPlayer {
+      .vjs-control-bar > :not(.vjs-progress-control) {
+        display: none;
+      }
+    }
+  }
+  
+  &.hide-progress-bar {
+    .VideoPlayer {
+      .vjs-control-bar > .vjs-progress-control {
+        display: none;
+      }
+    }
+  }
+}
