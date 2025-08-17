@@ -1,16 +1,16 @@
-name: Stash Swipe
+name: Stash TV
 description: TikTok for Stash.
-url: https://github.com/Valkyr-JS/StashSwipe
+url: https://github.com/secondfolder/stash-tv
 version: 0.1.2
 ui:
   assets:
     /: .
   javascript:
-    - stash-swipe.js
+    - stash-tv.js
 settings:
   hideNavButton:
     displayName: Hide navigation button
-    description: Hide the main navigation link to Stash Swipe.
+    description: Hide the main navigation link to Stash TV.
     type: BOOLEAN
   maximumScenes:
     displayName: Maximum scenes

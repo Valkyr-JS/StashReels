@@ -1,4 +1,4 @@
-import { faMobile } from "@fortawesome/free-solid-svg-icons";
+import { faTelevision } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fetchPluginConfig } from "./helpers";
 import { PLUGIN_NAMESPACE } from "./constants";
@@ -30,20 +30,20 @@ PluginApi.patch.instead(
     return [
       <Original {...props}>
         {children}
-        <ReelsButtonInner />
+        <StashTVButtonInner />
       </Original>,
     ];
   }
 );
 
-const ReelsButtonInner = () => {
+const StashTVButtonInner = () => {
   const link = "/plugin/" + PLUGIN_NAMESPACE + "/assets/app/";
 
   return (
     <div
       data-rb-event-key={link}
       className="col-4 col-sm-3 col-md-2 col-lg-auto nav-link"
-      id="StashSwipeButton"
+      id="StashTVButton"
     >
       <a
         href={link}
@@ -52,9 +52,9 @@ const ReelsButtonInner = () => {
       >
         <FontAwesomeIcon
           className="fa-icon nav-menu-icon d-block d-xl-inline mb-2 mb-xl-0"
-          icon={faMobile}
+          icon={faTelevision}
         />
-        <span>Reels</span>
+        <span>TV</span>
       </a>
     </div>
   );

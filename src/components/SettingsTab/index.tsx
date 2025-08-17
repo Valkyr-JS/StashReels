@@ -222,7 +222,7 @@ const SettingsTab = forwardRef(
               />
             </label>
             <small>
-              Choose a scene filter from Stash to use as your Stash Swipe
+              Choose a scene filter from Stash to use as your Stash TV
               playlist
             </small>
 
@@ -241,7 +241,7 @@ const SettingsTab = forwardRef(
             </label>
             <small>
               Set the currently selected scene filter as the default playlist
-              when opening Stash Swipe.
+              when opening Stash TV.
             </small>
           </div>
 

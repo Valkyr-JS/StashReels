@@ -1,5 +1,5 @@
 {
-  "name": "stash-swipe",
+  "name": "stash-tv",
   "version": "0.1.2",
   "description": "TikTok for Stash.",
   "main": "index.js",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Valkyr-JS/StashSwipe.git"
+    "url": "git+https://github.com/secondfolder/stash-tv.git"
   },
-  "author": "Valkyr-JS",
+  "author": "secondfolder",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Valkyr-JS/StashSwipe/issues"
+    "url": "https://github.com/secondfolder/stash-tv/issues"
   },
-  "homepage": "https://github.com/Valkyr-JS/StashSwipe#readme",
+  "homepage": "https://github.com/secondfolder/stash-tv#readme",
   "dependencies": {
     "@apollo/client": "3.8.0",
     "@fortawesome/fontawesome-svg-core": "^7.0.0",
