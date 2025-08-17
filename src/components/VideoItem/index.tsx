@@ -15,6 +15,7 @@ import { faClosedCaptioning as faSubtitlesOff } from "@fortawesome/free-solid-sv
 import { faVolumeXmark as faVolumeOff } from "@fortawesome/free-solid-svg-icons";
 import { faPause } from "@fortawesome/free-solid-svg-icons";
 import { faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
@@ -45,6 +46,8 @@ export interface VideoItemProps extends IitemData {
   isFullscreen: boolean;
   /** The letterboxing state set by the user. */
   isLetterboxed: boolean;
+  /** Whether the video is forced to be displayed in landscape mode. */
+  isForceLandscape: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
   /** Whether the video should loop on end. If false, the next video is scrolled
@@ -152,6 +155,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const letterboxingButtonClickHandler = () => {
     if (isInViewport) props.toggleLetterboxingHandler();
+  };
+
+  /* ------------------------------ Rotation ------------------------------ */
+
+  const forceLandscapeButtonClickHandler = () => {
+    if (isInViewport) props.toggleForceLandscapeHandler();
   };
 
   /* ------------------------------ On end event ------------------------------ */
@@ -401,6 +410,16 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 inactiveIcon={faDistributeSpacingHorizontal}
                 inactiveText="Fill screen"
                 onClick={letterboxingButtonClickHandler}
+              />
+
+              <UiButton
+                active={!props.isForceLandscape}
+                activeIcon={faMobile}
+                activeText="Landscape"
+                data-testid="VideoItem--forceLandscapeButton"
+                inactiveIcon={faDesktop}
+                inactiveText="Portrait"
+                onClick={forceLandscapeButtonClickHandler}
               />
 
               <UiButton

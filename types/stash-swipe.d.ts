@@ -16,6 +16,8 @@ interface IitemData {
   toggleFullscreenHandler: () => void;
   /** Function for handling toggling letterboxing on and off. */
   toggleLetterboxingHandler: () => void;
+  /** Function for handling toggling rotation on and off. */
+  toggleForceLandscapeHandler: () => void;
   /** Function for handling toggling video looping on and off. */
   toggleLoopHandler: () => void;
   /** Function for handling toggling video subtitles on and off. */

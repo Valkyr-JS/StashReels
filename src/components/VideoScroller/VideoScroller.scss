@@ -15,4 +15,19 @@
     position: relative;
     border: 1px solid transparent;
   }
+  
+  &.force-landscape {
+    height: 100svw;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(270deg);
+    transform-origin: center center 0px;
+    
+    .VideoItem,
+    .dummy-video-item {
+      width: 100svh;
+      height: 100svw;
+    }
+  }
 }

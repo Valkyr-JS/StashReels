@@ -2,12 +2,15 @@ import React, { useMemo, useRef, useState } from "react";
 import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
+import cx from "classnames";
 
 interface VideoScrollerProps {
   /** The fullscreen state set by the user. */
   isFullscreen: boolean;
   /** The letterboxing state set by the user. */
   isLetterboxed: boolean;
+  /** Whether the video is forced to be displayed in landscape mode. */
+  isForceLandscape: boolean;
   /** The audio state set by the user. */
   isMuted: boolean;
   /** The data for each item in the queue. */
@@ -53,7 +56,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   // ? Added tabIndex to container to atisfy accessible scroll region.
   return (
     <div
-      className="VideoScroller"
+      className={cx("VideoScroller", { "force-landscape": props.isForceLandscape })}
       data-testid="VideoScroller--container"
       ref={scrollerRef}
       tabIndex={0}
@@ -71,6 +74,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               index={i}
               isFullscreen={props.isFullscreen}
               isLetterboxed={props.isLetterboxed}
+              isForceLandscape={props.isForceLandscape}
               isMuted={props.isMuted}
               key={item.scene.id}
               loopOnEnd={props.loopOnEnd}
@@ -81,6 +85,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               toggleAudioHandler={item.toggleAudioHandler}
               toggleFullscreenHandler={item.toggleFullscreenHandler}
               toggleLetterboxingHandler={item.toggleLetterboxingHandler}
+              toggleForceLandscapeHandler={item.toggleForceLandscapeHandler}
               toggleLoopHandler={item.toggleLoopHandler}
               toggleSubtitlesHandler={item.toggleSubtitlesHandler}
               toggleUiHandler={item.toggleUiHandler}

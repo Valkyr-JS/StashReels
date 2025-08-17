@@ -48,8 +48,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
 
   const { data: rawSceneData, loading: rawSceneDataLoading } = GQL.useFindScenesAllInfoQuery(props.queryOptions)
-  
-  
+
+
   useEffect(() => {
     if (!rawSceneData) return;
     // Process fetched scene data, filtering out invalid scenes
@@ -72,6 +72,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         toggleAudioHandler: handleTogglingAudio,
         toggleFullscreenHandler: handleTogglingFullscreen,
         toggleLetterboxingHandler: handleTogglingFillScreen,
+        toggleForceLandscapeHandler: handleTogglingForceLandscape,
         toggleLoopHandler: handleTogglingLooping,
         toggleSubtitlesHandler: handleTogglingSubtitles,
         toggleUiHandler: handleTogglingUI,
@@ -117,6 +118,14 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   const handleTogglingFillScreen = () => {
     console.log("set: ", !isLetterboxed);
     setIsLetterboxed((prev) => !prev);
+  };
+
+  /* ------------------------------ Force Landscape ------------------------------ */
+
+  const [isForceLandscape, setIsForceLandscape] = useState(true);
+  const handleTogglingForceLandscape = () => {
+    console.log("set: ", !isForceLandscape);
+    setIsForceLandscape((prev) => !prev);
   };
 
   /* --------------------------------- Looping -------------------------------- */
@@ -195,6 +204,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         captionsDefault={props.pluginConfig?.subtitleLanguage}
         isFullscreen={isFullscreen}
         isLetterboxed={isLetterboxed}
+        isForceLandscape={isForceLandscape}
         isMuted={isMuted}
         items={allProcessedData}
         loopOnEnd={loopOnEnd}
