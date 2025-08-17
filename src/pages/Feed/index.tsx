@@ -187,6 +187,17 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   const [subtitlesOn, setSubtitlesOn] = useState(true);
   const handleTogglingSubtitles = () => setSubtitlesOn((prev) => !prev);
 
+  /* ------------------------------ Tap Navigation ------------------------------ */
+
+  const [isTapNavigation, setIsTapNavigation] = useState<boolean>(
+    JSON.parse(window.localStorage.getItem("tapNavigation") || "false")
+  );
+  const handleTogglingTapNavigation = () => {
+    console.log("set: ", !isTapNavigation);
+    window.localStorage.setItem("tapNavigation", JSON.stringify(!isTapNavigation));
+    setIsTapNavigation((prev) => !prev);
+  };
+
   /* ----------------------------------- UI ----------------------------------- */
 
   const [showUI, setShowUI] = useState(true);
@@ -214,6 +225,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         settingsTabIsVisible={showSettings}
         subtitlesOn={subtitlesOn}
         uiIsVisible={showUI}
+        isTapNavigation={isTapNavigation}
       />
       <Transition
         in={showSettings || noScenesAvailable}
@@ -236,6 +248,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
             setIsRandomised={handleTogglingRandomise}
             setSettingsTabHandler={handleSetSettingsTab}
             transitionStatus={noScenesAvailable ? "entered" : state}
+            toggleIsTapNavigation={handleTogglingTapNavigation}
+            isTapNavigation={isTapNavigation}
           />
         )}
       </Transition>

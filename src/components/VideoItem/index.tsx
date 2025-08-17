@@ -35,10 +35,11 @@ import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
 import { TRANSITION_DURATION } from "../../constants";
 import ScenePlayer from "../ScenePlayer";
+import { type VideoJsPlayer } from "video.js";
 
 export interface VideoItemProps extends IitemData {
   /** Function for handling changing the current item. */
-  changeItemHandler: (newIndex: number) => void;
+  changeItemHandler: ((newIndex: number | ((currentIndex: number) => number)) => void);
   /** The index of the item currently displayed in the scroller. */
   currentIndex: number;
   /** The zero-based index of the scene in the video queue. */
@@ -61,9 +62,12 @@ export interface VideoItemProps extends IitemData {
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
+  /** Whether tap navigation is enabled. */
+  isTapNavigation?: boolean;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
+  const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
   const [paused, setPaused] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const setVideoRef = useMemo(() => {
@@ -91,11 +95,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       videoRef.current?.pause();
     }
     // Play the video if it is currently in the viewport.
-    else if (isInViewport && videoRef.current) {
-      setPaused(false);
-      videoRef.current.play().catch((err) => setPaused(true));
-    } else {
-      videoRef.current?.pause();
+    const videojsPlayer = videojsPlayerRef.current;
+    if (videojsPlayer) {
+      if (isInViewport) {
+        setPaused(false);
+        videojsPlayer.play()?.catch(() => setPaused(true));
+      } else {
+        videojsPlayer.pause();
+      }
     }
 
     // Update the current item data
@@ -108,14 +115,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /** Handle toggling the video play state. */
   const togglePlayHandler = useMemo(() => { // useMemo to avoid causing unnecessary re-renders
     return () => {
-      if (!videoRef.current) return;
-      if (videoRef.current.paused) {
+      const videojsPlayer = videojsPlayerRef.current;
+      if (!videojsPlayer) return;
+      if (videojsPlayer.paused()) {
         setPaused(false);
         console.log("attempting to play video");
-        videoRef.current.play().catch((err) => setPaused(true));
+        videojsPlayer.play()?.catch(() => setPaused(true));
       } else {
         console.log("attempting to pause video");
-        videoRef.current.pause();
+        videojsPlayer.pause();
       }
       // Display the tap icon, then hide it after some time.
       setShowTapIcon(true);
@@ -124,6 +132,110 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       }, 1200);
     };
   }, []);
+
+  const handleTapNavigationClick = useMemo(() => { // useMemo to avoid causing unnecessary re-renders
+    return (event: MouseEvent) => {
+      const {width: videoWidth, height: videoHeight} = (event.target as HTMLElement)?.getBoundingClientRect()
+
+      let clickXPosRelative, clickYPosRelative
+      if (props.isForceLandscape) {
+        clickXPosRelative = 1-(event.clientY/videoHeight)
+        clickYPosRelative = (event.clientX/videoWidth)
+      } else {
+        clickXPosRelative = (event.clientX/videoWidth)
+        clickYPosRelative = (event.clientY/videoHeight)
+      }
+      const isTop = clickYPosRelative < 0.5
+      const isBottom = !isTop
+      const isLeft = clickXPosRelative < 0.33
+      const isRight = clickXPosRelative > 0.66
+      const isMiddle = !isLeft && !isRight
+  
+      if (isMiddle) {
+        togglePlayHandler()
+      } else if (isLeft) {
+        if (isTop) {
+          seekBackwards();
+        } else {
+          props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
+        }
+      } else {
+        if (isTop) {
+          seekForwards();
+        } else {
+          props.changeItemHandler((currentIndex) => currentIndex + 1);
+        }
+      }
+
+    };
+  }, [props.isForceLandscape]);
+  
+  
+
+  function getSkipTime() {
+    const duration = props.scene.rawScene.files?.[0].duration;
+    if (!duration) {
+        return null
+    }
+
+    let skipPercent
+    if (duration > 1 * 60 * 60) {
+        skipPercent = 0.05
+    } else if (duration > 10 * 60) {
+        skipPercent = 0.10
+    } else if (duration > 1 * 60) {
+        skipPercent = 0.20
+    } else {
+        skipPercent = 0.50
+    }
+    return duration * skipPercent
+  }
+  
+  function seekForwards() {
+    const videojsPlayer = videojsPlayerRef.current;
+    if (!videojsPlayer) return null;
+    const duration = videojsPlayer.duration();
+    const skipAmount = getSkipTime()
+    if (skipAmount === null || typeof duration !== 'number') {
+        return null
+    }
+    const nextSkipAheadTime = videojsPlayer.currentTime() + skipAmount
+    if (nextSkipAheadTime < duration) {
+      videojsPlayer.currentTime(nextSkipAheadTime)
+      videojsPlayer.play()
+      return
+    }
+    props.changeItemHandler((currentIndex) => currentIndex + 1)
+    return null
+  }
+    
+  function seekBackwards() {
+    const videojsPlayer = videojsPlayerRef.current;
+    if (!videojsPlayer) return null;
+    const duration = videojsPlayer.duration();
+    const skipAmount = getSkipTime()
+    if (skipAmount === null || typeof duration !== 'number') {
+      return null
+    }
+    const nextSkipBackTime = videojsPlayer.currentTime() - skipAmount
+    if (nextSkipBackTime >= 0) {
+      videojsPlayer.currentTime(nextSkipBackTime)
+      videojsPlayer.play()
+      return
+    }
+    props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
+  }
+
+  const handleVideoClick = useMemo(() => {
+    return (event: MouseEvent) => {
+      if (props.isTapNavigation) {
+        console.log("Tap navigation is enabled, handling tap click");
+        handleTapNavigationClick(event);
+      } else {
+        togglePlayHandler();
+      }
+    };
+  }, [togglePlayHandler, props.isTapNavigation, handleTapNavigationClick]);
 
   /* ----------------------------- Toggle buttons ----------------------------- */
 
@@ -343,8 +455,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         hideControls={true}
         hideProgressBar={true}
         muted={props.isMuted || !isInViewport}
-        onClick={togglePlayHandler}
+        onClick={handleVideoClick}
         onEnded={handleOnEnded}
+        onVideojsPlayerReady={player => videojsPlayerRef.current = player}
       />
       <Transition
         in={paused || showTapIcon}

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
@@ -27,6 +27,8 @@ interface VideoScrollerProps {
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
+  /** Whether tap navigation is enabled. */
+  isTapNavigation?: boolean;
 }
 
 const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
@@ -50,6 +52,23 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
     _itemsCache.current = newValue
     return newValue;
   }, [items]);
+  
+  useEffect(() => {
+    if (!props.isTapNavigation) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        // Go to the previous item
+        setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+      } else if (e.key === "ArrowRight") {
+        // Go to the next item
+        setCurrentIndex((prevIndex) => prevIndex + 1);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [props.isTapNavigation]);
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -62,6 +81,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
       tabIndex={0}
     >
       {cachedItems.map((item, i) => {
+        if (props.isTapNavigation && i !== currentIndex) return null
         if (
           i >= currentIndex - ITEM_BUFFER_EACH_SIDE &&
           i <= currentIndex + ITEM_BUFFER_EACH_SIDE
@@ -90,6 +110,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               toggleSubtitlesHandler={item.toggleSubtitlesHandler}
               toggleUiHandler={item.toggleUiHandler}
               uiIsVisible={props.uiIsVisible}
+              isTapNavigation={props.isTapNavigation}
             />
           );
         } else return <div key={item.scene.id} className="dummy-video-item" />;

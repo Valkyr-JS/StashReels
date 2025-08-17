@@ -51,6 +51,10 @@ interface SettingsTabProps {
   setSettingsTabHandler: (show: boolean) => void;
   /** The ReactTransitionGroup transition status. */
   transitionStatus: TransitionStatus;
+  /** Function to toggle tap navigation. */
+  toggleIsTapNavigation: () => void;
+  /** Whether tap navigation is enabled. */
+  isTapNavigation: boolean;
 }
 
 type ReactSelectOnChange = (
@@ -199,6 +203,13 @@ const SettingsTab = forwardRef(
 
       // Refresh the scene list without changing the current index.
     };
+    
+    // 5. Set navigation mode
+    const onChangeTapNavigation: React.ChangeEventHandler<
+      HTMLInputElement
+    > = () => {
+      props.toggleIsTapNavigation();
+    };
 
     /* -------------------------------- Component ------------------------------- */
 
@@ -270,6 +281,18 @@ const SettingsTab = forwardRef(
             <small>
               Select the language to use for subtitles if available.
             </small>
+          </div>
+
+          <div className="item checkbox-item">
+            <label>
+              <input
+                checked={props.isTapNavigation}
+                onChange={onChangeTapNavigation}
+                type="checkbox"
+              />
+              <h3>Tap navigation</h3>
+            </label>
+            <small>Enable tap navigation.</small>
           </div>
         </div>
 

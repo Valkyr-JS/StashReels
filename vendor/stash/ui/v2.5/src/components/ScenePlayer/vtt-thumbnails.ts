@@ -138,6 +138,7 @@ class VTTThumbnailsPlugin extends videojs.getPlugin("plugin") {
   }
 
   private setupThumbnailElement() {
+    if (!this.player || !this.player.el()) return;
     const progressBar = this.player.$(".vjs-progress-control") as HTMLElement;
     if (!progressBar) return;
     this.progressBar = progressBar;

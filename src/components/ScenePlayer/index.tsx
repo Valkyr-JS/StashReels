@@ -15,34 +15,6 @@ videojs.hook('setup', (player) => {
 
     // Enable tap events since iOS Safari doesn't report click events when tapped
     player.emitTapEvents();
-    
-    // console.log("ScenePlayer: setup", player.el(), player.el().querySelector('video'));
-    
-    // player.el().addEventListener('click', (event) => {event.stopPropagation(); event.preventDefault()});
-    // player.el().querySelector('video')?.addEventListener('click', (event) => {event.stopPropagation(); event.preventDefault()});
-    
-    // player.on('loadeddata', function () {
-    //     if (player.paused()) {
-    //         // force the poster back on top
-    //         const posterComp = player.getChild('posterImage');
-    //         console.log("ScenePlayer: loadeddata", posterComp);
-    //         if (posterComp) {
-    //             posterComp.show();
-    //             posterComp.el().style.display = 'block';
-    //         }
-    //     }
-    // });
-
-    // // Once the video is actually playing, hide the poster normally
-    // player.on('playing', function () {
-    //     const posterComp = player.getChild('posterImage');
-    //     console.log("ScenePlayer: play", posterComp);
-    //     if (posterComp) {
-    //         posterComp.hide();
-    //         posterComp.el().style.display = 'none';
-    //     }
-    // });
-
 });
 
 videojs.hook('beforesetup', function(videoEl, options) {
@@ -62,15 +34,19 @@ export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> 
     hideProgressBar?: boolean;
     muted?: boolean;
     onClick?: (event: MouseEvent) => void;
+    onVideojsPlayerReady?: (player: VideoJsPlayer) => void;
 }
 const ScenePlayer = forwardRef<
     HTMLVideoElement,
     ScenePlayerProps
->(({ className, onTimeUpdate, hideControls, hideProgressBar, muted, onClick, onEnded, ...otherProps }: ScenePlayerProps, ref) => {
+>(({ className, onTimeUpdate, hideControls, hideProgressBar, muted, onClick, onEnded, onVideojsPlayerReady, ...otherProps }: ScenePlayerProps, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);
+    useEffect(() => {
+        videojsPlayer && onVideojsPlayerReady?.(videojsPlayer);
+    }, [videojsPlayer, onVideojsPlayerReady]);
 
     useEffect(() => {
         const videoElm = containerRef.current?.querySelector('video')
@@ -111,14 +87,32 @@ const ScenePlayer = forwardRef<
             videoElm.removeEventListener('ended', onEnded);
         }
     }, [videoElm, onEnded]);
+    
+    const lastTouchEndEventRef = useRef<Event | null>(null);
 
     useEffect(() => {
         if (!videojsPlayer || !onClick) return;
+        videojsPlayer.el().addEventListener('touchend', (event) => {lastTouchEndEventRef.current = event}, {capture: true});
+        const onTapHandler = (event: TouchEvent) => {
+            TouchList
+            const touchEvent = lastTouchEndEventRef.current
+            const touches = touchEvent && 'changedTouches' in touchEvent && touchEvent.changedTouches instanceof TouchList ? touchEvent.changedTouches : null
+            if (!touches || touches.length === 0) {
+                console.warn("Tap event detected but no touches found", event, touchEvent);
+                return;
+            }
+            const lastTouch = touches[touches.length - 1];
+            const equivalentMouseEvent = new MouseEvent('click', {
+                clientX: lastTouch.clientX,
+                clientY: lastTouch.clientY,
+            });
+            event.target?.dispatchEvent(equivalentMouseEvent);
+        }
         videojsPlayer.on('click', onClick);
-        videojsPlayer.on('tap', onClick);
+        videojsPlayer.on('tap', onTapHandler);
         return () => {
             videojsPlayer.off('click', onClick);
-            videojsPlayer.off('tap', onClick);
+            videojsPlayer.off('tap', onTapHandler);
         }
     }, [videojsPlayer, onClick]);
     
