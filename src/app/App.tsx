@@ -37,7 +37,6 @@ const App = () => {
   useEffect(() => {
     // Fetch all scene filters from Stash.
     fetchSceneFilters().then((res) => {
-      console.log(res.data.configuration.plugins);
       setStashConfiguration(res.data.configuration as ConfigResult);
       // Set the config in the state
       setPluginConfig(
@@ -213,6 +212,11 @@ export default App;
 /** Process the raw `filter` data from Stash into GQL.  */
 const processFilter = (savedFilter: any, pluginConfig: PluginConfig) => {
   const filter = new ListFilterModel(GQL.FilterMode.Scenes)
+  const sortBy = savedFilter?.find_filter?.sort;
+  if (sortBy) {
+    let seed = Math.round(Math.random() * 1000000)
+    savedFilter.find_filter.sort = sortBy.replace(/^random_\d*$/, `random_${seed}`)
+  }
   filter.configureFromSavedFilter(savedFilter);
   const updatedFilter = { ...filter.makeFindFilter() };
 
