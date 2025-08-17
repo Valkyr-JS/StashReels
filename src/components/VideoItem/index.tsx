@@ -24,6 +24,7 @@ import React, {
   forwardRef,
   Fragment,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -63,30 +64,39 @@ export interface VideoItemProps extends IitemData {
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [paused, setPaused] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const setVideoRef = useMemo(() => {
+    return (el: HTMLVideoElement | null) => {
+      videoRef.current = el;
+      if (!el) return;
+      if (el.paused !== paused) {
+        setPaused(el.paused);
+      }
+      el.addEventListener("playing", () => setPaused(false));
+      el.addEventListener("pause", () => setPaused(true));
+    }
+  }, []);
 
   /** Check if at least 80% of the video is in the viewport. */
   const isInViewport = useIsInViewport(videoRef, {
     threshold: 0.8,
   });
 
-  /* ---------------------------------- Load ---------------------------------- */
-
-  // Reload the video when path changes. Fixes old video source remaining when
-  // the filter changes
-  useEffect(() => {
-    videoRef.current?.load();
-  }, [props.scene.path]);
-
   /* ------------------------------- Play/pause ------------------------------- */
 
   useEffect(() => {
     // Pause the video if the settings tab is open
-    if (props.settingsTabIsVisible) videoRef.current?.pause();
+    if (props.settingsTabIsVisible) {
+      videoRef.current?.pause();
+    }
     // Play the video if it is currently in the viewport.
-    else if (isInViewport && videoRef.current) videoRef.current.play();
-    // Otherwise pause it.
-    else videoRef.current?.pause();
+    else if (isInViewport && videoRef.current) {
+      setPaused(false);
+      videoRef.current.play().catch((err) => setPaused(true));
+    } else {
+      videoRef.current?.pause();
+    }
 
     // Update the current item data
     if (isInViewport) props.changeItemHandler(props.index);
@@ -96,13 +106,24 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const tapIconRef = useRef(null);
 
   /** Handle toggling the video play state. */
-  const togglePlayHandler = () => {
-    // Display the tap icon, then hide it after some time.
-    setShowTapIcon(true);
-    setTimeout(() => {
-      setShowTapIcon(false);
-    }, 1200);
-  };
+  const togglePlayHandler = useMemo(() => { // useMemo to avoid causing unnecessary re-renders
+    return () => {
+      if (!videoRef.current) return;
+      if (videoRef.current.paused) {
+        setPaused(false);
+        console.log("attempting to play video");
+        videoRef.current.play().catch((err) => setPaused(true));
+      } else {
+        console.log("attempting to pause video");
+        videoRef.current.pause();
+      }
+      // Display the tap icon, then hide it after some time.
+      setShowTapIcon(true);
+      setTimeout(() => {
+        setShowTapIcon(false);
+      }, 1200);
+    };
+  }, []);
 
   /* ----------------------------- Toggle buttons ----------------------------- */
 
@@ -318,7 +339,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         onComplete={() => {}}
         onNext={() => {}}
         onPrevious={() => {}}
-        ref={videoRef}
+        ref={setVideoRef}
         hideControls={true}
         hideProgressBar={true}
         muted={props.isMuted || !isInViewport}
@@ -326,15 +347,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         onEnded={handleOnEnded}
       />
       <Transition
-        in={showTapIcon}
+        in={paused || showTapIcon}
         nodeRef={tapIconRef}
         timeout={TRANSITION_DURATION}
         unmountOnExit
       >
         {(state) => (
           <FontAwesomeIcon
-            className="tap-icon"
-            icon={videoRef.current?.paused ? faPause : faPlay}
+            className={cx("tap-icon", {'transparent': !paused})}
+            icon={paused ? faPlay : faPause}
             ref={tapIconRef}
             style={{
               ...toggleableUiStyles,

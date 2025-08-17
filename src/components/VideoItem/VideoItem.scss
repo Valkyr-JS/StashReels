@@ -2,21 +2,19 @@
 @import "../../styles/variables.scss";
 
 
-@scope (.VideoItem) to (.boundary) {  
-  :scope {
-    @include fullHeight;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    background: #000;
-    position: relative;
-    border: 1px solid transparent;
+.VideoItem {
+  @include fullHeight;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  background: #000;
+  position: relative;
+  border: 1px solid transparent;
 
-    display: grid;
-    grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] max-content [scrubber-bottom canvas-bottom];
-    grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] (
-        max-content
-      ) [controls-end canvas-end];
-  }
+  display: grid;
+  grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] max-content [scrubber-bottom canvas-bottom];
+  grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] (
+      max-content
+    ) [controls-end canvas-end];
 
   .scrubber-container {
     padding-top: $scrubber-container-padding-top;
@@ -219,20 +217,34 @@
     font-size: 7rem;
     opacity: 0;
     pointer-events: none;
-  } 
+  }
+  .tap-icon.transparent {
+    opacity: 0.5 !important;
+  }
   
   
   .controls {
     position: relative;
     grid-column: controls-start / controls-end;
-    grid-row: main-top / main-bottom;
-
+    /* 
+    For some reason safari will always place the video on top of the controls when in force-landscape mode. For some
+    reason overlapping it with the scrubber slightly fixes this issue.
+    */
+    grid-row: main-top / scrubber-bottom;
+    padding-bottom: 36px;
+    
     display: flex;
     flex-direction: column;
     justify-content: end;
     align-items: end;
     margin-right: $ui-spacer;
     margin-bottom: $ui-spacer;
+    z-index: 2;
+    pointer-events: none;
+    
+    > * {
+      pointer-events: initial;
+    }
 
     button {
       appearance: none;
@@ -308,10 +320,7 @@
     flex-wrap: wrap-reverse;
     justify-content: center;
     transition: opacity ease-in-out;
-
-    @media (max-height: 400px) {
-      max-height: 200px;
-    }
+    max-height: calc(var(--y-unit) * 100 - 100px);
   }
 
   .toggleable-ui-button {
@@ -336,8 +345,13 @@
       height: 100%;
     }
 
-    &.cover video {
-      object-fit: cover;
+    &.cover {
+      video {
+        object-fit: cover;
+      }
+      .vjs-poster {
+        background-size: cover;
+      }
     }
     
     .video-wrapper {

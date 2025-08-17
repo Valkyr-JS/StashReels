@@ -5,8 +5,51 @@ import { default as cx } from "classnames";
 import videojs, { type VideoJsPlayer } from "video.js";
 
 videojs.hook('setup', (player) => {
-  // Stop ScenePlayer from stealing focus on mount
-  player.focus = () => {}
+    // Stop ScenePlayer from stealing focus on mount
+    player.focus = () => {}
+    
+    // We manually trigger toggle play/pause on click so we don't want the poster image also doing the same
+    // and cancelling our change out.
+    player.getChild('posterImage')?.off('click');
+    player.getChild('posterImage')?.off('tap');
+
+    // Enable tap events since iOS Safari doesn't report click events when tapped
+    player.emitTapEvents();
+    
+    // console.log("ScenePlayer: setup", player.el(), player.el().querySelector('video'));
+    
+    // player.el().addEventListener('click', (event) => {event.stopPropagation(); event.preventDefault()});
+    // player.el().querySelector('video')?.addEventListener('click', (event) => {event.stopPropagation(); event.preventDefault()});
+    
+    // player.on('loadeddata', function () {
+    //     if (player.paused()) {
+    //         // force the poster back on top
+    //         const posterComp = player.getChild('posterImage');
+    //         console.log("ScenePlayer: loadeddata", posterComp);
+    //         if (posterComp) {
+    //             posterComp.show();
+    //             posterComp.el().style.display = 'block';
+    //         }
+    //     }
+    // });
+
+    // // Once the video is actually playing, hide the poster normally
+    // player.on('playing', function () {
+    //     const posterComp = player.getChild('posterImage');
+    //     console.log("ScenePlayer: play", posterComp);
+    //     if (posterComp) {
+    //         posterComp.hide();
+    //         posterComp.el().style.display = 'none';
+    //     }
+    // });
+
+});
+
+videojs.hook('beforesetup', function(videoEl, options) {
+    // We want to manage play/pause ourselves so we can handle taps as well
+    options.userActions.click = false;
+    options.userActions.doubleClick = false;
+  return options;
 });
 
 ScenePlayerOriginal.displayName = "ScenePlayerOriginal";
@@ -70,12 +113,14 @@ const ScenePlayer = forwardRef<
     }, [videoElm, onEnded]);
 
     useEffect(() => {
-        if (!videoElm || !onClick) return;
-        videoElm.addEventListener('click', onClick);
+        if (!videojsPlayer || !onClick) return;
+        videojsPlayer.on('click', onClick);
+        videojsPlayer.on('tap', onClick);
         return () => {
-            videoElm.removeEventListener('click', onClick);
+            videojsPlayer.off('click', onClick);
+            videojsPlayer.off('tap', onClick);
         }
-    }, [videoElm, onClick]);
+    }, [videojsPlayer, onClick]);
     
     useEffect(() => {
         if (!videojsPlayer || typeof muted !== 'boolean') return;

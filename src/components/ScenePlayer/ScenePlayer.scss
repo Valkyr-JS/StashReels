@@ -25,4 +25,9 @@
       }
     }
   }
+  
+  .vjs-big-button-group,
+  .vjs-big-play-button {
+    display: none !important;
+  }
 }

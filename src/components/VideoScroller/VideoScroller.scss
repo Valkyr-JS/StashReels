@@ -15,6 +15,9 @@
     position: relative;
     border: 1px solid transparent;
   }
+    
+  --x-unit: 1svw;
+  --y-unit: 1svh;
   
   &.force-landscape {
     height: 100svw;
@@ -24,7 +27,11 @@
     transform: translate(-50%, -50%) rotate(270deg);
     transform-origin: center center 0px;
     
+    --x-unit: 1svh;
+    --y-unit: 1svw;
+    
     .VideoItem,
+    .VideoItem .ScenePlayer,
     .dummy-video-item {
       width: 100svh;
       height: 100svw;
