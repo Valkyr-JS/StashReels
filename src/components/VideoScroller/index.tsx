@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as styles from "./VideoScroller.module.scss";
+import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
-import * as videoItemStyles from "../VideoItem/VideoItem.module.scss";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 
 interface VideoScrollerProps {
@@ -54,7 +53,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   // ? Added tabIndex to container to atisfy accessible scroll region.
   return (
     <div
-      className={styles.container}
+      className="VideoScroller"
       data-testid="VideoScroller--container"
       ref={scrollerRef}
       tabIndex={0}
@@ -88,7 +87,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               uiIsVisible={props.uiIsVisible}
             />
           );
-        } else return <div key={i} className={videoItemStyles.container} />;
+        } else return <div key={i} className="dummy-video-item" />;
       })}
     </div>
   );

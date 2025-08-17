@@ -28,7 +28,6 @@ import React, {
 } from "react";
 import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
-import * as styles from "./VideoItem.module.scss";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
 import { secondsToTimestamp, sortPerformers } from "../../helpers";
@@ -292,12 +291,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   return (
     <div
-      className={styles.container}
+      className="VideoItem"
       data-testid="VideoItem--container"
       ref={itemRef}
     >
       <video
-        className={cx({ [styles["cover"]]: !props.isLetterboxed })}
+        className={cx({ 'cover': !props.isLetterboxed })}
         crossOrigin="anonymous"
         data-testid="VideoItem--video"
         id={props.scene.id}
@@ -319,7 +318,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       >
         {(state) => (
           <FontAwesomeIcon
-            className={styles["tap-icon"]}
+            className="tap-icon"
             icon={videoRef.current?.paused ? faPause : faPlay}
             ref={tapIconRef}
             style={{
@@ -348,9 +347,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         )}
       </Transition>
       <div
-        className={cx(styles.controls, {
-          [styles["controls--active"]]: props.uiIsVisible,
-        })}
+        className={cx('controls', {'active': props.uiIsVisible})}
       >
         <Transition
           in={props.uiIsVisible}
@@ -360,7 +357,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         >
           {(state) => (
             <div
-              className={styles["toggleable-ui"]}
+              className="toggleable-ui"
               data-testid="VideoItem--toggleableUi"
               ref={uiButtonDrawerRef}
               style={{
@@ -434,7 +431,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               active={props.uiIsVisible}
               activeIcon={faEllipsisVertical}
               activeText="Hide UI"
-              className={styles["toggleable-ui-button"]}
+              className="toggleable-ui-button"
               data-testid="VideoItem--showUiButton"
               inactiveIcon={faEllipsisStrokeVertical}
               inactiveText="Show UI"
@@ -455,7 +452,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       >
         {(state) => (
           <div
-            className={cx("scrubber-container", styles["scrubber"], state)}
+            className={cx("scrubber-container", "scrubber", state)}
             ref={scrubberRef}
             style={toggleableUiStyles}
           >
@@ -467,7 +464,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               onScrubEnd={handleScrubChange}
               onScrubStart={handleScrubChange}
             />
-            <div className={styles["scrubber--timecode"]}>
+            <div className="timecode">
               <span>{timecode}</span>
               <span>{duration}</span>
             </div>
@@ -505,7 +502,7 @@ const UiButton = forwardRef<HTMLButtonElement, UiButtonProps>(
     return (
       <button {...props} onClick={props.onClick} type="button" ref={ref}>
         <FontAwesomeIcon icon={active ? activeIcon : inactiveIcon} />
-        <span className={styles["visually-hidden"]}>
+        <span className="sr-only">
           {active ? activeText : inactiveText}
         </span>
       </button>
@@ -526,7 +523,7 @@ const SceneInfoPanel = forwardRef(
     /* ---------------------------------- Date ---------------------------------- */
 
     const date = props.date ? (
-      <span className={styles["scene-info__date"]}>{props.date}</span>
+      <span className="date">{props.date}</span>
     ) : null;
 
     /* ------------------------------- Performers ------------------------------- */
@@ -552,7 +549,7 @@ const SceneInfoPanel = forwardRef(
     });
 
     const performers = performersInner.length ? (
-      <div className={styles["scene-info__performers"]}>{performersInner}</div>
+      <div className="performers">{performersInner}</div>
     ) : null;
 
     /* --------------------------------- Studio --------------------------------- */
@@ -562,7 +559,7 @@ const SceneInfoPanel = forwardRef(
       : "";
 
     const studio = props.studio ? (
-      <span className={styles["scene-info__studio"]}>
+      <span className="studio">
         {props.studio + parentStudioText}
       </span>
     ) : null;
@@ -575,7 +572,7 @@ const SceneInfoPanel = forwardRef(
 
     return (
       <div
-        className={styles["scene-info"]}
+        className="scene-info"
         data-testid="VideoItem--sceneInfo"
         style={props.style}
         ref={ref}

@@ -1,12 +1,13 @@
 @import "../../styles/mixins.scss";
 @import "../../styles/variables.scss";
 
-.settings-tab {
+.SettingsTab {
   @include fullHeight;
   position: absolute;
   top: 0;
   right: 0;
   width: 100%;
+  z-index: 10;
 
   display: grid;
   grid-template-rows:
@@ -19,22 +20,22 @@
   background-color: black;
   transition: right ease-in-out;
 
-  &:global(.entering),
-  &:global(.entered) {
+  &.entering,
+  &.entered {
     right: 0;
   }
-  &:global(.exiting),
-  &:global(.exited) {
+  &.exiting,
+  &.exited {
     right: 100%;
   }
 
-  &--body {
+  .body {
     padding: $spacer;
     grid-row: main-top / main-bottom;
     overflow-y: auto;
   }
 
-  &--footer {
+  .footer {
     display: flex;
     align-items: center;
     padding: $spacer;
@@ -61,26 +62,16 @@
       color: white;
       font-size: 28px;
       line-height: 1;
-
-      .visually-hidden {
-        clip: rect(0 0 0 0);
-        clip-path: inset(100%);
-        height: 1px;
-        overflow: hidden;
-        position: absolute;
-        white-space: nowrap;
-        width: 1px;
-      }
     }
   }
 
-  &--item {
+  .item {
     &:not(:last-child) {
       margin-bottom: $spacer * 2;
     }
   }
 
-  &--checkbox-item {
+  .checkbox-item {
     label {
       display: flex;
 
@@ -94,8 +85,8 @@
     }
   }
 
-  &--error,
-  &--warning {
+  .error,
+  .warning {
     margin-top: $spacer;
     margin-bottom: $spacer;
     padding-top: $spacer;

@@ -1,176 +1,347 @@
+@import "../../styles/mixins.scss";
 @import "../../styles/variables.scss";
 
-.scrubber {
-  width: 100%;
-  height: $scrubber-height;
-  position: relative;
-  user-select: none;
-  touch-action: none;
-  transition: all ease-in-out;
 
-  * {
-    user-select: none;
-  }
-
-  .bar {
-    background: $bar-color;
+@scope (.VideoItem) to (.boundary) {  
+  :scope {
+    @include fullHeight;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    background: #000;
     position: relative;
-    transition:
-      height 0.2s linear,
-      width 0.2s linear,
-      opacity 0.15s ease-in-out;
+    border: 1px solid transparent;
 
-    &__progress {
-      position: absolute;
-      background: $progress-color;
-    }
-
-    &__buffer {
-      position: absolute;
-      background: $buffer-color;
-    }
-
-    &__thumb {
-      position: absolute;
-      width: 0px;
-      height: 0px;
-      border-radius: 10px;
-      background: $progress-color;
-      transition:
-        height 0.2s linear,
-        width 0.2s linear;
-    }
-
-    &__tooltip {
-      position: absolute;
-      padding: 2px 8px;
-      background: $tooltip-color;
-      pointer-events: none;
-    }
-
-    &__marker {
-      position: absolute;
-      background: $marker-color;
-      z-index: 1;
-    }
+    display: grid;
+    grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] max-content [scrubber-bottom canvas-bottom];
+    grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] (
+        max-content
+      ) [controls-end canvas-end];
   }
 
-  &.horizontal .bar {
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    height: 4px;
+  .scrubber-container {
+    padding-top: $scrubber-container-padding-top;
+    padding-bottom: $scrubber-container-padding-bottom;
+    // Move the timecode away from the edge due to some curved screens
+    padding-right: 15px;
+    padding-left: 15px;
+    z-index: 1;
+    position: relative;
+    grid-column: canvas-start / canvas-end;
+    grid-row: scrubber-top / scrubber-bottom;
+    height: 100%;
+    bottom: 0;
     width: 100%;
 
-    &__progress,
-    &__marker,
-    &__buffer {
-      height: 100%;
+    background-color: $ui-active-bg-color;
+    &.entering,
+    &.entered {
+      .bar {
+        opacity: 1;
+      }
+    }
+    &.exiting,
+    &.exited {
+      background-color: rgba(0, 0, 0, 0);
+      .bar {
+        opacity: 0.35;
+      }
     }
 
-    &__thumb {
-      transform: translate(-50%, -50%);
-      top: 50%;
+    .timecode {
+      display: flex;
+      justify-content: space-between;
+      padding: $timecode-padding-y $timecode-padding-x;
+
+      font-size: $timecode-font-size;
+      text-align: right;
     }
 
-    &__marker {
-      width: 12px;
-    }
-
-    &__tooltip {
-      transform: translate(-50%, calc(-100% - 12px));
-    }
-
-    &__tooltip-arrow {
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-top: 6px solid $tooltip-arrow-color;
-    }
-  }
-
-  &.vertical .bar {
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 100%;
-
-    &__progress,
-    &__marker,
-    &__buffer {
+    /* this class is created by react-scrubber */
+    .scrubber {
       width: 100%;
-      bottom: 0;
-    }
-
-    &__thumb {
-      transform: translate(-50%, 50%);
-      left: 50%;
-    }
-
-    &__marker {
-      height: 12px;
-    }
-
-    &__tooltip {
-      transform: translate(calc(-100% - 12px), 50%);
-    }
-
-    &__tooltip-arrow {
-      position: absolute;
-      left: 100%;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 0;
-      height: 0;
-      border-top: 6px solid transparent;
-      border-bottom: 6px solid transparent;
-      border-left: 6px solid $tooltip-arrow-color;
-    }
-  }
-
-  &.hover {
-    &.horizontal .bar {
-      height: 6px;
-    }
-
-    &.vertical .bar {
-      width: 6px;
-    }
-
-    .bar {
-      &__thumb {
-        width: 12px;
-        height: 12px;
+      height: $scrubber-height;
+      position: relative;
+      user-select: none;
+      touch-action: none;
+      transition: all ease-in-out;
+  
+      * {
+        user-select: none;
+      }
+  
+      .bar {
+        background: $bar-color;
+        position: relative;
+        transition:
+          height 0.2s linear,
+          width 0.2s linear,
+          opacity 0.15s ease-in-out;
+  
+        &__progress {
+          position: absolute;
+          background: $progress-color;
+        }
+  
+        &__buffer {
+          position: absolute;
+          background: $buffer-color;
+        }
+  
+        &__thumb {
+          position: absolute;
+          width: 0px;
+          height: 0px;
+          border-radius: 10px;
+          background: $progress-color;
+          transition:
+            height 0.2s linear,
+            width 0.2s linear;
+        }
+  
+        &__tooltip {
+          position: absolute;
+          padding: 2px 8px;
+          background: $tooltip-color;
+          pointer-events: none;
+        }
+  
+        &__marker {
+          position: absolute;
+          background: $marker-color;
+          z-index: 1;
+        }
+      }
+  
+      &.horizontal .bar {
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        height: 4px;
+        width: 100%;
+  
+        &__progress,
+        &__marker,
+        &__buffer {
+          height: 100%;
+        }
+  
+        &__thumb {
+          transform: translate(-50%, -50%);
+          top: 50%;
+        }
+  
+        &__marker {
+          width: 12px;
+        }
+  
+        &__tooltip {
+          transform: translate(-50%, calc(-100% - 12px));
+        }
+  
+        &__tooltip-arrow {
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 6px solid transparent;
+          border-right: 6px solid transparent;
+          border-top: 6px solid $tooltip-arrow-color;
+        }
+      }
+  
+      &.vertical .bar {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 100%;
+  
+        &__progress,
+        &__marker,
+        &__buffer {
+          width: 100%;
+          bottom: 0;
+        }
+  
+        &__thumb {
+          transform: translate(-50%, 50%);
+          left: 50%;
+        }
+  
+        &__marker {
+          height: 12px;
+        }
+  
+        &__tooltip {
+          transform: translate(calc(-100% - 12px), 50%);
+        }
+  
+        &__tooltip-arrow {
+          position: absolute;
+          left: 100%;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 0;
+          height: 0;
+          border-top: 6px solid transparent;
+          border-bottom: 6px solid transparent;
+          border-left: 6px solid $tooltip-arrow-color;
+        }
+      }
+  
+      &.hover {
+        &.horizontal .bar {
+          height: 6px;
+        }
+  
+        &.vertical .bar {
+          width: 6px;
+        }
+  
+        .bar {
+          &__thumb {
+            width: 12px;
+            height: 12px;
+          }
+        }
       }
     }
   }
-}
 
-.scrubber-container {
-  padding-top: $scrubber-container-padding-top;
-  padding-bottom: $scrubber-container-padding-bottom;
-  // Move the timecode away from the edge due to some curved screens
-  padding-right: 15px;
-  padding-left: 15px;
 
-  background-color: $ui-active-bg-color;
-  &.entering,
-  &.entered {
-    .bar {
-      opacity: 1;
+  .tap-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 7rem;
+    opacity: 0;
+    pointer-events: none;
+  } 
+  
+  
+  .controls {
+    position: relative;
+    grid-column: controls-start / controls-end;
+    grid-row: main-top / main-bottom;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    align-items: end;
+    margin-right: $ui-spacer;
+    margin-bottom: $ui-spacer;
+
+    button {
+      appearance: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: $ui-button-size;
+      width: $ui-button-size;
+
+      background-color: transparent;
+      color: white;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    &.active {
+      button {
+        background-color: $ui-active-bg-color;
+      }
     }
   }
-  &.exiting,
-  &.exited {
-    background-color: rgba(0, 0, 0, 0);
-    .bar {
-      opacity: 0.35;
+  
+  
+  .scene-info {
+    grid-column: main-start / canvas-end;
+    grid-row: main-top / canvas-bottom;
+    z-index: 1;
+
+    align-self: flex-end;
+    background-color: rgba(black, 0.7);
+    padding-top: $scene-info-spacer;
+    padding-right: $ui-button-size + $ui-spacer + $scene-info-spacer;
+    padding-bottom: calc(
+      $scrubber-height + $scene-info-spacer + $timecode-font-size +
+        $scrubber-container-padding-bottom + $scrubber-container-padding-top +
+        10px
+    );
+    padding-left: $scene-info-spacer;
+
+    display: grid;
+    transition: opacity ease-in-out;
+
+    // Stop click events propagating to the video.
+    position: relative;
+
+    // Title
+    h5 {
+      font-size: 1.1rem;
+    }
+
+    .date {
+      font-size: 0.9rem;
+    }
+
+    .performers {
+      font-size: 0.9rem;
+    }
+
+    .studio {
+      font-size: 0.9rem;
+    }
+  }
+  
+  
+  .toggleable-ui {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap-reverse;
+    justify-content: center;
+    transition: opacity ease-in-out;
+
+    @media (max-height: 400px) {
+      max-height: 200px;
+    }
+  }
+
+  .toggleable-ui-button {
+    transition: opacity ease-in-out;
+  }
+}
+
+.VideoItem {
+  .ScenePlayer {
+    grid-column: canvas-start / canvas-end;
+    grid-row: canvas-top / canvas-bottom;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    
+    .VideoPlayer {
+      width: 100%;
+      height: 100%;
+    }
+
+    &.cover video {
+      object-fit: cover;
+    }
+    
+    .video-wrapper {
+      height: 100%;
     }
   }
 }

@@ -11,7 +11,7 @@ import Select, {
   ThemeConfig,
 } from "react-select";
 import { TransitionStatus } from "react-transition-group";
-import * as styles from "./SettingsTab.module.scss";
+import "./SettingsTab.scss";
 import { TRANSITION_DURATION } from "../../constants";
 
 interface SettingsTabProps {
@@ -72,7 +72,7 @@ const SettingsTab = forwardRef(
 
     const closeButtonHandler = () => props.setSettingsTabHandler(false);
 
-    const classes = cx(styles["settings-tab"], props.transitionStatus);
+    const classes = cx("SettingsTab", props.transitionStatus);
 
     const closeButton =
       props.scenelessFilter || props.fetchingData ? null : (
@@ -82,14 +82,14 @@ const SettingsTab = forwardRef(
           type="button"
         >
           <FontAwesomeIcon icon={faXmark} />
-          <span className={styles["visually-hidden"]}>Close settings</span>
+          <span className="sr-only">Close settings</span>
         </button>
       );
 
     /* --------------------------- Fetching data alert -------------------------- */
 
     const fetchingDataWarning = props.fetchingData ? (
-      <div className={styles["settings-tab--warning"]}>
+      <div className='warning'>
         <h2>
           <FontAwesomeIcon icon={faSpinner} pulse />
           <span>Fetching data from Stash...</span>
@@ -133,7 +133,7 @@ const SettingsTab = forwardRef(
     };
 
     const scenelessFilterError = props.scenelessFilter ? (
-      <div className={styles["settings-tab--error"]}>
+      <div className="error">
         <h2>Playlist contains no scenes!</h2>
         <p>
           No scenes were found in the currently selected playlist. Please choose
@@ -209,8 +209,8 @@ const SettingsTab = forwardRef(
         ref={ref}
         style={toggleableUiStyles}
       >
-        <div className={styles["settings-tab--body"]}>
-          <div className={styles["settings-tab--item"]}>
+        <div className="body">
+          <div className="item">
             <label>
               <h3>Select a playlist</h3>
               <Select
@@ -230,12 +230,7 @@ const SettingsTab = forwardRef(
             {scenelessFilterError}
           </div>
 
-          <div
-            className={cx(
-              styles["settings-tab--item"],
-              styles["settings-tab--checkbox-item"]
-            )}
-          >
+          <div className="item checkbox-item">
             <label>
               <input
                 checked={defaultPlaylist === props.currentFilter?.value}
@@ -250,12 +245,7 @@ const SettingsTab = forwardRef(
             </small>
           </div>
 
-          <div
-            className={cx(
-              styles["settings-tab--item"],
-              styles["settings-tab--checkbox-item"]
-            )}
-          >
+          <div className="item checkbox-item">
             <label>
               <input
                 checked={props.isRandomised}
@@ -267,7 +257,7 @@ const SettingsTab = forwardRef(
             <small>Randomise the order of scenes in the playlist.</small>
           </div>
 
-          <div className={styles["settings-tab--item"]}>
+          <div className="item">
             <label>
               <h3>Subtitle language</h3>
               <Select
@@ -283,7 +273,7 @@ const SettingsTab = forwardRef(
           </div>
         </div>
 
-        <div className={styles["settings-tab--footer"]}>
+        <div className="footer">
           <h2>Settings</h2>
           {closeButton}
         </div>

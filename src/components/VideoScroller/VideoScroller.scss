@@ -1,0 +1,18 @@
+@import "../../styles/mixins.scss";
+@import "../../styles/variables.scss";
+
+.VideoScroller {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  
+  .dummy-video-item {
+    @include fullHeight;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    background: #000;
+    position: relative;
+    border: 1px solid transparent;
+  }
+}
