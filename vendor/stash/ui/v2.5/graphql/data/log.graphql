@@ -1,5 +1,0 @@
-fragment LogEntryData on LogEntry {
-  time
-  level
-  message
-}

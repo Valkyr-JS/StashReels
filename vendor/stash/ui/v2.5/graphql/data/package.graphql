@@ -1,8 +1,0 @@
-fragment PackageData on Package {
-  package_id
-  name
-  version
-  date
-  metadata
-  sourceURL
-}

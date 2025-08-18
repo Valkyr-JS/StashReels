@@ -1,0 +1,28 @@
+diff --git a/ui/v2.5/graphql/queries/scene.graphql b/ui/v2.5/graphql/queries/scene.graphql
+index d6a3afd4..5a959866 100644
+--- a/ui/v2.5/graphql/queries/scene.graphql
++++ b/ui/v2.5/graphql/queries/scene.graphql
+@@ -102,3 +102,23 @@ query FindScenesForSelect(
+     }
+   }
+ }
++
++
++query FindScenesAllInfo(
++  $filter: FindFilterType
++  $scene_filter: SceneFilterType
++  $scene_ids: [Int!]
++) {
++  findScenes(
++    filter: $filter
++    scene_filter: $scene_filter
++    scene_ids: $scene_ids
++  ) {
++    count
++    filesize
++    duration
++    scenes {
++      ...SceneData
++    }
++  }
++}

@@ -1,1 +1,0 @@
-ALTER TABLE scene_markers ADD COLUMN end_seconds FLOAT;

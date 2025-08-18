@@ -1,0 +1,18 @@
+name: Stash TV
+description: TikTok for Stash.
+url: https://github.com/secondfolder/stash-tv
+version: 0.1.2
+ui:
+  assets:
+    /: .
+  javascript:
+    - stash-tv.umd.js
+settings:
+  hideNavButton:
+    displayName: Hide navigation button
+    description: Hide the main navigation link to Stash TV.
+    type: BOOLEAN
+  maximumScenes:
+    displayName: Maximum scenes
+    description: Set the maximum number of scenes that included in a playlist. The default value is 500. High values may result in long loading times or crashes.
+    type: NUMBER
