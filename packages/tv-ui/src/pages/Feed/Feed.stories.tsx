@@ -3,7 +3,6 @@ import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
 import { DEFAULT_MAXIMUM_SCENES, ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import { setCssVHDecorator } from "../../../../../.storybook/decorators";
-import * as videoItemStyles from "../../components/VideoItem/VideoItem.module.scss";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
 const meta = {
@@ -166,15 +165,15 @@ export const ToggleLetterboxing: Story = {
     const video = canvas.getAllByTestId("VideoItem--video")[0];
 
     // Default state should be to fill the screen.
-    await expect(video).not.toHaveClass(videoItemStyles["cover"]);
+    await expect(video).not.toHaveClass("cover");
 
     // Fire a click to change the video to be letterboxed.
     await userEvent.click(letterboxButton, { delay: 100 });
-    await expect(video).toHaveClass(videoItemStyles["cover"]);
+    await expect(video).toHaveClass("cover");
 
     // Fire a second click to change the video back to fill the screen.
     await userEvent.click(letterboxButton, { delay: 100 });
-    await expect(video).not.toHaveClass(videoItemStyles["cover"]);
+    await expect(video).not.toHaveClass("cover");
   },
 };
 

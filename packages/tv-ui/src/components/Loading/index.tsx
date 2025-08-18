@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
-import * as styles from "./Loading.module.scss";
+import "./Loading.scss";
 
 interface LoadingProps {
   heading: React.ReactNode;
@@ -12,7 +12,7 @@ const Loading: React.FC<LoadingProps> = (props) => {
   const smallText = props.text ?? null;
 
   return (
-    <div className={styles["Loading"]} data-testid="Loader">
+    <div className="Loading" data-testid="Loader">
       <h2>{props.heading}</h2>
       {smallText}
       <div>

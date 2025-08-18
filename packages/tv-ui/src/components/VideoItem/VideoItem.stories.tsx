@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import VideoItem from ".";
 import { setCssVHDecorator } from "../../../../../.storybook/decorators";
+import { GenderEnum } from "stash-ui/dist/src/core/generated-graphql";
 
 const meta = {
   title: "Components/VideoItem",

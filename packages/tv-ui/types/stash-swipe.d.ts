@@ -1,8 +1,3 @@
-declare module "*.module.scss" {
-  const content: Record<string, string>;
-  export = content;
-}
-
 interface IitemData {
   /** The scene data. */
   scene: IsceneData;

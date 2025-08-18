@@ -6,7 +6,7 @@ import {
   setCssVH,
   updateUserConfig,
 } from "../helpers";
-import { jsonToGraphQLQuery, EnumType } from "json-to-graphql-query";
+import { jsonToGraphQLQuery } from "json-to-graphql-query";
 import {
   DEFAULT_FILTER,
   DEFAULT_MAXIMUM_SCENES,
@@ -31,7 +31,7 @@ const App = () => {
   >(undefined);
   const [scenesQueryOptions, setScenesQueryOptions] = useState<ScenesQueryOptions | undefined>(undefined);
   const [stashConfiguration, setStashConfiguration] = useState<
-    ConfigResult | undefined
+    GQL.ConfigResult | undefined
   >();
   
 
@@ -40,7 +40,7 @@ const App = () => {
   useEffect(() => {
     // Fetch all scene filters from Stash.
     fetchSceneFilters().then((res) => {
-      setStashConfiguration(res.data.configuration as ConfigResult);
+      setStashConfiguration(res.data.configuration as GQL.ConfigResult);
       // Set the config in the state
       console.log("stashConfiguration: ", res.data.configuration);
       setPluginConfig(
