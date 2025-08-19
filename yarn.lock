@@ -4343,16 +4343,6 @@ object.assign@^4.1.7:
     has-symbols "^1.1.0"
     object-keys "^1.1.1"
 
-object.fromentries@^2.0.0:
-  version "2.0.8"
-  resolved "https://registry.yarnpkg.com/object.fromentries/-/object.fromentries-2.0.8.tgz#f7195d8a9b97bd95cbc1999ea939ecd1a2b00c65"
-  integrity sha512-k6E21FzySsSK5a21KRADBd/NGneRegFO5pLHfdQLpRDETUNJueLXs3WCzyQ3tFRDYgbq3KHGXfTbi2bs8WQ6rQ==
-  dependencies:
-    call-bind "^1.0.7"
-    define-properties "^1.2.1"
-    es-abstract "^1.23.2"
-    es-object-atoms "^1.0.0"
-
 objectorarray@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/objectorarray/-/objectorarray-1.0.5.tgz#2c05248bbefabd8f43ad13b41085951aac5e68a5"
@@ -4938,13 +4928,6 @@ react-router@5.3.4:
     react-is "^16.6.0"
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
-
-react-scrubber@^2.0.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/react-scrubber/-/react-scrubber-2.1.0.tgz#9e3b49f5c4a095e442319d7ec87a92a6cfed65fa"
-  integrity sha512-1drqw3sPHLy+20zh1t55EGJuX1cm7KiypcCdpqD6fOqDbH64uLVCo2OD/Fz3Wx1VTjK1Y4hxa+mvok0PaUmtrQ==
-  dependencies:
-    object.fromentries "^2.0.0"
 
 react-select@^5.7.0, react-select@^5.8.0:
   version "5.10.2"

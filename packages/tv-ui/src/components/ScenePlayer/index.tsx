@@ -15,15 +15,65 @@ videojs.hook('setup', (player) => {
 
     // Enable tap events since iOS Safari doesn't report click events when tapped
     player.emitTapEvents();
+    
+    const originalDuration = player.duration;
+    player.duration = () => {
+        const scene: any = '_scene' in player && player._scene;
+        return scene?.files[0]?.duration || originalDuration();
+    }
+    
+    player.vrMenu = (() => {}) as any
+    player.skipButtons = (() => {
+        return {
+            setForwardHandler: () => {},
+            setBackwardHandler: () => {}
+        }
+    }) as any
 });
 
 videojs.hook('beforesetup', function(videoEl, options) {
     // We want to manage play/pause ourselves so we can handle taps as well
     options.userActions.click = false;
     options.userActions.doubleClick = false;
+    options.inactivityTimeout = 0;
+    options.controlBar.children = [
+        'progressControl',
+        'currentTimeDisplay',
+        'customControlSpacer',
+        'durationDisplay',
+        // The fullscreen button is expected to exist by the sourceSelector plugin but we don't
+        // want to show it so we hide in css
+        'fullscreenToggle', 
+    ]
+    options.controlBar.volumePanel = false;
+    // Hack to allow removal of plugins
+    // Video.js doesn't replace the options object with the one we return, it merges our updated options
+    // object back into the original options object. Since a plugin is loaded based purely on the presence 
+    // of a key in the options.plugins object simply deleting the key won't remove the plugin since it will
+    // still be present in the original options object. To get around this we replace the whole plugins
+    // object with a string which can't be merged and so will wipe out the original plugins object. In a second
+    // beforesetup hook below we return the plugins property back to an object and there we can add back all plugins
+    // minus any we want to remove.
+    options._originalPlugins = options.plugins;
+    options.plugins = "clear"
   return options;
 });
 
+
+videojs.hook('beforesetup', function(videoEl, options) {
+    const {
+        sourceSelector,
+        bigButtons,
+        seekButtons,
+        skipButtons,
+        ...pluginsToKeep
+    } = options._originalPlugins
+    options.plugins = {
+        ...pluginsToKeep,
+    }
+    delete options._originalPlugins;
+  return options;
+});
 ScenePlayerOriginal.displayName = "ScenePlayerOriginal";
 
 export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> & {
@@ -47,6 +97,14 @@ const ScenePlayer = forwardRef<
     useEffect(() => {
         videojsPlayer && onVideojsPlayerReady?.(videojsPlayer);
     }, [videojsPlayer, onVideojsPlayerReady]);
+    
+    
+    useEffect(() => {
+        if (videojsPlayer) {
+            (videojsPlayer as any)._scene = otherProps.scene
+            
+        }
+    }, [videojsPlayer, otherProps.scene]);
 
     useEffect(() => {
         const videoElm = containerRef.current?.querySelector('video')

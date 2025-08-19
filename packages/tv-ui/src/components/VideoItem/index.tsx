@@ -28,7 +28,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Scrubber } from "react-scrubber";
 import { Transition } from "react-transition-group";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
@@ -119,10 +118,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       if (!videojsPlayer) return;
       if (videojsPlayer.paused()) {
         setPaused(false);
-        console.log("attempting to play video");
         videojsPlayer.play()?.catch(() => setPaused(true));
       } else {
-        console.log("attempting to pause video");
         videojsPlayer.pause();
       }
       // Display the tap icon, then hide it after some time.
@@ -352,36 +349,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     />
   ) : null;
 
-  /* -------------------------------- Scrubber -------------------------------- */
-
-  const [sceneProgress, setSceneProgress] = useState(0);
-  const scrubberRef = useRef(null);
-
-  /** Handle updating the scrubber position when the scene is playing */
-  const handleTimeUpdate = (e: Event) => {
-    if (!(e.target instanceof HTMLVideoElement)) {
-      console.warn("Time update event target is not a video element", e);
-      return;
-    }
-    const target = e.target;
-    const { currentTime, duration } = target;
-    const newTimePercentage = (currentTime / duration) * 100;
-    setSceneProgress(newTimePercentage);
-  };
-
-  /** Handle updating the current position of the scene when moving the
-   * scrubber. */
-  const handleScrubChange = (value: number) => {
-    setSceneProgress(value);
-    if (videoRef.current) {
-      videoRef.current.currentTime = (videoRef.current.duration / 100) * value;
-    }
-  };
-
-  const timecode = secondsToTimestamp(videoRef.current?.currentTime ?? 0);
-  const duration = !!videoRef.current?.duration
-    ? secondsToTimestamp(videoRef.current.duration)
-    : null;
 
   /* -------------------------------- Subtitles ------------------------------- */
 
@@ -447,13 +414,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         permitLoop={true}
         initialTimestamp={0}
         sendSetTimestamp={() => {}}
-        onTimeUpdate={handleTimeUpdate}
         onComplete={() => {}}
         onNext={() => {}}
         onPrevious={() => {}}
         ref={setVideoRef}
-        hideControls={true}
-        hideProgressBar={true}
         muted={props.isMuted || !isInViewport}
         onClick={handleVideoClick}
         onEnded={handleOnEnded}
@@ -604,32 +568,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           )}
         </Transition>
       </div>
-      <Transition
-        in={props.uiIsVisible}
-        nodeRef={scrubberRef}
-        timeout={TRANSITION_DURATION}
-      >
-        {(state) => (
-          <div
-            className={cx("scrubber-container", "scrubber", state)}
-            ref={scrubberRef}
-            style={toggleableUiStyles}
-          >
-            <Scrubber
-              min={0}
-              max={100}
-              value={sceneProgress}
-              onScrubChange={handleScrubChange}
-              onScrubEnd={handleScrubChange}
-              onScrubStart={handleScrubChange}
-            />
-            <div className="timecode">
-              <span>{timecode}</span>
-              <span>{duration}</span>
-            </div>
-          </div>
-        )}
-      </Transition>
     </div>
   );
 };

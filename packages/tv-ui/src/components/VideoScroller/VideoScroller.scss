@@ -8,7 +8,7 @@
   scroll-behavior: smooth;
   
   .dummy-video-item {
-    @include fullHeight;
+    height: 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
     background: #000;
@@ -21,10 +21,11 @@
   
   &.force-landscape {
     height: 100svw;
+    width: 100svh;
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) rotate(270deg);
+    transform: translate(-50%, -50%) rotate(-90deg);
     transform-origin: center center 0px;
     
     --x-unit: 1svh;
@@ -33,8 +34,7 @@
     .VideoItem,
     .VideoItem .ScenePlayer,
     .dummy-video-item {
-      width: 100svh;
-      height: 100svw;
+      height: 100%;
     }
   }
 }

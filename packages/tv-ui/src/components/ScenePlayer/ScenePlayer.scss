@@ -26,8 +26,36 @@
     }
   }
   
-  .vjs-big-button-group,
-  .vjs-big-play-button {
-    display: none !important;
+  &.hide-controls:not(.hide-progress-bar) {
+    .VideoPlayer {
+      .vjs-control-bar > .vjs-progress-control {
+        bottom: initial;
+      }
+    }
+  }
+  
+  .video-js {
+    .vjs-current-time, .vjs-duration {
+      margin-right: unset;
+      margin-left: unset;
+    }
+    .vjs-custom-control-spacer {
+      display: unset;
+      flex: 1 1 auto;
+    }
+    /*
+    We need to include this since the sourceSelector plugin expects it to exist but we don't 
+    want it to be visible.
+    */
+    .vjs-fullscreen-control {
+      display: none;
+    }
+    /*
+    We need to include sourceSelector plugin otherwise the video does not load but we don't
+    want it to be visible.
+    */
+    .vjs-source-selector {
+      display: none;
+    }
   }
 }
