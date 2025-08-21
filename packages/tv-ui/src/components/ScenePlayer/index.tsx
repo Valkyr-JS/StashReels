@@ -3,6 +3,7 @@ import "./ScenePlayer.scss";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { default as cx } from "classnames";
 import videojs, { type VideoJsPlayer } from "video.js";
+import { addSupportForLandscapeSupport } from "./hooks/force-landscape-support";
 import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
 
 videojs.hook('setup', (player) => {
@@ -38,6 +39,8 @@ videojs.hook('setup', (player) => {
         }
     }) as any
 });
+
+addSupportForLandscapeSupport(videojs);
 
 videojs.hook('beforesetup', function(videoEl, options) {
     // Will be merged in with existing options

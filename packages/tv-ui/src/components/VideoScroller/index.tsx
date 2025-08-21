@@ -56,10 +56,12 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   useEffect(() => {
     if (!props.isTapNavigation) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") {
+      const nextKey = props.isForceLandscape ? "ArrowRight" : "ArrowDown";
+      const previousKey = props.isForceLandscape ? "ArrowLeft" : "ArrowUp";
+      if (e.key === previousKey) {
         // Go to the previous item
         setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-      } else if (e.key === "ArrowRight") {
+      } else if (e.key === nextKey) {
         // Go to the next item
         setCurrentIndex((prevIndex) => prevIndex + 1);
       }
@@ -68,7 +70,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [props.isTapNavigation]);
+  }, [props.isTapNavigation, props.isForceLandscape]);
 
   /* -------------------------------- Component ------------------------------- */
 
