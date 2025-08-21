@@ -100,6 +100,18 @@ h6 {
   font-weight: 500;
 }
 
+html:has(.force-landscape),
+body:has(.force-landscape) {
+  /*
+  When in force landscape mode it shouldn't be possible to scroll up and down
+  the viewport, instead scrolling should occur horizontally inside the rotated
+  root element. Even though we make the root element not bigger than the viewport
+  to avoid scrolling mobile browsers sometimes still have a "rubber band" effect
+  when attempting to scroll passed the top or bottom. This breaks the illusion
+  that we're in a true landscape orientation so we disable it.
+  */
+  overscroll-behavior: none;
+}
 
 
 /* -------------------------------------------------------------------------- */
