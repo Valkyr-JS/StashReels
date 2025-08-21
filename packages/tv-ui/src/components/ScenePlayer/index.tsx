@@ -2,21 +2,18 @@ import ScenePlayerOriginal from "stash-ui/dist/src/components/ScenePlayer/SceneP
 import "./ScenePlayer.scss";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { default as cx } from "classnames";
-import videojs, { type VideoJsPlayer } from "video.js";
+import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
 import { addSupportForLandscapeSupport } from "./hooks/force-landscape-support";
 import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
+import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-overlay-buttons-extended";
+
+registerVideojsOverlayButtonsExtendedPlugin();
+
+const videoJsOptions: Record<string, VideoJsPlayerOptions> = {}
 
 videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
     player.focus = () => {}
-    
-    // We manually trigger toggle play/pause on click so we don't want the poster image also doing the same
-    // and cancelling our change out.
-    player.getChild('posterImage')?.off('click');
-    player.getChild('posterImage')?.off('tap');
-
-    // Enable tap events since iOS Safari doesn't report click events when tapped
-    player.emitTapEvents();
 
     // For some reason videojs doesn't always get the correct video duration so this is a workaround
     const originalDuration = player.duration;
@@ -49,7 +46,7 @@ videojs.hook('beforesetup', function(videoEl, options) {
             click: false,
             doubleClick: false
         },
-        inactivityTimeout: 0,
+        inactivityTimeout: 5000,
         controlBar: {
             children: [ 
                 'progressControl',
@@ -68,9 +65,37 @@ videojs.hook('beforesetup', function(videoEl, options) {
             seekButtons: false,
             skipButtons: false,
             vrMenu: false,
-        }
+            touchOverlay: {
+                seekLeft: {},
+                play: {},
+                seekRight: {},
+            },
+        },
+        // Override defaults found here:
+        // https://github.com/videojs/video.js/blob/7c3d3f4479ba3dd572ac28082ee6e660e4c4e912/src/js/player.js#L5271
+        // Removes:
+        //   bigPlayButton
+        children: [
+            'mediaLoader',
+            'posterImage',
+            'textTrackDisplay',
+            'loadingSpinner',
+            'liveTracker',
+            'controlBar',
+            'errorDisplay',
+            'textTrackSettings',
+            'resizeManager',
+        ]
     }
 });
+
+videojs.hook('beforesetup', function(videoEl, options) {
+    const sceneId = videoEl.parentElement?.parentElement?.parentElement?.dataset.sceneId
+    if (sceneId) {
+        return videoJsOptions[sceneId] || {}
+    }
+    return {}
+})
 
 allowPluginRemoval(videojs);
 
@@ -86,11 +111,12 @@ export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> 
     muted?: boolean;
     onClick?: (event: MouseEvent) => void;
     onVideojsPlayerReady?: (player: VideoJsPlayer) => void;
+    optionsToMerge?: VideoJsPlayerOptions;
 }
 const ScenePlayer = forwardRef<
     HTMLVideoElement,
     ScenePlayerProps
->(({ className, onTimeUpdate, hideControls, hideProgressBar, muted, onClick, onEnded, onVideojsPlayerReady, ...otherProps }: ScenePlayerProps, ref) => {
+>(({ className, onTimeUpdate, hideControls, hideProgressBar, muted, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, ...otherProps }: ScenePlayerProps, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
@@ -98,6 +124,10 @@ const ScenePlayer = forwardRef<
     useEffect(() => {
         videojsPlayer && onVideojsPlayerReady?.(videojsPlayer);
     }, [videojsPlayer, onVideojsPlayerReady]);
+    
+    if (optionsToMerge) {
+        videoJsOptions[otherProps.scene.id] = optionsToMerge
+    }
     
     
     useEffect(() => {
@@ -184,6 +214,7 @@ const ScenePlayer = forwardRef<
         <div
             className={cx(['ScenePlayer', className, {'hide-controls': hideControls, 'hide-progress-bar': hideProgressBar}])}
             ref={containerRef}
+            data-scene-id={otherProps.scene?.id}
         >
             <ScenePlayerOriginal
                 {...otherProps}

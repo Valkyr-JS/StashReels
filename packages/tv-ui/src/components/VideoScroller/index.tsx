@@ -27,8 +27,6 @@ interface VideoScrollerProps {
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
-  /** Whether tap navigation is enabled. */
-  isTapNavigation?: boolean;
 }
 
 const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
@@ -54,7 +52,6 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   }, [items]);
   
   useEffect(() => {
-    if (!props.isTapNavigation) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       const nextKey = props.isForceLandscape ? "ArrowRight" : "ArrowDown";
       const previousKey = props.isForceLandscape ? "ArrowLeft" : "ArrowUp";
@@ -63,14 +60,14 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
         setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
       } else if (e.key === nextKey) {
         // Go to the next item
-        setCurrentIndex((prevIndex) => prevIndex + 1);
+        setCurrentIndex((prevIndex) => {console.log(prevIndex, prevIndex + 1); return prevIndex + 1});
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [props.isTapNavigation, props.isForceLandscape]);
+  }, [props.isForceLandscape, setCurrentIndex]);
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -82,8 +79,8 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
       ref={scrollerRef}
       tabIndex={0}
     >
+      <pre>{currentIndex}</pre>
       {cachedItems.map((item, i) => {
-        if (props.isTapNavigation && i !== currentIndex) return null
         if (
           i >= currentIndex - ITEM_BUFFER_EACH_SIDE &&
           i <= currentIndex + ITEM_BUFFER_EACH_SIDE
@@ -112,7 +109,6 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
               toggleSubtitlesHandler={item.toggleSubtitlesHandler}
               toggleUiHandler={item.toggleUiHandler}
               uiIsVisible={props.uiIsVisible}
-              isTapNavigation={props.isTapNavigation}
             />
           );
         } else return <div key={item.scene.id} className="dummy-video-item" />;

@@ -13,8 +13,6 @@ import { faGear as faGearOff } from "@fortawesome/free-solid-svg-icons";
 import { faRepeat as faRepeatOff } from "@fortawesome/free-solid-svg-icons";
 import { faClosedCaptioning as faSubtitlesOff } from "@fortawesome/free-solid-svg-icons";
 import { faVolumeXmark as faVolumeOff } from "@fortawesome/free-solid-svg-icons";
-import { faPause } from "@fortawesome/free-solid-svg-icons";
-import { faPlay } from "@fortawesome/free-solid-svg-icons";
 import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
@@ -61,8 +59,6 @@ export interface VideoItemProps extends IitemData {
   /** The default captions language to show. `undefined` means no default
    * captions. */
   captionsDefault?: string;
-  /** Whether tap navigation is enabled. */
-  isTapNavigation?: boolean;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -85,6 +81,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const isInViewport = useIsInViewport(videoRef, {
     threshold: 0.8,
   });
+  
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (props.currentIndex === props.index) {
+      videoRef.current.focus();
+    }
+  }, [videoRef, props.currentIndex, props.index])
 
   /* ------------------------------- Play/pause ------------------------------- */
 
@@ -107,65 +110,26 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     // Update the current item data
     if (isInViewport) props.changeItemHandler(props.index);
   }, [isInViewport, props.settingsTabIsVisible]);
-
-  const [showTapIcon, setShowTapIcon] = useState(false);
-  const tapIconRef = useRef(null);
-
-  /** Handle toggling the video play state. */
-  const togglePlayHandler = useMemo(() => { // useMemo to avoid causing unnecessary re-renders
-    return () => {
-      const videojsPlayer = videojsPlayerRef.current;
-      if (!videojsPlayer) return;
-      if (videojsPlayer.paused()) {
-        setPaused(false);
-        videojsPlayer.play()?.catch(() => setPaused(true));
-      } else {
-        videojsPlayer.pause();
-      }
-      // Display the tap icon, then hide it after some time.
-      setShowTapIcon(true);
-      setTimeout(() => {
-        setShowTapIcon(false);
-      }, 1200);
-    };
-  }, []);
-
-  const handleTapNavigationClick = useMemo(() => { // useMemo to avoid causing unnecessary re-renders
-    return (event: MouseEvent) => {
-      const {width: videoWidth, height: videoHeight} = (event.target as HTMLElement)?.getBoundingClientRect()
-
-      let clickXPosRelative, clickYPosRelative
-      if (props.isForceLandscape) {
-        clickXPosRelative = 1-(event.clientY/videoHeight)
-        clickYPosRelative = (event.clientX/videoWidth)
-      } else {
-        clickXPosRelative = (event.clientX/videoWidth)
-        clickYPosRelative = (event.clientY/videoHeight)
-      }
-      const isTop = clickYPosRelative < 0.5
-      const isBottom = !isTop
-      const isLeft = clickXPosRelative < 0.33
-      const isRight = clickXPosRelative > 0.66
-      const isMiddle = !isLeft && !isRight
-  
-      if (isMiddle) {
-        togglePlayHandler()
-      } else if (isLeft) {
-        if (isTop) {
-          seekBackwards();
-        } else {
-          props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
-        }
-      } else {
-        if (isTop) {
-          seekForwards();
-        } else {
-          props.changeItemHandler((currentIndex) => currentIndex + 1);
+    
+    useEffect(() => {
+      if (!isInViewport) return;
+      const handleKeyDown = (e: KeyboardEvent) => {
+        const seekBackwardsKey = props.isForceLandscape ? "ArrowDown" : "ArrowLeft";
+        const seekForwardsKey = props.isForceLandscape ? "ArrowUp" : "ArrowRight";
+        if (e.key === seekBackwardsKey) {
+          seekBackwards()
+          e.preventDefault()
+        } else if (e.key === seekForwardsKey) {
+          seekForwards()
+          e.preventDefault()
         }
       }
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }, [props.isForceLandscape, isInViewport]);
 
-    };
-  }, [props.isForceLandscape]);
   
   
 
@@ -222,17 +186,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     }
     props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
   }
-
-  const handleVideoClick = useMemo(() => {
-    return (event: MouseEvent) => {
-      if (props.isTapNavigation) {
-        console.log("Tap navigation is enabled, handling tap click");
-        handleTapNavigationClick(event);
-      } else {
-        togglePlayHandler();
-      }
-    };
-  }, [togglePlayHandler, props.isTapNavigation, handleTapNavigationClick]);
 
   /* ----------------------------- Toggle buttons ----------------------------- */
 
@@ -419,28 +372,21 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         onPrevious={() => {}}
         ref={setVideoRef}
         muted={props.isMuted || !isInViewport}
-        onClick={handleVideoClick}
         onEnded={handleOnEnded}
         onVideojsPlayerReady={player => videojsPlayerRef.current = player}
+        optionsToMerge={{
+          plugins: {
+            touchOverlay: {
+              seekLeft: {
+                handleClick: seekBackwards
+              },
+              seekRight: {
+                handleClick: seekForwards
+              }
+            }
+          }
+        }}
       />
-      <Transition
-        in={paused || showTapIcon}
-        nodeRef={tapIconRef}
-        timeout={TRANSITION_DURATION}
-        unmountOnExit
-      >
-        {(state) => (
-          <FontAwesomeIcon
-            className={cx("tap-icon", {'transparent': !paused})}
-            icon={paused ? faPlay : faPause}
-            ref={tapIconRef}
-            style={{
-              ...toggleableUiStyles,
-              ...toggleableUiTransitionStyles[state],
-            }}
-          />
-        )}
-      </Transition>
       <Transition
         in={sceneInfoOpen}
         nodeRef={sceneInfoPanelRef}
@@ -673,6 +619,9 @@ const SceneInfoPanel = forwardRef(
         data-testid="VideoItem--sceneInfo"
         style={props.style}
         ref={ref}
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
       >
         {studio}
         {title}

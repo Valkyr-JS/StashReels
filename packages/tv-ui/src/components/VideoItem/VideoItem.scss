@@ -63,6 +63,14 @@
         }
       }
     }
+    .vjs-loading-spinner {
+      --size: 120px;
+      width: var(--size);
+      height: var(--size);
+      border-radius: var(--size);
+      margin: calc(var(--size)/2 * -1) 0 0 calc(var(--size)/2 * -1);
+      opacity: 0.3;
+    }
   }
 
   .tap-icon {

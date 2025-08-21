@@ -55,8 +55,6 @@ const meta = {
     setIsRandomised: fn(),
     setSettingsTabHandler: fn(),
     transitionStatus: "entered",
-    isTapNavigation: false,
-    toggleIsTapNavigation: fn(),
   },
   decorators: [setCssVHDecorator],
 } satisfies Meta<typeof SettingsTab>;
