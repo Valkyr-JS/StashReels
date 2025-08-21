@@ -9,12 +9,6 @@
   background: #000;
   position: relative;
   border: 1px solid transparent;
-
-  display: grid;
-  grid-template-rows: [canvas-top main-top] 1fr [main-bottom scrubber-top] max-content [scrubber-bottom canvas-bottom];
-  grid-template-columns: [canvas-start main-start] 1fr [main-end controls-start] (
-      max-content
-    ) [controls-end canvas-end];
     
   .video-js {
     .vjs-control-bar {
@@ -88,22 +82,17 @@
   
   
   .controls {
-    position: relative;
-    grid-column: controls-start / controls-end;
-    /* 
-    For some reason safari will always place the video on top of the controls when in force-landscape mode. For some
-    reason overlapping it with the scrubber slightly fixes this issue.
-    */
-    grid-row: main-top / scrubber-bottom;
-    padding-bottom: 36px;
+    position: absolute;
+    bottom: 3em;
+    right: 3px;
+    -webkit-transform: translateZ(1px); // Fix for weird ios bug causing video to overlap side controls
+    // https://stackoverflow.com/a/49885529
     
     display: flex;
     flex-direction: column;
     justify-content: end;
     align-items: end;
-    margin-right: $ui-spacer;
-    margin-bottom: $ui-spacer;
-    z-index: 2;
+    z-index: 1;
     pointer-events: none;
     
     > * {
@@ -137,26 +126,20 @@
   
   
   .scene-info {
-    grid-column: main-start / canvas-end;
-    grid-row: main-top / canvas-bottom;
+    position: absolute;
+    bottom: 3em;
+    left: 0;
+    width: 100%;
+    padding: 1em 5em 1em 3em;
     z-index: 1;
+    -webkit-transform: translateZ(1px); // Fix for weird ios bug causing video to overlap side controls
+    // https://stackoverflow.com/a/49885529
 
     align-self: flex-end;
     background-color: rgba(black, 0.7);
-    padding-top: $scene-info-spacer;
-    padding-right: $ui-button-size + $ui-spacer + $scene-info-spacer;
-    margin-bottom: calc(
-      $scrubber-height + $scene-info-spacer + $timecode-font-size +
-        $scrubber-container-padding-bottom + $scrubber-container-padding-top +
-        10px
-    );
-    padding-left: 15px;
 
     display: grid;
     transition: opacity ease-in-out;
-
-    // Stop click events propagating to the video.
-    position: relative;
 
     // Title
     h5 {
@@ -194,8 +177,6 @@
 
 .VideoItem {
   .ScenePlayer {
-    grid-column: canvas-start / canvas-end;
-    grid-row: canvas-top / canvas-bottom;
     width: 100%;
     height: 100%;
     object-fit: contain;
