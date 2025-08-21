@@ -86,7 +86,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   /* ---------------------------------- Audio --------------------------------- */
 
   const [isMuted, setIsMuted] = useState(true);
-  const handleTogglingAudio = () => setIsMuted((prev) => !prev);
+  const handleTogglingAudio = (newState?: boolean) => setIsMuted((prev) => newState !== undefined ? newState : !prev);
 
   /* ------------------------------- Fullscreen ------------------------------- */
 

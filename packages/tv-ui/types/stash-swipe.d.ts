@@ -6,7 +6,7 @@ interface IitemData {
   /** The subtitles state set by the user. */
   subtitlesOn: boolean;
   /** Function for handling toggling video audio on and off. */
-  toggleAudioHandler: () => void;
+  toggleAudioHandler: (newState?: boolean) => void;
   /** Function for handling toggling fullscreen mode on and off. */
   toggleFullscreenHandler: () => void;
   /** Function for handling toggling letterboxing on and off. */

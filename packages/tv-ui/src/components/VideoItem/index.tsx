@@ -88,6 +88,16 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       videoRef.current.focus();
     }
   }, [videoRef, props.currentIndex, props.index])
+  
+  function handleVideojsPlayerReady(player: VideoJsPlayer) {
+    videojsPlayerRef.current = player;
+    player.on("volumechange", () => {
+      props.toggleAudioHandler(player.muted())
+    });
+    if (props.isMuted !== player.muted()) {
+      props.toggleAudioHandler(player.muted());
+    }
+  }
 
   /* ------------------------------- Play/pause ------------------------------- */
 
@@ -224,8 +234,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   // Update the mute property via the ref object
   useEffect(() => {
-    if (isInViewport && videoRef.current)
-      videoRef.current.muted = props.isMuted;
+    if (isInViewport && videojsPlayerRef.current) {
+      if (props.isMuted !== videojsPlayerRef.current.muted()) {
+        videojsPlayerRef.current.muted(props.isMuted);
+        videojsPlayerRef.current.volume(1);
+      }
+    }
   }, [props.isMuted]);
 
   /* ------------------------------- Fullscreen ------------------------------- */
@@ -371,9 +385,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         onNext={() => {}}
         onPrevious={() => {}}
         ref={setVideoRef}
-        muted={props.isMuted || !isInViewport}
         onEnded={handleOnEnded}
-        onVideojsPlayerReady={player => videojsPlayerRef.current = player}
+        onVideojsPlayerReady={handleVideojsPlayerReady}
         optionsToMerge={{
           plugins: {
             touchOverlay: {

@@ -10,6 +10,7 @@ import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-o
 registerVideojsOverlayButtonsExtendedPlugin();
 
 const videoJsOptions: Record<string, VideoJsPlayerOptions> = {}
+const videoJsSetupCallbacks: Record<string, (player: VideoJsPlayer) => void> = {}
 
 videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
@@ -36,6 +37,11 @@ videojs.hook('setup', (player) => {
         }
     }) as any
 });
+
+videojs.hook('setup', function(player) {
+    const sceneId = player.el().parentElement?.parentElement?.parentElement?.dataset.sceneId
+    videoJsSetupCallbacks[sceneId || ""]?.(player)
+})
 
 addSupportForLandscapeSupport(videojs);
 
@@ -108,7 +114,6 @@ export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> 
     onEnded?: (event: Event) => void;
     hideControls?: boolean;
     hideProgressBar?: boolean;
-    muted?: boolean;
     onClick?: (event: MouseEvent) => void;
     onVideojsPlayerReady?: (player: VideoJsPlayer) => void;
     optionsToMerge?: VideoJsPlayerOptions;
@@ -116,14 +121,14 @@ export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> 
 const ScenePlayer = forwardRef<
     HTMLVideoElement,
     ScenePlayerProps
->(({ className, onTimeUpdate, hideControls, hideProgressBar, muted, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, ...otherProps }: ScenePlayerProps, ref) => {
+>(({ className, onTimeUpdate, hideControls, hideProgressBar, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, ...otherProps }: ScenePlayerProps, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);
-    useEffect(() => {
-        videojsPlayer && onVideojsPlayerReady?.(videojsPlayer);
-    }, [videojsPlayer, onVideojsPlayerReady]);
+    if (onVideojsPlayerReady) {
+        videoJsSetupCallbacks[otherProps.scene.id] = onVideojsPlayerReady;
+    }
     
     if (optionsToMerge) {
         videoJsOptions[otherProps.scene.id] = optionsToMerge
@@ -204,11 +209,6 @@ const ScenePlayer = forwardRef<
             videojsPlayer.off('tap', onTapHandler);
         }
     }, [videojsPlayer, onClick]);
-    
-    useEffect(() => {
-        if (!videojsPlayer || typeof muted !== 'boolean') return;
-        videojsPlayer.muted(muted);
-    }, [videojsPlayer, muted]);
 
     return (
         <div
