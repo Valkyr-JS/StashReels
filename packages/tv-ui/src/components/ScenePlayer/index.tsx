@@ -3,6 +3,7 @@ import "./ScenePlayer.scss";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { default as cx } from "classnames";
 import videojs, { type VideoJsPlayer } from "video.js";
+import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
 
 videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
@@ -15,14 +16,21 @@ videojs.hook('setup', (player) => {
 
     // Enable tap events since iOS Safari doesn't report click events when tapped
     player.emitTapEvents();
-    
+
+    // For some reason videojs doesn't always get the correct video duration so this is a workaround
     const originalDuration = player.duration;
     player.duration = () => {
         const scene: any = '_scene' in player && player._scene;
         return scene?.files[0]?.duration || originalDuration();
     }
     
-    player.vrMenu = (() => {}) as any
+    // ScenePlayer calls these functions at some point which causes them to be loaded even though we've attempted to
+    // remove them from the player options. To get around this we redefine these functions as stubs.
+    player.vrMenu = (() => {
+        return {
+            setShowButton: () => {}
+        }
+    }) as any
     player.skipButtons = (() => {
         return {
             setForwardHandler: () => {},
@@ -32,48 +40,38 @@ videojs.hook('setup', (player) => {
 });
 
 videojs.hook('beforesetup', function(videoEl, options) {
-    // We want to manage play/pause ourselves so we can handle taps as well
-    options.userActions.click = false;
-    options.userActions.doubleClick = false;
-    options.inactivityTimeout = 0;
-    options.controlBar.children = [
-        'progressControl',
-        'currentTimeDisplay',
-        'customControlSpacer',
-        'durationDisplay',
-        // The fullscreen button is expected to exist by the sourceSelector plugin but we don't
-        // want to show it so we hide in css
-        'fullscreenToggle', 
-    ]
-    options.controlBar.volumePanel = false;
-    // Hack to allow removal of plugins
-    // Video.js doesn't replace the options object with the one we return, it merges our updated options
-    // object back into the original options object. Since a plugin is loaded based purely on the presence 
-    // of a key in the options.plugins object simply deleting the key won't remove the plugin since it will
-    // still be present in the original options object. To get around this we replace the whole plugins
-    // object with a string which can't be merged and so will wipe out the original plugins object. In a second
-    // beforesetup hook below we return the plugins property back to an object and there we can add back all plugins
-    // minus any we want to remove.
-    options._originalPlugins = options.plugins;
-    options.plugins = "clear"
-  return options;
-});
-
-
-videojs.hook('beforesetup', function(videoEl, options) {
-    const {
-        sourceSelector,
-        bigButtons,
-        seekButtons,
-        skipButtons,
-        ...pluginsToKeep
-    } = options._originalPlugins
-    options.plugins = {
-        ...pluginsToKeep,
+    // Will be merged in with existing options
+    return {
+        userActions: {
+            click: false,
+            doubleClick: false
+        },
+        inactivityTimeout: 0,
+        controlBar: {
+            children: [ 
+                'progressControl',
+                'currentTimeDisplay',
+                'customControlSpacer',
+                'durationDisplay',
+                // The fullscreen button is expected to exist by the sourceSelector plugin but we don't
+                // want to show it so we hide in css
+                'fullscreenToggle', 
+            ],
+            volumePanel: false,
+        },
+        plugins: {
+            sourceSelector: false,
+            bigButtons: false,
+            seekButtons: false,
+            skipButtons: false,
+            vrMenu: false,
+        }
     }
-    delete options._originalPlugins;
-  return options;
 });
+
+allowPluginRemoval(videojs);
+
+
 ScenePlayerOriginal.displayName = "ScenePlayerOriginal";
 
 export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> & {
