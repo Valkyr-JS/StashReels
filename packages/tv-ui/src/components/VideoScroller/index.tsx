@@ -79,7 +79,6 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
       ref={scrollerRef}
       tabIndex={0}
     >
-      <pre>{currentIndex}</pre>
       {cachedItems.map((item, i) => {
         if (
           i >= currentIndex - ITEM_BUFFER_EACH_SIDE &&

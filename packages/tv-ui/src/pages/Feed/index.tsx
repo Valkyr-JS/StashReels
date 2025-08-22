@@ -8,7 +8,7 @@ import { GroupBase, OptionsOrGroups } from "react-select";
 import Loading from "../../components/Loading";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
-export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesAllInfoQuery>[0]
+export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesTvInfoQuery>[0]
 
 interface FeedPageProps {
   /** The scene filter currently being used as the playlist. */
@@ -45,11 +45,8 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 
   /** Get and set the processed scene data. */
   const [allProcessedData, setAllProcessedData] = useState<IitemData[]>([]);
-  
-  console.log("FeedPage: queryOptions", props.queryOptions);
 
-
-  const { data: rawSceneData, loading: rawSceneDataLoading } = GQL.useFindScenesAllInfoQuery(props.queryOptions)
+  const { data: rawSceneData, loading: rawSceneDataLoading } = GQL.useFindScenesTvInfoQuery(props.queryOptions)
 
 
   useEffect(() => {
@@ -249,21 +246,21 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 export default FeedPage;
 
 /** Process individual scene data from Stash to app format. */
-const processSceneData = (sc: GQL.FindScenesQuery["findScenes"]["scenes"][number]): IsceneData | null => {
+const processSceneData = (sc: GQL.FindScenesTvInfoQuery["findScenes"]["scenes"][number]): IsceneData | null => {
   if (!sc.paths.stream) return null;
 
   const processedData: IsceneData = {
     date: sc.date ?? undefined,
-    format: "mp4", // sc.files[0].format,
+    format: sc.files[0].format,
     id: sc.id,
-    parentStudio: undefined, // sc.studio?.parent_studio?.name ?? undefined,
+    parentStudio: sc.studio?.parent_studio?.name ?? undefined,
     path: sc.paths.stream,
-    performers: [], /* sc.performers.map((pf) => {
-      return { name: pf.name, gender: pf.gender || ("UNKNOWN" as GenderEnum) };
-    }) */
+    performers: sc.performers.map((pf) => {
+      return { name: pf.name, gender: pf.gender || ("UNKNOWN" as GQL.GenderEnum) };
+    }),
     studio: sc.studio?.name ?? undefined,
     title: sc.title ?? undefined,
-    captions: [], /* sc.captions
+    captions: sc.captions
       ?.map((cap) => {
         if (typeof sc.paths.caption === "string") {
           return {
@@ -273,7 +270,7 @@ const processSceneData = (sc: GQL.FindScenesQuery["findScenes"]["scenes"][number
           };
         }
       })
-      .filter((c) => !!c), */
+      .filter((c) => !!c),
     rawScene: sc,
   };
 
