@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "postinstall": "cd stash && git reset --hard v0.28.1 && git apply ../patches/new-scenes-query.patch && cd ui/v2.5 && yarn install",
+    "postinstall": "cd stash && git reset --hard v0.28.1 && git apply ../patches/stash-tv-queries.patch && cd ui/v2.5 && yarn install",
     "build": "yarn run in-repo gqlgen && yarn run in-repo tsc --outDir ../../../dist --noEmit false --declaration true --rootDir . && yarn run copyfiles --up 3 \"stash/ui/v2.5/src/**/*.css\" \"stash/ui/v2.5/src/**/*.scss\" dist && yarn run tsc-alias --project stash/ui/v2.5/tsconfig.json --outDir dist",
     "in-repo": "yarn --cwd stash/ui/v2.5",
     "add-stash-ui-deps": "jq -s '.[1] + {dependencies: .[1].dependencies + .[0].dependencies | with_entries(.) | to_entries | sort_by(.key) | from_entries}' stash/ui/v2.5/package.json package.json > package.json.tmp && mv package.json.tmp package.json"

@@ -6,6 +6,7 @@ import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
 import { addSupportForLandscapeSupport } from "./hooks/force-landscape-support";
 import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
 import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-overlay-buttons-extended";
+import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
 registerVideojsOverlayButtonsExtendedPlugin();
 
@@ -108,7 +109,7 @@ allowPluginRemoval(videojs);
 
 ScenePlayerOriginal.displayName = "ScenePlayerOriginal";
 
-export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> & {
+export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOriginal>, 'scene'> & {
     className?: string;
     onTimeUpdate?: (event: Event) => void;
     onEnded?: (event: Event) => void;
@@ -117,6 +118,7 @@ export type ScenePlayerProps = React.ComponentProps<typeof ScenePlayerOriginal> 
     onClick?: (event: MouseEvent) => void;
     onVideojsPlayerReady?: (player: VideoJsPlayer) => void;
     optionsToMerge?: VideoJsPlayerOptions;
+    scene: GQL.TvSceneDataFragment;
 }
 const ScenePlayer = forwardRef<
     HTMLVideoElement,
@@ -218,6 +220,9 @@ const ScenePlayer = forwardRef<
         >
             <ScenePlayerOriginal
                 {...otherProps}
+                // ScenePlayer only needs a subset of SceneDataFragment so to reduce network request
+                // times we only give it the necessary fields
+                scene={otherProps.scene as unknown as GQL.SceneDataFragment}
             />
         </div>
     )

@@ -13,6 +13,7 @@ import Select, {
 import { TransitionStatus } from "react-transition-group";
 import "./SettingsTab.scss";
 import { TRANSITION_DURATION } from "../../constants";
+import { PluginConfig } from "../../../types/stash-tv";
 
 interface SettingsTabProps {
   /** The scene filter currently being used as the playlist. */

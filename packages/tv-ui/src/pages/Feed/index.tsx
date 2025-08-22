@@ -7,8 +7,9 @@ import { TRANSITION_DURATION } from "../../constants";
 import { GroupBase, OptionsOrGroups } from "react-select";
 import Loading from "../../components/Loading";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
+import { PluginConfig, TvItem } from "../../../types/stash-tv";
 
-export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesTvInfoQuery>[0]
+export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesForTvQuery>[0]
 
 interface FeedPageProps {
   /** The scene filter currently being used as the playlist. */
@@ -40,30 +41,21 @@ interface FeedPageProps {
 }
 
 const FeedPage: React.FC<FeedPageProps> = (props) => {
-  /** Get and set the raw scene data from Stash. */
-  const [allSceneData, setAllSceneData] = useState<IsceneData[]>([]);
-
   /** Get and set the processed scene data. */
-  const [allProcessedData, setAllProcessedData] = useState<IitemData[]>([]);
+  const [allProcessedData, setAllProcessedData] = useState<TvItem[]>([]);
 
-  const { data: rawSceneData, loading: rawSceneDataLoading } = GQL.useFindScenesTvInfoQuery(props.queryOptions)
-
-
+  const { data: rawSceneData, loading: rawSceneDataLoading } = GQL.useFindScenesForTvQuery(props.queryOptions)
+  
   useEffect(() => {
     if (!rawSceneData) return;
-    // Process fetched scene data, filtering out invalid scenes
-    const processedData = rawSceneData.findScenes.scenes
-      .map(processSceneData)
-      .filter((d) => !!d);
-
-    // Update the full scene data
-    setAllSceneData(processedData);
+    // Once scene data is loaded, process and queue it into the scroller.
+    handleProcessingItemData();
   }, [rawSceneData]);
 
   /** Handles fetching video data */
   const handleProcessingItemData = () => {
     // Once the scene data has been fetched, process it for use in an item.
-    const processedItems: IitemData[] = allSceneData.map((sc) => {
+    const processedItems: TvItem[] = rawSceneData?.findScenes.scenes.map((sc) => {
       return {
         scene: sc,
         setSettingsTabHandler: handleSetSettingsTab,
@@ -76,7 +68,7 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
         toggleSubtitlesHandler: handleTogglingSubtitles,
         toggleUiHandler: handleTogglingUI,
       };
-    });
+    }) || [];
     setAllProcessedData(processedItems);
   };
 
@@ -135,17 +127,12 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
   const [loopOnEnd, setLoopOnEnd] = useState(false);
   const handleTogglingLooping = () => setLoopOnEnd((prev) => !prev);
 
-  useEffect(() => {
-    // Once scene data is loaded, process and queue it into the scroller.
-    handleProcessingItemData();
-  }, [allSceneData]);
-
   /* ---------------------------- Randomise scenes ---------------------------- */
 
   const [isRandomised, setIsRandomised] = useState(false);
 
   /** Randomise the order of the items in the current playlist. */
-  const handleRandomisingItemOrder = (items: IitemData[]) => {
+  const handleRandomisingItemOrder = (items: TvItem[]) => {
     const newOrder = [...items];
     for (let i = newOrder.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -244,35 +231,3 @@ const FeedPage: React.FC<FeedPageProps> = (props) => {
 };
 
 export default FeedPage;
-
-/** Process individual scene data from Stash to app format. */
-const processSceneData = (sc: GQL.FindScenesTvInfoQuery["findScenes"]["scenes"][number]): IsceneData | null => {
-  if (!sc.paths.stream) return null;
-
-  const processedData: IsceneData = {
-    date: sc.date ?? undefined,
-    format: sc.files[0].format,
-    id: sc.id,
-    parentStudio: sc.studio?.parent_studio?.name ?? undefined,
-    path: sc.paths.stream,
-    performers: sc.performers.map((pf) => {
-      return { name: pf.name, gender: pf.gender || ("UNKNOWN" as GQL.GenderEnum) };
-    }),
-    studio: sc.studio?.name ?? undefined,
-    title: sc.title ?? undefined,
-    captions: sc.captions
-      ?.map((cap) => {
-        if (typeof sc.paths.caption === "string") {
-          return {
-            format: cap.caption_type,
-            lang: cap.language_code,
-            source: sc.paths.caption,
-          };
-        }
-      })
-      .filter((c) => !!c),
-    rawScene: sc,
-  };
-
-  return processedData;
-};

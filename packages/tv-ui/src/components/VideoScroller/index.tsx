@@ -3,6 +3,7 @@ import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import cx from "classnames";
+import { TvItem } from "../../../types/stash-tv";
 
 interface VideoScrollerProps {
   /** The fullscreen state set by the user. */
@@ -14,7 +15,7 @@ interface VideoScrollerProps {
   /** The audio state set by the user. */
   isMuted: boolean;
   /** The data for each item in the queue. */
-  items: IitemData[];
+  items: TvItem[];
   /** Whether the video should loop on end. If false, the next video is scrolled
    * to automatically. */
   loopOnEnd: boolean;
@@ -37,7 +38,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = ({ items, ...props }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Cache items to avoid unnecessary re-renders
-  const _itemsCache = useRef<IitemData[]>([]);
+  const _itemsCache = useRef<TvItem[]>([]);
   const cachedItems = useMemo(() => {
     if (!items) return [];
     const newValue = items.map(

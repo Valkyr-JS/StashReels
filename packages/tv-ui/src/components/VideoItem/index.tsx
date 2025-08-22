@@ -33,8 +33,10 @@ import { secondsToTimestamp, sortPerformers } from "../../helpers";
 import { TRANSITION_DURATION } from "../../constants";
 import ScenePlayer from "../ScenePlayer";
 import { type VideoJsPlayer } from "video.js";
+import { TvItem } from "../../../types/stash-tv";
+import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
-export interface VideoItemProps extends IitemData {
+export interface VideoItemProps extends TvItem {
   /** Function for handling changing the current item. */
   changeItemHandler: ((newIndex: number | ((currentIndex: number) => number)) => void);
   /** The index of the item currently displayed in the scroller. */
@@ -144,7 +146,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   
 
   function getSkipTime() {
-    const duration = props.scene.rawScene.files?.[0].duration;
+    const duration = props.scene.files?.[0].duration;
     if (!duration) {
         return null
     }
@@ -326,16 +328,16 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     props.scene.captions && props.captionsDefault
       ? props.scene.captions
           .map((cap, i) => {
-            if (cap.lang === props.captionsDefault) {
-              const src = cap.source + `?lang=${cap.lang}&type=${cap.format}`;
+            if (cap.language_code === props.captionsDefault) {
+              const src = props.scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
               return (
                 <track
-                  default={props.captionsDefault === cap.lang}
+                  default={props.captionsDefault === cap.language_code}
                   key={i}
                   kind="captions"
-                  label={ISO6391.getName(cap.lang) || "Unknown"}
+                  label={ISO6391.getName(cap.language_code) || "Unknown"}
                   src={src}
-                  srcLang={cap.lang}
+                  srcLang={cap.language_code}
                 />
               );
             }
@@ -375,7 +377,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     >
       <ScenePlayer
         className={cx({ 'cover': !props.isLetterboxed })}
-        scene={props.scene.rawScene}
+        scene={props.scene}
         hideScrubberOverride={true}
         autoplay={false}
         permitLoop={true}
@@ -570,7 +572,7 @@ const UiButton = forwardRef<HTMLButtonElement, UiButtonProps>(
 /*                              Scene info panel                              */
 /* -------------------------------------------------------------------------- */
 
-interface SceneInfoPanelProps extends IsceneData {
+interface SceneInfoPanelProps extends GQL.TvSceneDataFragment {
   style: React.CSSProperties;
 }
 
@@ -610,8 +612,8 @@ const SceneInfoPanel = forwardRef(
 
     /* --------------------------------- Studio --------------------------------- */
 
-    const parentStudioText = props.parentStudio
-      ? " | " + props.parentStudio
+    const parentStudioText = props.studio?.parent_studio
+      ? " | " + props.studio.parent_studio
       : "";
 
     const studio = props.studio ? (

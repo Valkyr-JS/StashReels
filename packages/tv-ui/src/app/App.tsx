@@ -17,6 +17,7 @@ import {
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { type ScenesQueryOptions } from "../pages/Feed/index";
 import { ListFilterModel } from "stash-ui/dist/src/models/list-filter/filter";
+import { PluginConfig } from "../../types/stash-tv";
 
   console.log("App.tsx loaded2");
 const App = () => {

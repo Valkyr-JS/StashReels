@@ -2,6 +2,7 @@ import { faTelevision } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fetchPluginConfig } from "../tv-ui/src/helpers/index.js";
 import { PLUGIN_NAMESPACE } from "../tv-ui/src/constants/index.js";
+import { PluginConfig } from "../tv-ui/types/stash-tv.js";
 
 const { PluginApi } = window;
 const { React } = PluginApi;

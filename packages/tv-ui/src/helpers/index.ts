@@ -2,6 +2,7 @@ import { EnumType, jsonToGraphQLQuery } from "json-to-graphql-query";
 import { useWindowSize } from "../hooks";
 import { PLUGIN_NAMESPACE } from "../constants";
 import { GenderEnum, Maybe, SaveFilterInput } from "stash-ui/dist/src/core/generated-graphql";
+import { PluginConfig } from "../../types/stash-tv";
 
 /** Fetch data from Stash via GQL. */
 export const fetchData = async (query: string) => {
