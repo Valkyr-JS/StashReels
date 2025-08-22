@@ -89,34 +89,6 @@ interface IfetchPluginConfigResults {
   };
 }
 
-// Converts seconds to a hh:mm:ss timestamp.
-// A negative input will result in a -hh:mm:ss or -mm:ss output.
-// Fractional inputs are truncated.
-export const secondsToTimestamp = (seconds: number) => {
-  let neg = false;
-  if (seconds < 0) {
-    neg = true;
-    seconds = -seconds;
-  }
-  seconds = Math.trunc(seconds);
-
-  const s = seconds % 60;
-  seconds = (seconds - s) / 60;
-
-  const m = seconds % 60;
-  seconds = (seconds - m) / 60;
-
-  const h = seconds;
-
-  let ret = String(s).padStart(2, "0");
-  ret = String(m).padStart(2, "0") + ":" + ret;
-  ret = String(h).padStart(2, "0") + ":" + ret;
-  if (neg) {
-    return "-" + ret;
-  } else {
-    return ret;
-  }
-};
 
 /** Function for setting the --vsr-vh CSS variable used in video items. */
 export const setCssVH = () => {

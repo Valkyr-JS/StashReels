@@ -29,7 +29,7 @@ import React, {
 import { Transition } from "react-transition-group";
 import "./VideoItem.scss";
 import { useIsInViewport } from "../../hooks";
-import { secondsToTimestamp, sortPerformers } from "../../helpers";
+import { sortPerformers } from "../../helpers";
 import { TRANSITION_DURATION } from "../../constants";
 import ScenePlayer from "../ScenePlayer";
 import { type VideoJsPlayer } from "video.js";
