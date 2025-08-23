@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
 import ISO6391 from "iso-639-1";
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useMemo } from "react";
 import Select, {
   ActionMeta,
   GroupBase,
@@ -13,44 +13,10 @@ import Select, {
 import { TransitionStatus } from "react-transition-group";
 import "./SettingsTab.scss";
 import { TRANSITION_DURATION } from "../../constants";
-import { PluginConfig } from "../../../types/stash-tv";
+import { useStashConfigStore } from "../../store/stashConfigStore";
+import { useAppStateStore } from "../../store/appStateStore";
 
 interface SettingsTabProps {
-  /** The scene filter currently being used as the playlist. */
-  currentFilter:
-    | {
-        value: string;
-        label: string;
-      }
-    | undefined;
-  /** Whether the app is currently fetching scene data. */
-  fetchingData: boolean;
-  /** The list of all user scene filters. */
-  filterList: OptionsOrGroups<
-    {
-      value: string;
-      label: string;
-    },
-    GroupBase<{
-      value: string;
-      label: string;
-    }>
-  >;
-  /** Whether the current playlist is randomised or not. */
-  isRandomised: boolean;
-  /** The user's plugin config from Stash. */
-  pluginConfig: PluginConfig;
-  /** Function to handle updating the user config. */
-  pluginUpdateHandler: (partialConfig: PluginConfig) => void;
-  /** Identifies whether the currently selected filter returns zero scenes. */
-  scenelessFilter: boolean;
-  /** Function to set a given filter as a playlist. */
-  setFilterHandler: (option: { value: string; label: string }) => void;
-  /** Function to set playlist as randomised or not. */
-  setIsRandomised: () => void;
-  /** Function to set the settings tab component visibility. */
-  setSettingsTabHandler: (show: boolean) => void;
-  /** The ReactTransitionGroup transition status. */
   transitionStatus: TransitionStatus;
 }
 
@@ -67,19 +33,19 @@ type ReactSelectOnChange = (
 
 const SettingsTab = forwardRef(
   (props: SettingsTabProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+  const { savedSceneFilters, stashTvConfig, updateStashTvConfig } = useStashConfigStore();
     const toggleableUiStyles: React.CSSProperties = {
       transitionDuration: TRANSITION_DURATION / 1000 + "s",
     };
 
-    const closeButtonHandler = () => props.setSettingsTabHandler(false);
-
-    const classes = cx("SettingsTab", props.transitionStatus);
+    const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, setIsRandomised, scenesLoading, scenes, setShowSettings } = useAppStateStore();
+    const noScenesAvailable = !scenesLoading && scenes.length === 0;
 
     const closeButton =
-      props.scenelessFilter || props.fetchingData ? null : (
+      noScenesAvailable || scenesLoading ? null : (
         <button
           data-testid="SettingsTab--closeButton"
-          onClick={closeButtonHandler}
+          onClick={() => setShowSettings(false)}
           type="button"
         >
           <FontAwesomeIcon icon={faXmark} />
@@ -89,7 +55,7 @@ const SettingsTab = forwardRef(
 
     /* --------------------------- Fetching data alert -------------------------- */
 
-    const fetchingDataWarning = props.fetchingData ? (
+    const fetchingDataWarning = scenesLoading ? (
       <div className='warning'>
         <h2>
           <FontAwesomeIcon icon={faSpinner} pulse />
@@ -124,16 +90,18 @@ const SettingsTab = forwardRef(
     });
 
     // 1. Select a playlist
-    const onChangeSelectPlaylist: ReactSelectOnChange = (option) => {
-      if (option?.value) {
-        props.setFilterHandler(option);
+    const playlists = useMemo(
+      () => savedSceneFilters
+        .map(filter => ({
+          value: filter.id,
+          label: filter.name + (filter.id === stashTvConfig.stashTvDefaultFilterID ? " (default)" : "")
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+      [savedSceneFilters, stashTvConfig.stashTvDefaultFilterID]
+    )
+    const selectedPlaylist = useMemo(() => playlists.find(filter => filter.value === selectedSavedFilterId), [selectedSavedFilterId, playlists]);
 
-        // Turn off randomiser
-        if (props.isRandomised) props.setIsRandomised();
-      }
-    };
-
-    const scenelessFilterError = props.scenelessFilter ? (
+    const scenelessFilterError = noScenesAvailable ? (
       <div className="error">
         <h2>Playlist contains no scenes!</h2>
         <p>
@@ -144,30 +112,10 @@ const SettingsTab = forwardRef(
     ) : null;
 
     // 2. Set current playlist as default
-    const [defaultPlaylist, setDefaultPlaylist] = useState<string | null>(
-      props.pluginConfig?.defaultFilterID ?? null
-    );
-
-    const onChangeDefaultPlaylist: React.ChangeEventHandler<
-      HTMLInputElement
-    > = (_e) => {
-      if (props.currentFilter) {
-        const newDefaultID = props.currentFilter.value;
-        setDefaultPlaylist(newDefaultID);
-        props.pluginUpdateHandler({
-          defaultFilterID: newDefaultID,
-        });
-      }
-    };
 
     // 3. Randomise playlist order
-    const onChangeRandomise: React.ChangeEventHandler<
-      HTMLInputElement
-    > = () => {
-      props.setIsRandomised();
-    };
 
-    // 4. Set subtitles lanuage
+    // 4. Set subtitles language
     const subtitlesList = ISO6391.getAllNames()
       .map((name) => ({
         label: name,
@@ -183,21 +131,19 @@ const SettingsTab = forwardRef(
         return 0;
       });
 
-    const defaultSubtitles = props.pluginConfig?.subtitleLanguage
+    const defaultSubtitles = stashTvConfig?.subtitleLanguage
       ? {
-          label: ISO6391.getName(props.pluginConfig.subtitleLanguage),
-          value: props.pluginConfig.subtitleLanguage,
+          label: ISO6391.getName(stashTvConfig.subtitleLanguage),
+          value: stashTvConfig.subtitleLanguage,
         }
       : undefined;
 
     const onChangeSubLanguage: ReactSelectOnChange = (option) => {
       console.log("subtitles now in: ", option);
-
-      // Update the config with the new language.
-      props.pluginUpdateHandler({
+      updateStashTvConfig({
+        ...stashTvConfig,
         subtitleLanguage: option?.value ?? undefined,
       });
-
       // Refresh the scene list without changing the current index.
     };
 
@@ -205,7 +151,7 @@ const SettingsTab = forwardRef(
 
     return (
       <div
-        className={classes}
+        className={cx("SettingsTab", props.transitionStatus)}
         data-testid="SettingsTab"
         ref={ref}
         style={toggleableUiStyles}
@@ -215,9 +161,9 @@ const SettingsTab = forwardRef(
             <label>
               <h3>Select a playlist</h3>
               <Select
-                defaultValue={props.currentFilter}
-                onChange={onChangeSelectPlaylist}
-                options={props.filterList}
+                defaultValue={selectedPlaylist}
+                onChange={(newValue) => setSelectedSavedFilterId(newValue?.value ?? undefined)}
+                options={playlists}
                 placeholder="None selected. Defaulted to all portrait scenes."
                 theme={reactSelectTheme}
               />
@@ -231,26 +177,30 @@ const SettingsTab = forwardRef(
             {scenelessFilterError}
           </div>
 
-          <div className="item checkbox-item">
-            <label>
-              <input
-                checked={defaultPlaylist === props.currentFilter?.value}
-                onChange={onChangeDefaultPlaylist}
-                type="checkbox"
-              />
-              <h3>Set current playlist as default</h3>
-            </label>
-            <small>
-              Set the currently selected scene filter as the default playlist
-              when opening Stash TV.
-            </small>
-          </div>
+          {selectedPlaylist && selectedPlaylist.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
+            <button
+              onClick={() => {
+                updateStashTvConfig({
+                  ...stashTvConfig,
+                  stashTvDefaultFilterID: selectedPlaylist?.value,
+                });
+              }}
+            >
+              Set "{selectedPlaylist?.label}" as the default playlist
+            </button>
+            <div>
+              <small>
+                Set the currently selected scene filter as the default playlist
+                when opening Stash TV.
+              </small>
+            </div>
+          </div>}
 
           <div className="item checkbox-item">
             <label>
               <input
-                checked={props.isRandomised}
-                onChange={onChangeRandomise}
+                checked={isRandomised}
+                onChange={event => setIsRandomised(event.target.checked)}
                 type="checkbox"
               />
               <h3>Randomise playlist order</h3>

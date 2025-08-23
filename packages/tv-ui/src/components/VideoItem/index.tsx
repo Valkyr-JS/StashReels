@@ -33,37 +33,36 @@ import { sortPerformers } from "../../helpers";
 import { TRANSITION_DURATION } from "../../constants";
 import ScenePlayer from "../ScenePlayer";
 import { type VideoJsPlayer } from "video.js";
-import { TvItem } from "../../../types/stash-tv";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
+import { useAppStateStore } from "../../store/appStateStore";
+import { useStashConfigStore } from "../../store/stashConfigStore";
 
-export interface VideoItemProps extends TvItem {
-  /** Function for handling changing the current item. */
+export interface VideoItemProps {
+  scene: GQL.TvSceneDataFragment;
   changeItemHandler: ((newIndex: number | ((currentIndex: number) => number)) => void);
-  /** The index of the item currently displayed in the scroller. */
   currentIndex: number;
-  /** The zero-based index of the scene in the video queue. */
   index: number;
-  /** The fullscreen state set by the user. */
-  isFullscreen: boolean;
-  /** The letterboxing state set by the user. */
-  isLetterboxed: boolean;
-  /** Whether the video is forced to be displayed in landscape mode. */
-  isForceLandscape: boolean;
-  /** The audio state set by the user. */
-  isMuted: boolean;
-  /** Whether the video should loop on end. If false, the next video is scrolled
-   * to automatically. */
-  loopOnEnd: boolean;
-  /** Whether the settings tab is open. */
-  settingsTabIsVisible: boolean;
-  /** Whether the UI buttons are visible. */
-  uiIsVisible: boolean;
-  /** The default captions language to show. `undefined` means no default
-   * captions. */
-  captionsDefault?: string;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
+  const {
+    fullscreen,
+    letterboxing,
+    forceLandscape,
+    audioMuted,
+    looping,
+    showSubtitles,
+    uiVisible,
+    setShowSettings,
+    setAudioMuted,
+    setFullscreen,
+    setLetterboxing,
+    setShowSubtitles,
+    setForceLandscape,
+    setLooping,
+    setUiVisible,
+  } = useAppStateStore();
+  const { stashTvConfig } = useStashConfigStore();
   const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
   const [paused, setPaused] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -94,21 +93,17 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
-      props.toggleAudioHandler(player.muted())
+      setAudioMuted(player.muted());
     });
-    if (props.isMuted !== player.muted()) {
-      props.toggleAudioHandler(player.muted());
+    if (audioMuted !== player.muted()) {
+      setAudioMuted(player.muted());
     }
   }
 
   /* ------------------------------- Play/pause ------------------------------- */
 
   useEffect(() => {
-    // Pause the video if the settings tab is open
-    if (props.settingsTabIsVisible) {
-      videoRef.current?.pause();
-    }
-    // Play the video if it is currently in the viewport.
+    // Play/pause the video based only on viewport
     const videojsPlayer = videojsPlayerRef.current;
     if (videojsPlayer) {
       if (isInViewport) {
@@ -118,16 +113,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         videojsPlayer.pause();
       }
     }
-
     // Update the current item data
     if (isInViewport) props.changeItemHandler(props.index);
-  }, [isInViewport, props.settingsTabIsVisible]);
+  }, [isInViewport]);
     
     useEffect(() => {
       if (!isInViewport) return;
       const handleKeyDown = (e: KeyboardEvent) => {
-        const seekBackwardsKey = props.isForceLandscape ? "ArrowDown" : "ArrowLeft";
-        const seekForwardsKey = props.isForceLandscape ? "ArrowUp" : "ArrowRight";
+        const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
+        const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
         if (e.key === seekBackwardsKey) {
           seekBackwards()
           e.preventDefault()
@@ -140,10 +134,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       return () => {
         window.removeEventListener("keydown", handleKeyDown);
       };
-    }, [props.isForceLandscape, isInViewport]);
-
-  
-  
+  }, [forceLandscape, isInViewport]);
 
   function getSkipTime() {
     const duration = props.scene.files?.[0].duration;
@@ -223,44 +214,17 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     unmounted: {},
   };
 
-  const toggleUiButtonClickHandler = () => {
-    if (isInViewport) props.toggleUiHandler();
-  };
-
   /* ----------------------------- Audio handling ----------------------------- */
-
-  /** Handle clicking the mute button */
-  const muteButtonClickHandler = () => {
-    if (isInViewport) props.toggleAudioHandler();
-  };
 
   // Update the mute property via the ref object
   useEffect(() => {
     if (isInViewport && videojsPlayerRef.current) {
-      if (props.isMuted !== videojsPlayerRef.current.muted()) {
-        videojsPlayerRef.current.muted(props.isMuted);
+      if (audioMuted !== videojsPlayerRef.current.muted()) {
+        videojsPlayerRef.current.muted(audioMuted);
         videojsPlayerRef.current.volume(1);
       }
     }
-  }, [props.isMuted]);
-
-  /* ------------------------------- Fullscreen ------------------------------- */
-
-  const fullscreenButtonClickHandler = () => {
-    if (isInViewport) props.toggleFullscreenHandler();
-  };
-
-  /* ------------------------------ Letterboxing ------------------------------ */
-
-  const letterboxingButtonClickHandler = () => {
-    if (isInViewport) props.toggleLetterboxingHandler();
-  };
-
-  /* ------------------------------ Rotation ------------------------------ */
-
-  const forceLandscapeButtonClickHandler = () => {
-    if (isInViewport) props.toggleForceLandscapeHandler();
-  };
+  }, [audioMuted]);
 
   /* ------------------------------ On end event ------------------------------ */
 
@@ -269,19 +233,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /** Handle the event fired at the end of video playback. */
   const handleOnEnded = () => {
     // If not looping on end, scroll to the next item.
-    if (!props.loopOnEnd && !!itemRef.current)
+    if (!looping && !!itemRef.current)
       itemRef.current.nextElementSibling?.scrollIntoView();
-  };
-
-  /** Handle clicking the loop button. */
-  const loopButtonClickHandler = () => {
-    if (isInViewport) props.toggleLoopHandler();
   };
 
   // Update the loop property via the ref object
   useEffect(() => {
-    if (videoRef.current) videoRef.current.loop = props.loopOnEnd;
-  }, [props.loopOnEnd]);
+    if (videoRef.current) videoRef.current.loop = looping;
+  }, [looping]);
 
   /* ------------------------------- Scene info ------------------------------- */
 
@@ -322,17 +281,17 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /* -------------------------------- Subtitles ------------------------------- */
 
   /** Only render captions track if available, and it matches the user's chosen
-   * langueage. Fails accessibility if missing, but there's no point rendering
+   * language. Fails accessibility if missing, but there's no point rendering
    * an empty track. */
   const captionSources =
-    props.scene.captions && props.captionsDefault
+    props.scene.captions && stashTvConfig.subtitleLanguage
       ? props.scene.captions
           .map((cap, i) => {
-            if (cap.language_code === props.captionsDefault) {
+            if (cap.language_code === stashTvConfig.subtitleLanguage) {
               const src = props.scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
               return (
                 <track
-                  default={props.captionsDefault === cap.language_code}
+                  default={stashTvConfig.subtitleLanguage === cap.language_code}
                   key={i}
                   kind="captions"
                   label={ISO6391.getName(cap.language_code) || "Unknown"}
@@ -347,23 +306,23 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const subtitlesButton = !!captionSources ? (
     <UiButton
-      active={!!captionSources && props.subtitlesOn}
+      active={!!captionSources && showSubtitles}
       activeIcon={faSubtitles}
       activeText="Hide subtitles"
       data-testid="VideoItem--subtitlesButton"
       inactiveIcon={faSubtitlesOff}
       inactiveText="Show subtitles"
-      onClick={props.toggleSubtitlesHandler}
+      onClick={() => setShowSubtitles((prev) => !prev)}
     />
   ) : null;
 
   // Update the subtitles track via the ref object
   useEffect(() => {
     if (videoRef.current && videoRef.current.textTracks.length)
-      videoRef.current.textTracks[0].mode = props.subtitlesOn
+      videoRef.current.textTracks[0].mode = showSubtitles
         ? "showing"
         : "disabled";
-  }, [props.subtitlesOn]);
+  }, [showSubtitles]);
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -376,7 +335,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       ref={itemRef}
     >
       <ScenePlayer
-        className={cx({ 'cover': !props.isLetterboxed })}
+        className={cx({ 'cover': !letterboxing })}
         scene={props.scene}
         hideScrubberOverride={true}
         autoplay={false}
@@ -421,10 +380,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         )}
       </Transition>
       <div
-        className={cx('controls', {'active': props.uiIsVisible})}
+        className={cx('controls', {'active': uiVisible})}
       >
         <Transition
-          in={props.uiIsVisible}
+          in={uiVisible}
           nodeRef={uiButtonDrawerRef}
           timeout={TRANSITION_DURATION}
           unmountOnExit
@@ -440,55 +399,55 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               }}
             >
               <UiButton
-                active={props.isMuted}
+                active={audioMuted}
                 activeIcon={faVolumeOff}
                 activeText="Unmute"
                 data-testid="VideoItem--muteButton"
                 inactiveIcon={faVolume}
                 inactiveText="Mute"
-                onClick={muteButtonClickHandler}
+                onClick={() => setAudioMuted((prev) => !prev)}
               />
 
               {subtitlesButton}
 
               <UiButton
-                active={props.isFullscreen}
+                active={fullscreen}
                 activeIcon={faExpand}
                 activeText="Close fullscreen"
                 data-testid="VideoItem--fullscreenButton"
                 inactiveIcon={faExpandOff}
                 inactiveText="Open fullscreen"
-                onClick={fullscreenButtonClickHandler}
+                onClick={() => setFullscreen((prev) => !prev)}
               />
 
               <UiButton
-                active={!props.isLetterboxed}
+                active={!letterboxing}
                 activeIcon={faRectanglePortrait}
                 activeText="Constrain to screen"
                 data-testid="VideoItem--letterboxButton"
                 inactiveIcon={faDistributeSpacingHorizontal}
                 inactiveText="Fill screen"
-                onClick={letterboxingButtonClickHandler}
+                onClick={() => setLetterboxing((prev) => !prev)}
               />
 
               <UiButton
-                active={!props.isForceLandscape}
+                active={!forceLandscape}
                 activeIcon={faMobile}
                 activeText="Landscape"
                 data-testid="VideoItem--forceLandscapeButton"
                 inactiveIcon={faDesktop}
                 inactiveText="Portrait"
-                onClick={forceLandscapeButtonClickHandler}
+                onClick={() => setForceLandscape((prev) => !prev)}
               />
 
               <UiButton
-                active={props.loopOnEnd}
+                active={looping}
                 activeIcon={faRepeat}
                 activeText="Stop looping scene"
                 data-testid="VideoItem--loopButton"
                 inactiveIcon={faRepeatOff}
                 inactiveText="Loop scene"
-                onClick={loopButtonClickHandler}
+                onClick={() => setLooping((prev) => !prev)}
               />
 
               {sceneInfoButton}
@@ -500,26 +459,26 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 data-testid="VideoItem--settingsButton"
                 inactiveIcon={faGearOff}
                 inactiveText="Show settings"
-                onClick={() => props.setSettingsTabHandler(true)}
+                onClick={() => setShowSettings(showSettings => !showSettings)}
               />
             </div>
           )}
         </Transition>
         <Transition
-          in={props.uiIsVisible}
+          in={uiVisible}
           nodeRef={uiButtonRef}
           timeout={TRANSITION_DURATION}
         >
           {(state) => (
             <UiButton
-              active={props.uiIsVisible}
+              active={uiVisible}
               activeIcon={faEllipsisVertical}
               activeText="Hide UI"
               className="toggleable-ui-button"
               data-testid="VideoItem--showUiButton"
               inactiveIcon={faEllipsisStrokeVertical}
               inactiveText="Show UI"
-              onClick={toggleUiButtonClickHandler}
+              onClick={() => setUiVisible((prev) => !prev)}
               ref={uiButtonRef}
               style={{
                 ...toggleableUiStyles,
@@ -613,12 +572,12 @@ const SceneInfoPanel = forwardRef(
     /* --------------------------------- Studio --------------------------------- */
 
     const parentStudioText = props.studio?.parent_studio
-      ? " | " + props.studio.parent_studio
+      ? " | " + props.studio.parent_studio.name
       : "";
 
     const studio = props.studio ? (
       <span className="studio">
-        {props.studio + parentStudioText}
+        {props.studio.name + parentStudioText}
       </span>
     ) : null;
 

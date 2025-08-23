@@ -1,8 +1,6 @@
 import { faTelevision } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { fetchPluginConfig } from "../tv-ui/src/helpers/index.js";
 import { PLUGIN_NAMESPACE } from "../tv-ui/src/constants/index.js";
-import { PluginConfig } from "../tv-ui/types/stash-tv.js";
 
 const { PluginApi } = window;
 const { React } = PluginApi;
@@ -11,27 +9,14 @@ const { React } = PluginApi;
 PluginApi.patch.instead(
   "MainNavBar.MenuItems",
   function ({ children, ...props }, _, Original) {
-    const [showButton, setShowButton] = React.useState(true);
-
-    fetchPluginConfig().then((res) => {
-      // Check if plugin config exists
-      if (res?.data && res.data.configuration.plugins[PLUGIN_NAMESPACE]) {
-        const pluginConfig: PluginConfig | undefined =
-          res.data.configuration.plugins[PLUGIN_NAMESPACE];
-
-        setShowButton(!pluginConfig.hideNavButton);
-      }
-    });
-
-    // If data isn't yet available or the user has hidden the button, return the
-    // original component
-    if (!showButton) return [<Original {...props} children={children} />];
+    const { data: stashConfig, loading: stashConfigLoading } = PluginApi.GQL.useConfigurationQuery();
+    const hideNavButton = stashConfig?.configuration?.plugins?.[PLUGIN_NAMESPACE]?.hideNavButton ?? false;
 
     // Add the button to the navbar
     return [
       <Original {...props}>
         {children}
-        <StashTVButtonInner />
+        {(!stashConfigLoading && !hideNavButton) && <StashTVButtonInner />}
       </Original>,
     ];
   }

@@ -10,6 +10,7 @@ export function addSupportForLandscapeSupport(videojs: typeof videoJsNamespace) 
             // Based off:
             // https://github.com/videojs/video.js/blob/8e4ec97eb9a38dc1e5571b2b4a996df387139f1f/src/js/slider/slider.js#L292
             seekBar.calculateDistance = function(event: Event) {
+                // @ts-expect-error el_ is a private variable but the original code access it so we need to as well
                 const position = getPointerPosition(this.el_, event);
 
                 if (this.vertical()) {

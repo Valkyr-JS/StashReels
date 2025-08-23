@@ -1,93 +1,5 @@
-import { EnumType, jsonToGraphQLQuery } from "json-to-graphql-query";
 import { useWindowSize } from "../hooks";
-import { PLUGIN_NAMESPACE } from "../constants";
-import { GenderEnum, Maybe, SaveFilterInput } from "stash-ui/dist/src/core/generated-graphql";
-import { PluginConfig } from "../../types/stash-tv";
-
-/** Fetch data from Stash via GQL. */
-export const fetchData = async (query: string) => {
-  try {
-    const res = await fetch(
-      // @ts-expect-error This will throw an error until we move modules in tsconfig.json to esm
-      !import.meta.env.DEV
-        ? "/graphql"
-        // @ts-expect-error
-        : import.meta.env.STASH_ADDRESS + "/graphql",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-      }
-    );
-    return await res.json();
-  } catch (err) {
-    return console.log(err);
-  }
-};
-
-export const fetchPluginConfig = () => {
-  const query = jsonToGraphQLQuery({
-    query: {
-      configuration: {
-        plugins: true,
-      },
-    },
-  });
-
-  return fetchData(query) as Promise<IfetchPluginConfigResults>;
-};
-
-/** Fetch all scene filter data from Stash via GQL. Also fetches the user's
- * config. */
-export const fetchSceneFilters = () => {
-  const query = jsonToGraphQLQuery({
-    query: {
-      configuration: {
-        plugins: true,
-        ui: true,
-      },
-      findSavedFilters: {
-        __args: {
-          mode: new EnumType("SCENES"),
-        },
-        id: true,
-        name: true,
-      },
-    },
-  });
-
-  return fetchData(query) as Promise<IfetchSceneFiltersResult>;
-};
-
-interface IfetchSceneFiltersResult {
-  data: {
-    configuration: {
-      plugins: {
-        [plugin: string]: {
-          [property: string]: string | number | boolean;
-        };
-      };
-      ui?: {
-        defaultFilters?: {
-          scenes?: SaveFilterInput;
-        };
-      };
-    };
-    findSavedFilters: { id: string; name: string }[];
-  };
-}
-
-interface IfetchPluginConfigResults {
-  data: {
-    configuration: {
-      plugins: {
-        [plugin: string]: {
-          [property: string]: string | number | boolean;
-        };
-      };
-    };
-  };
-}
+import { GenderEnum, Maybe } from "stash-ui/dist/src/core/generated-graphql";
 
 
 /** Function for setting the --vsr-vh CSS variable used in video items. */
@@ -114,25 +26,6 @@ export function sortPerformers<T extends IPerformerFragment>(performers: T[]) {
 
   return ret;
 }
-
-/** Update the user's plugin config for Stash TV. NOTE: This overwrites the
- * entire plugin config, not just the updated properties. Be sure to pass the
- * entire config object. */
-export const updateUserConfig = async (config: PluginConfig) => {
-  const mutation = jsonToGraphQLQuery({
-    mutation: {
-      configurePlugin: {
-        __args: {
-          plugin_id: PLUGIN_NAMESPACE,
-          input: config,
-        },
-      },
-    },
-  });
-  const f = fetchData(mutation);
-  console.log(f);
-  return f;
-};
 
 interface IPerformerFragment {
   name?: Maybe<string>;
