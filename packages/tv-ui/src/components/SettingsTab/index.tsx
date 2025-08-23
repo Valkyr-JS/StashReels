@@ -38,7 +38,7 @@ const SettingsTab = forwardRef(
       transitionDuration: TRANSITION_DURATION / 1000 + "s",
     };
 
-    const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, setIsRandomised, scenesLoading, scenes, setShowSettings } = useAppStateStore();
+    const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, setShowSettings } = useAppStateStore();
     const noScenesAvailable = !scenesLoading && scenes.length === 0;
 
     const closeButton =
@@ -197,15 +197,19 @@ const SettingsTab = forwardRef(
           </div>}
 
           <div className="item checkbox-item">
-            <label>
-              <input
-                checked={isRandomised}
-                onChange={event => setIsRandomised(event.target.checked)}
-                type="checkbox"
-              />
-              <h3>Randomise playlist order</h3>
-            </label>
-            <small>Randomise the order of scenes in the playlist.</small>
+            {sceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
+              <span>Playlist is set to random order</span>
+            ) : <>
+              <label>
+                <input
+                  checked={isRandomised}
+                  onChange={event => setIsRandomised(event.target.checked)}
+                  type="checkbox"
+                />
+                <h3>Randomise playlist order</h3>
+              </label>
+              <small>Randomise the order of scenes in the playlist.</small>
+            </>}
           </div>
 
           <div className="item">
