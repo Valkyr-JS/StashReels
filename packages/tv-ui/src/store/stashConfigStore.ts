@@ -69,7 +69,6 @@ export const useStashConfigStore = create<StashConfigState & StashConfigAction>(
     if (!apolloClient) {
         throw new Error("Apollo Client is not initialized");
     }
-    console.log("fetchSavedFilterFromStash", id)
     if (!id) {
       return stashDefaultScenesFilter;
     }
@@ -77,7 +76,6 @@ export const useStashConfigStore = create<StashConfigState & StashConfigAction>(
     if (sceneFilter?.find_filter) {
       return sceneFilter;
     }
-    console.log("fetchSavedFilterFromStash", id)
     sceneFilter = await fetchSavedFilterFromStash(apolloClient, id).then((data) => data.findSavedFilter) || undefined;
     if (!sceneFilter) {
       return undefined;

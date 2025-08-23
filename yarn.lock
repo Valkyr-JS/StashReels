@@ -6073,10 +6073,10 @@ videojs-mobile-ui@^0.8.0:
   dependencies:
     global "^4.4.0"
 
-videojs-overlay-buttons@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/videojs-overlay-buttons/-/videojs-overlay-buttons-1.3.0.tgz#7494aabb4b8a13968de5775091cee7424757c5a9"
-  integrity sha512-YKyAvm6xKQcTcH0qWdQ1wx5Uo/w89uGCpkZDhRvGngQAqUZWRaGRdEdmrJOF+l8LveMzBb/giamME5JhJOSvJw==
+"videojs-overlay-buttons@npm:videojs-overlay-buttons-multiple-players-fix@^1.3.2":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/videojs-overlay-buttons-multiple-players-fix/-/videojs-overlay-buttons-multiple-players-fix-1.3.2.tgz#d91e7e84f42fcae4630b8a960fd7f38b89d07ace"
+  integrity sha512-sxxnEvcQmYHZlsQzWkMYipTxDYYlClPhqjvqD8DtAXIzflRnYVHGT4i/AELudoduFB0rMfILoPd0AoNlAccukQ==
   dependencies:
     global "^4.4.0"
     video.js "^7.11.4"

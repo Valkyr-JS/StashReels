@@ -42,7 +42,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
       } else if (e.key === nextKey) {
         // Go to the next item
-        setCurrentIndex((prevIndex) => {console.log(prevIndex, prevIndex + 1); return prevIndex + 1});
+        setCurrentIndex((prevIndex) => prevIndex + 1);
       }
     }
     window.addEventListener("keydown", handleKeyDown);

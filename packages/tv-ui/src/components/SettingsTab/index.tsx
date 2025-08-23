@@ -139,7 +139,6 @@ const SettingsTab = forwardRef(
       : undefined;
 
     const onChangeSubLanguage: ReactSelectOnChange = (option) => {
-      console.log("subtitles now in: ", option);
       updateStashTvConfig({
         ...stashTvConfig,
         subtitleLanguage: option?.value ?? undefined,

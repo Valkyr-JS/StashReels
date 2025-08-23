@@ -228,7 +228,6 @@ export const ToggleCaptions: Story = {
 
     // Await promise for videos to be fetched
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
-    console.log("cont");
 
     const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
     const subtitlesButton = canvas.getByTestId("VideoItem--subtitlesButton");
