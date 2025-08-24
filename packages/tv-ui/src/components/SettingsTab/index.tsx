@@ -38,7 +38,7 @@ const SettingsTab = forwardRef(
       transitionDuration: TRANSITION_DURATION / 1000 + "s",
     };
 
-    const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, setShowSettings } = useAppStateStore();
+    const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, setShowSettings, crtEffect, setCrtEffect } = useAppStateStore();
     const noScenesAvailable = !scenesLoading && scenes.length === 0;
 
     const closeButton =
@@ -224,6 +224,18 @@ const SettingsTab = forwardRef(
             <small>
               Select the language to use for subtitles if available.
             </small>
+          </div>
+
+          <div className="item checkbox-item">
+            <label>
+              <input
+                checked={crtEffect}
+                onChange={event => setCrtEffect(event.target.checked)}
+                type="checkbox"
+              />
+              <h3>CRT effect</h3>
+            </label>
+            <small>Emulate the visual effects of an old CRT television.</small>
           </div>
         </div>
 

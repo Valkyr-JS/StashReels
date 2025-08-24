@@ -36,6 +36,7 @@ import { type VideoJsPlayer } from "video.js";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useAppStateStore } from "../../store/appStateStore";
 import { useStashConfigStore } from "../../store/stashConfigStore";
+import CrtEffect from "../CrtEffect";
 
 export interface VideoItemProps {
   scene: GQL.TvSceneDataFragment;
@@ -53,6 +54,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     looping,
     showSubtitles,
     uiVisible,
+    crtEffect,
     setShowSettings,
     setAudioMuted,
     setFullscreen,
@@ -334,160 +336,162 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       data-scene-id={props.scene.id}
       ref={itemRef}
     >
-      <ScenePlayer
-        className={cx({ 'cover': !letterboxing })}
-        scene={props.scene}
-        hideScrubberOverride={true}
-        autoplay={false}
-        permitLoop={true}
-        initialTimestamp={0}
-        sendSetTimestamp={() => {}}
-        onComplete={() => {}}
-        onNext={() => {}}
-        onPrevious={() => {}}
-        ref={setVideoRef}
-        onEnded={handleOnEnded}
-        onVideojsPlayerReady={handleVideojsPlayerReady}
-        optionsToMerge={{
-          plugins: {
-            touchOverlay: {
-              seekLeft: {
-                handleClick: seekBackwards
-              },
-              seekRight: {
-                handleClick: seekForwards
+      <CrtEffect enabled={crtEffect}>
+        <ScenePlayer
+          className={cx({ 'cover': !letterboxing })}
+          scene={props.scene}
+          hideScrubberOverride={true}
+          autoplay={false}
+          permitLoop={true}
+          initialTimestamp={0}
+          sendSetTimestamp={() => {}}
+          onComplete={() => {}}
+          onNext={() => {}}
+          onPrevious={() => {}}
+          ref={setVideoRef}
+          onEnded={handleOnEnded}
+          onVideojsPlayerReady={handleVideojsPlayerReady}
+          optionsToMerge={{
+            plugins: {
+              touchOverlay: {
+                seekLeft: {
+                  handleClick: seekBackwards
+                },
+                seekRight: {
+                  handleClick: seekForwards
+                }
               }
             }
-          }
-        }}
-      />
-      <Transition
-        in={sceneInfoOpen}
-        nodeRef={sceneInfoPanelRef}
-        timeout={TRANSITION_DURATION}
-        mountOnEnter
-        unmountOnExit
-      >
-        {(state) => (
-          <SceneInfoPanel
-            {...props.scene}
-            ref={sceneInfoPanelRef}
-            style={{
-              ...toggleableUiStyles,
-              ...toggleableUiTransitionStyles[state],
-            }}
-          />
-        )}
-      </Transition>
-      <div
-        className={cx('controls', {'active': uiVisible})}
-      >
+          }}
+        />
         <Transition
-          in={uiVisible}
-          nodeRef={uiButtonDrawerRef}
+          in={sceneInfoOpen}
+          nodeRef={sceneInfoPanelRef}
           timeout={TRANSITION_DURATION}
+          mountOnEnter
           unmountOnExit
         >
           {(state) => (
-            <div
-              className="toggleable-ui"
-              data-testid="VideoItem--toggleableUi"
-              ref={uiButtonDrawerRef}
+            <SceneInfoPanel
+              {...props.scene}
+              ref={sceneInfoPanelRef}
               style={{
                 ...toggleableUiStyles,
                 ...toggleableUiTransitionStyles[state],
               }}
-            >
-              <UiButton
-                active={audioMuted}
-                activeIcon={faVolumeOff}
-                activeText="Unmute"
-                data-testid="VideoItem--muteButton"
-                inactiveIcon={faVolume}
-                inactiveText="Mute"
-                onClick={() => setAudioMuted((prev) => !prev)}
-              />
-
-              {subtitlesButton}
-
-              <UiButton
-                active={fullscreen}
-                activeIcon={faExpand}
-                activeText="Close fullscreen"
-                data-testid="VideoItem--fullscreenButton"
-                inactiveIcon={faExpandOff}
-                inactiveText="Open fullscreen"
-                onClick={() => setFullscreen((prev) => !prev)}
-              />
-
-              <UiButton
-                active={!letterboxing}
-                activeIcon={faRectanglePortrait}
-                activeText="Constrain to screen"
-                data-testid="VideoItem--letterboxButton"
-                inactiveIcon={faDistributeSpacingHorizontal}
-                inactiveText="Fill screen"
-                onClick={() => setLetterboxing((prev) => !prev)}
-              />
-
-              <UiButton
-                active={!forceLandscape}
-                activeIcon={faMobile}
-                activeText="Landscape"
-                data-testid="VideoItem--forceLandscapeButton"
-                inactiveIcon={faDesktop}
-                inactiveText="Portrait"
-                onClick={() => setForceLandscape((prev) => !prev)}
-              />
-
-              <UiButton
-                active={looping}
-                activeIcon={faRepeat}
-                activeText="Stop looping scene"
-                data-testid="VideoItem--loopButton"
-                inactiveIcon={faRepeatOff}
-                inactiveText="Loop scene"
-                onClick={() => setLooping((prev) => !prev)}
-              />
-
-              {sceneInfoButton}
-
-              <UiButton
-                active={false}
-                activeIcon={faGearOff}
-                activeText="Close settings"
-                data-testid="VideoItem--settingsButton"
-                inactiveIcon={faGearOff}
-                inactiveText="Show settings"
-                onClick={() => setShowSettings(showSettings => !showSettings)}
-              />
-            </div>
-          )}
-        </Transition>
-        <Transition
-          in={uiVisible}
-          nodeRef={uiButtonRef}
-          timeout={TRANSITION_DURATION}
-        >
-          {(state) => (
-            <UiButton
-              active={uiVisible}
-              activeIcon={faEllipsisVertical}
-              activeText="Hide UI"
-              className="toggleable-ui-button"
-              data-testid="VideoItem--showUiButton"
-              inactiveIcon={faEllipsisStrokeVertical}
-              inactiveText="Show UI"
-              onClick={() => setUiVisible((prev) => !prev)}
-              ref={uiButtonRef}
-              style={{
-                ...toggleableUiStyles,
-                ...toggleUiButtonTransitionStyles[state],
-              }}
             />
           )}
         </Transition>
-      </div>
+        <div
+          className={cx('controls', {'active': uiVisible})}
+        >
+          <Transition
+            in={uiVisible}
+            nodeRef={uiButtonDrawerRef}
+            timeout={TRANSITION_DURATION}
+            unmountOnExit
+          >
+            {(state) => (
+              <div
+                className="toggleable-ui"
+                data-testid="VideoItem--toggleableUi"
+                ref={uiButtonDrawerRef}
+                style={{
+                  ...toggleableUiStyles,
+                  ...toggleableUiTransitionStyles[state],
+                }}
+              >
+                <UiButton
+                  active={audioMuted}
+                  activeIcon={faVolumeOff}
+                  activeText="Unmute"
+                  data-testid="VideoItem--muteButton"
+                  inactiveIcon={faVolume}
+                  inactiveText="Mute"
+                  onClick={() => setAudioMuted((prev) => !prev)}
+                />
+
+                {subtitlesButton}
+
+                <UiButton
+                  active={fullscreen}
+                  activeIcon={faExpand}
+                  activeText="Close fullscreen"
+                  data-testid="VideoItem--fullscreenButton"
+                  inactiveIcon={faExpandOff}
+                  inactiveText="Open fullscreen"
+                  onClick={() => setFullscreen((prev) => !prev)}
+                />
+
+                <UiButton
+                  active={!letterboxing}
+                  activeIcon={faRectanglePortrait}
+                  activeText="Constrain to screen"
+                  data-testid="VideoItem--letterboxButton"
+                  inactiveIcon={faDistributeSpacingHorizontal}
+                  inactiveText="Fill screen"
+                  onClick={() => setLetterboxing((prev) => !prev)}
+                />
+
+                <UiButton
+                  active={!forceLandscape}
+                  activeIcon={faMobile}
+                  activeText="Landscape"
+                  data-testid="VideoItem--forceLandscapeButton"
+                  inactiveIcon={faDesktop}
+                  inactiveText="Portrait"
+                  onClick={() => setForceLandscape((prev) => !prev)}
+                />
+
+                <UiButton
+                  active={looping}
+                  activeIcon={faRepeat}
+                  activeText="Stop looping scene"
+                  data-testid="VideoItem--loopButton"
+                  inactiveIcon={faRepeatOff}
+                  inactiveText="Loop scene"
+                  onClick={() => setLooping((prev) => !prev)}
+                />
+
+                {sceneInfoButton}
+
+                <UiButton
+                  active={false}
+                  activeIcon={faGearOff}
+                  activeText="Close settings"
+                  data-testid="VideoItem--settingsButton"
+                  inactiveIcon={faGearOff}
+                  inactiveText="Show settings"
+                  onClick={() => setShowSettings(showSettings => !showSettings)}
+                />
+              </div>
+            )}
+          </Transition>
+          <Transition
+            in={uiVisible}
+            nodeRef={uiButtonRef}
+            timeout={TRANSITION_DURATION}
+          >
+            {(state) => (
+              <UiButton
+                active={uiVisible}
+                activeIcon={faEllipsisVertical}
+                activeText="Hide UI"
+                className="toggleable-ui-button"
+                data-testid="VideoItem--showUiButton"
+                inactiveIcon={faEllipsisStrokeVertical}
+                inactiveText="Show UI"
+                onClick={() => setUiVisible((prev) => !prev)}
+                ref={uiButtonRef}
+                style={{
+                  ...toggleableUiStyles,
+                  ...toggleUiButtonTransitionStyles[state],
+                }}
+              />
+            )}
+          </Transition>
+        </div>
+      </CrtEffect>
     </div>
   );
 };

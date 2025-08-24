@@ -22,6 +22,7 @@ type AppState = {
   looping: boolean;
   uiVisible: boolean;
   isRandomised: boolean;
+  crtEffect: boolean;
   setSelectedSavedFilterId: (id: string | undefined) => void;
   setSceneFilter: (apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter) => Promise<void>;
   setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => void;
@@ -33,6 +34,7 @@ type AppState = {
   setLooping: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setUiVisible: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setIsRandomised: (newValue: boolean | ((prev: boolean) => boolean)) => void;
+  setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 export const useAppStateStore = create<AppState>((set, get) => ({
@@ -49,6 +51,7 @@ export const useAppStateStore = create<AppState>((set, get) => ({
   looping: false,
   uiVisible: true,
   isRandomised: false,
+  crtEffect: false,
   setSelectedSavedFilterId: (id: string | undefined) => set({ selectedSavedFilterId: id }),
   setSceneFilter: async (apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter) => {
     set({ scenesLoading: true });
@@ -84,6 +87,9 @@ export const useAppStateStore = create<AppState>((set, get) => ({
   })),
   setIsRandomised: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
     isRandomised: typeof newValue === "boolean" ? newValue : newValue(state.isRandomised)
+  })),
+  setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+    crtEffect: typeof newValue === "boolean" ? newValue : newValue(state.crtEffect)
   })),
 }));
 
