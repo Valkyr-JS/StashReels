@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="Stash TV Logo - A cardboard box with antennas sticking out from it." src="https://raw.githubusercontent.com/secondfolder/stash-tv/main/packages/tv-ui/src/public/apple-touch-icon.png">
+</p>
+
 # Stash TV
 
 Stash TV allows you to swipe through scene playlists based on your Stash filters. Featuring a non-instrusive, hideable
