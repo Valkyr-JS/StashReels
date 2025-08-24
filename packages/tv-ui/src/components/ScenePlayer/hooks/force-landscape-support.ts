@@ -65,7 +65,6 @@ function getPointerPosition(el: HTMLElement, event: Event) {
         throw new Error("Event target not found");
     }
     const isForcedLandscapeMode = rootElm.classList.contains('force-landscape');
-    console.log("isForcedLandscapeMode", isForcedLandscapeMode)
 
     const boxTarget = findPosition(targetElm, rootElm);
     const box = findPosition(el, rootElm);

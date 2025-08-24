@@ -1,22 +1,44 @@
 # Stash TV
 
-Stash TV allows you to swipe through scene playlists based on your Stash filters. Featuring a non-instrusive, hideable UI, Stash TV is based heavily on apps like TikTok and Instagram. Forked from [Stash Reels](https://github.com/Valkyr-JS/StashReels) and currently not that different.
+Stash TV allows you to swipe through scene playlists based on your Stash filters. Featuring a non-instrusive, hideable
+UI, Stash TV is based heavily on apps like TikTok and Instagram. It's been forked from [Stash
+Reels](https://github.com/Valkyr-JS/StashReels) and is currently not that different.
 
 ## Installation
 
-1. In Stash go to Settings > Plugins
-2. Under Available Plugins click Add Source
-3. Fill out the fields in the popup form. Name and Local Path can be whatever you like, but Source URL needs to match the below. I use the following;
-   - Name: secondfolder
-   - Source URL: https://secondfolder.github.io/stash-plugins/index.yml
-   - Local Path: secondfolder
-4. Click confirm and you should see new line under Available Plugins called secondfolder (or whatever you used for Name). Click this and you'll see my available plugins.
-5. Check "Stash TV" and then click Install in the top right of Available Plugins.
-6. (Optional) Configure the plugin under the Plugins panel below Available plugins.
+1. Add the [secondfolder stash-plugins source](https://github.com/secondfolder/stash-plugins) to Stash if it hasn't been
+   added already.
+<ul>
+<li>
+<details>
+<summary>Instructions</summary>
+
+Plugins can be installed and managed from the **Settings** > **Plugins** page.
+
+Under the **Available Plugins** section click **Add Source** and enter the following details:
+
+**Name:**
+```
+secondfolder's plugins (stable)
+```
+**Source URL:**
+```
+https://secondfolder.github.io/stash-plugins/stable/index.yml
+```
+**Local Path:**
+```
+secondfolder-stable
+```
+
+</details>
+</li>
+</ul>
+
+2. In **Settings** > **Plugins** find **Stash TV** under **Available Plugins** > **secondfolder's plugins (stable)**, select it then click **Install**.
 
 ## Using Stash TV
 
-To access Stash TV, visit `http://<YourStashDomain>/plugin/stash-tv/assets/app/`. By default, the plugin adds a link to the main Stash navbar, though this can be disabled on the plugin settings page.
+Click the new **TV** link in the nav bar at the top of Stash (this link can be disabled in the plugin settings if desired).
 
 ### User interface
 
