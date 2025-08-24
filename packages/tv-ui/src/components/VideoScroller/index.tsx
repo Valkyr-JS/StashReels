@@ -9,7 +9,7 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 interface VideoScrollerProps {}
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
-  const { forceLandscape: isForceLandscape } = useAppStateStore();
+  const { forceLandscape: isForceLandscape, setCrtEffect } = useAppStateStore();
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   /* ------------------------ Handle loading new videos ----------------------- */
@@ -50,6 +50,18 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isForceLandscape, setCurrentIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "c") {
+        setCrtEffect((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   /* -------------------------------- Component ------------------------------- */
 
