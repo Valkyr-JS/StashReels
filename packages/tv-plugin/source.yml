@@ -1,7 +1,7 @@
 name: Stash TV
 description: TikTok for Stash.
 url: https://github.com/secondfolder/stash-tv
-version: 0.1.2
+version: 0.2.0
 ui:
   assets:
     /: .
