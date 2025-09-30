@@ -45,9 +45,9 @@ export default function SettingsTab() {
       x: showSettings || noScenesAvailable ? 0 : 0,
     },
     config: {
-      tension: 230,  // Lower tension for smoother motion
-      friction: 26,  // Balanced friction for natural movement
-      mass: 1.2      // Slightly more mass for momentum
+      mass: 0.3,
+      tension: 600,
+      friction: 26
     }
   }));
   useEffect(() => {
@@ -62,9 +62,13 @@ export default function SettingsTab() {
     api.start({
       x: sidebarWidth,
       immediate: false,
-      // when cancel is true, it means that the user passed the upwards threshold
+      // when cancel is true, it means that the user passed the drag right threshold
       // so we change the spring config to create a nice wobbly effect
-      config: canceled ? config.wobbly : config.stiff,
+      config: canceled ? {
+        mass: 0.9,
+        tension: 400,
+        friction: 20
+      } : undefined,
       onRest: () => setShowSettings(true)
     })
 
@@ -84,7 +88,7 @@ export default function SettingsTab() {
 
     if (dragging) {
       // If we drag more than 1.5x the sidebar width, we cancel the drag and snap back
-      if (values[0] / sidebarWidth > 1.5) {
+      if (values[0] / sidebarWidth > 3) {
         cancel()
       } else {
         api.start({ x: ox, immediate: true });
