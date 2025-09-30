@@ -49,6 +49,7 @@ export interface VideoItemProps {
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
   const {
+    showSettings,
     fullscreen,
     letterboxing,
     forceLandscape,
@@ -465,7 +466,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
                 <UiButton
                   className="settings"
-                  active={false}
+                  active={showSettings}
                   activeIcon={faGear}
                   activeText="Close settings"
                   data-testid="VideoItem--settingsButton"

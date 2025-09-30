@@ -5,9 +5,11 @@
   @include fullHeight;
   position: absolute;
   top: 0;
-  right: 0;
-  width: 100%;
+  right: 100%; /* Default position is just off-screen to the left */
+  width: 85%;
+  max-width: 400px;
   z-index: 10;
+  touch-action: none;
 
   display: grid;
   grid-template-rows:
@@ -18,15 +20,28 @@
     [footer-bottom canvas-bottom];
 
   background-color: black;
-  transition: right ease-in-out;
-
-  &.entering,
-  &.entered {
+  will-change: transform;
+  
+  // Extend background out to the top, left and bottom to cover gaps during swipe
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: -50%;
     right: 0;
+    width: 200%;
+    height: 200%;
+    background-color: inherit;
+    z-index: -1;
   }
-  &.exiting,
-  &.exited {
-    right: 100%;
+  
+  // Add zone to the right to capture swipe gestures
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 100px;
+    height: 100%;
   }
 
   .body {
@@ -106,4 +121,16 @@
   &--warning {
     border-color: gold;
   }
+}
+
+
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 5; // Below settings (z-index 10) but above other content
+  cursor: pointer;
 }
