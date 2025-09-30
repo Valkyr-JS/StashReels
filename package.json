@@ -8,6 +8,7 @@
   ],
   "main": "index.js",
   "scripts": {
+    "dev": "yarn --cwd packages/stash-ui build-if-needed && yarn --cwd packages/tv-ui dev",
     "build": "yarn --cwd packages/stash-ui build && yarn --cwd packages/tv-ui build && yarn --cwd packages/tv-plugin build",
     "storybook": "storybook dev -p 6006"
   },
