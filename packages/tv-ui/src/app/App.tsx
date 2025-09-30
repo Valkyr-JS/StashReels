@@ -3,6 +3,7 @@ import FeedPage from "../pages/Feed";
 import {
   setCssVH,
 } from "../helpers";
+import cx from "classnames";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { ListFilterModel } from "stash-ui/dist/src/models/list-filter/filter";
 import { StashTvConfig, useStashConfigStore } from "../store/stashConfigStore";
@@ -14,7 +15,7 @@ const App = () => {
   setCssVH();
 
   const { loadStashConfig, getSavedFilter, stashTvConfig, loading: stashConfigLoading,  } = useStashConfigStore();
-  const { setSceneFilter, sceneFilter, scenesLoading, selectedSavedFilterId, setSelectedSavedFilterId, ...otherAppState  } = useAppStateStore()
+  const { setSceneFilter, sceneFilter, scenesLoading, selectedSavedFilterId, setSelectedSavedFilterId, forceLandscape, ...otherAppState  } = useAppStateStore()
   
 
   /* ------------------------------ Initial load ------------------------------ */
@@ -54,7 +55,7 @@ const App = () => {
   }, [stashConfigLoading, selectedSavedFilterId, otherAppState.isRandomised]);
 
   return (
-    <FeedPage />
+    <FeedPage className={cx({ "force-landscape": forceLandscape })} />
   );
 };
 

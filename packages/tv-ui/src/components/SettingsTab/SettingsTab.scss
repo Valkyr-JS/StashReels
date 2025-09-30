@@ -3,22 +3,21 @@
 
 .SettingsTab {
   @include fullHeight;
-  position: absolute;
+  position: fixed;
   top: 0;
-  width: 85%;
-  max-width: 400px;
+  width: min(300px, 80%);
   touch-action: none;
-
   background-color: black;
+  max-height: 100%;
   
   // Extend background out to the top, left and bottom to cover gaps during swipe
   &::before {
     content: "";
     position: absolute;
-    bottom: -50%;
+    top: 0;
     right: 0;
     width: 200%;
-    height: 200%;
+    height: 100lvh;
     background-color: inherit;
   }
   

@@ -1,20 +1,19 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
 import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import cx from "classnames";
 import { useAppStateStore } from "../../store/appStateStore";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
+import { useWindowVirtualizer, Virtualizer } from "@tanstack/react-virtual";
 
 interface VideoScrollerProps {}
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const { forceLandscape: isForceLandscape, setCrtEffect } = useAppStateStore();
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   /* ------------------------ Handle loading new videos ----------------------- */
 
-  const [currentIndex, setCurrentIndex] = useState(0);
   
   const { scenes } = useAppStateStore();
 
@@ -32,6 +31,35 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     _scenesCache.current = newValue
     return newValue;
   }, [scenes]);
+  
+  const getItemHeight = () => isForceLandscape ? window.innerWidth : window.innerHeight
+
+  const rowVirtualizer = useWindowVirtualizer({
+    count: cachedScenes.length,
+    estimateSize: getItemHeight,
+    overscan: 2,
+  });
+  
+  
+  useEffect(() => { 
+    // Force re-measure when orientation changes
+    rowVirtualizer.measure();
+  }, [isForceLandscape, rowVirtualizer]);
+
+  const [currentIndex, _setCurrentIndex] = useState(0);
+  const setCurrentIndex = (newIndex: React.SetStateAction<number>, {scrollTo = false}: {scrollTo: boolean} = {scrollTo: false}) => {
+    console.trace({ newIndex, scrollTo });
+    if (scrollTo) {
+      let newIndexValue;
+      if (typeof newIndex === 'function') {
+        newIndexValue = newIndex(currentIndex);
+      } else {
+        newIndexValue = newIndex;
+      }
+      rowVirtualizer.scrollToIndex(newIndexValue, { align: 'center', behavior: "auto" });
+    }
+    return _setCurrentIndex(newIndex);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,17 +67,19 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       const previousKey = isForceLandscape ? "ArrowLeft" : "ArrowUp";
       if (e.key === previousKey) {
         // Go to the previous item
-        setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+        setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0), {scrollTo: true});
+        e.preventDefault();
       } else if (e.key === nextKey) {
         // Go to the next item
-        setCurrentIndex((prevIndex) => prevIndex + 1);
+        setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, cachedScenes.length - 1), {scrollTo: true});
+        e.preventDefault();
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isForceLandscape, setCurrentIndex]);
+  }, [isForceLandscape, setCurrentIndex, cachedScenes.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -65,18 +95,25 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
 
   /* -------------------------------- Component ------------------------------- */
 
-  // ? Added tabIndex to container to atisfy accessible scroll region.
+  // ? Added tabIndex to container to satisfy accessible scroll region.
   return (
     <div
-      className={cx("VideoScroller", { "force-landscape": isForceLandscape })}
+      className={cx("VideoScroller")}
       data-testid="VideoScroller--container"
-      ref={scrollerRef}
       tabIndex={0}
+      style={{height: `calc(var(--y-unit) * 100 * ${cachedScenes.length})`}}
     >
       {cachedScenes.map((scene, i) => {
+        const style = {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: 'calc(var(--y-unit) * 100)',
+          transform: `translate3d(0, calc(var(--y-unit) * 100 * ${i}), 0)`,
+        } as const
         if (
-          i >= currentIndex - ITEM_BUFFER_EACH_SIDE &&
-          i <= currentIndex + ITEM_BUFFER_EACH_SIDE
+          rowVirtualizer.getVirtualItems().some(v => v.index === i)
         ) {
           return (
             <VideoItem
@@ -85,9 +122,10 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
               index={i}
               key={scene.id}
               scene={scene}
+              style={style}
             />
           );
-        } else return <div key={scene.id} className="dummy-video-item" />;
+        } else return <div key={scene.id} className="dummy-video-item" style={style} />;
       })}
     </div>
   );

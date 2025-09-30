@@ -8,9 +8,11 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
 export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesForTvQuery>[0]
 
-interface FeedPageProps {}
+interface FeedPageProps {
+  className?: string;
+}
 
-const FeedPage: React.FC<FeedPageProps> = () => {
+const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   const { scenesLoading, scenes, showSettings, setShowSettings, fullscreen } = useAppStateStore();
 
   // Settings tab
@@ -40,7 +42,7 @@ const FeedPage: React.FC<FeedPageProps> = () => {
     return <Loading heading="Fetching scenes..." />;
 
   return (
-  <main data-testid="FeedPage" ref={pageRef}>
+  <main data-testid="FeedPage" ref={pageRef} className={className}>
       <VideoScroller />
       <SettingsTab />
     </main>

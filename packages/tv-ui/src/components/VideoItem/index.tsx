@@ -45,6 +45,7 @@ export interface VideoItemProps {
   changeItemHandler: ((newIndex: number | ((currentIndex: number) => number)) => void);
   currentIndex: number;
   index: number;
+  style: React.CSSProperties | undefined;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -111,34 +112,32 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     // Play/pause the video based only on viewport
     const videojsPlayer = videojsPlayerRef.current;
     if (videojsPlayer) {
-      if (isInViewport) {
+      if (props.index === props.currentIndex) {
         setPaused(false);
         videojsPlayer.play()?.catch(() => setPaused(true));
       } else {
         videojsPlayer.pause();
       }
     }
-    // Update the current item data
-    if (isInViewport) props.changeItemHandler(props.index);
-  }, [isInViewport]);
+  }, [props.index, props.currentIndex]);
     
-    useEffect(() => {
-      if (!isInViewport) return;
-      const handleKeyDown = (e: KeyboardEvent) => {
-        const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
-        const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
-        if (e.key === seekBackwardsKey) {
-          seekBackwards()
-          e.preventDefault()
-        } else if (e.key === seekForwardsKey) {
-          seekForwards()
-          e.preventDefault()
-        }
+  useEffect(() => {
+    if (!isInViewport) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
+      const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
+      if (e.key === seekBackwardsKey) {
+        seekBackwards()
+        e.preventDefault()
+      } else if (e.key === seekForwardsKey) {
+        seekForwards()
+        e.preventDefault()
       }
-      window.addEventListener("keydown", handleKeyDown);
-      return () => {
-        window.removeEventListener("keydown", handleKeyDown);
-      };
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [forceLandscape, isInViewport]);
 
   function getSkipTime() {
@@ -339,6 +338,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       data-index={props.index}
       data-scene-id={props.scene.id}
       ref={itemRef}
+      style={props.style}
     >
       <CrtEffect enabled={crtEffect}>
         <ScenePlayer

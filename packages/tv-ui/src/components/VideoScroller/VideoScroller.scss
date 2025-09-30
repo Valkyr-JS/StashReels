@@ -1,41 +1,13 @@
 @import "../../styles/mixins.scss";
 @import "../../styles/variables.scss";
 
+
 .VideoScroller {
-  height: 100vh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-  container: viewport / size;
+  // height: 100dvh;
+  position: relative;
   
-  .dummy-video-item {
-    height: 100%;
-    scroll-snap-align: start;
+  .VideoItem, .dummy-video-item {
+    scroll-snap-align: center;
     scroll-snap-stop: always;
-    background: #000;
-    position: relative;
-    border: 1px solid transparent;
-  }
-    
-  --x-unit: 1svw;
-  --y-unit: 1svh;
-  
-  &.force-landscape {
-    height: 100svw;
-    width: 100svh;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg);
-    transform-origin: center center 0px;
-    
-    --x-unit: 1svh;
-    --y-unit: 1svw;
-    
-    .VideoItem,
-    .VideoItem .ScenePlayer,
-    .dummy-video-item {
-      height: 100%;
-    }
   }
 }

@@ -56,7 +56,7 @@ function findPosition(el: HTMLElement, rootElm: HTMLElement) {
 // Based off:
 // https://github.com/videojs/video.js/blob/7c3d3f4479ba3dd572ac28082ee6e660e4c4e912/src/js/utils/dom.js#L616
 function getPointerPosition(el: HTMLElement, event: Event) {
-    const rootElm = document.querySelector('.VideoScroller')
+    const rootElm = document.scrollingElement
     if (!(rootElm instanceof HTMLElement)) {
         throw new Error("Root element not found");
     }
@@ -64,7 +64,7 @@ function getPointerPosition(el: HTMLElement, event: Event) {
     if (!(targetElm instanceof HTMLElement)) {
         throw new Error("Event target not found");
     }
-    const isForcedLandscapeMode = rootElm.classList.contains('force-landscape');
+    const isForcedLandscapeMode = document.querySelector('main')?.classList.contains('force-landscape');
 
     const boxTarget = findPosition(targetElm, rootElm);
     const box = findPosition(el, rootElm);

@@ -128,6 +128,7 @@ const ScenePlayer = forwardRef<
     
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);
+    const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
     if (onVideojsPlayerReady) {
         videoJsSetupCallbacks[otherProps.scene.id] = onVideojsPlayerReady;
     }
@@ -135,6 +136,20 @@ const ScenePlayer = forwardRef<
     if (optionsToMerge) {
         videoJsOptions[otherProps.scene.id] = optionsToMerge
     }
+    
+    useEffect(() => {
+        return () => {
+            const videojsPlayer = videojsPlayerRef.current
+            if (videojsPlayer) {
+                videojsPlayer.on("dispose", () => {
+                    /* Prevent bug in markers plugin where it tries to operate on the player element after it's been disposed */
+                    videojsPlayer.markers = () => ({
+                        clearMarkers: () => {}
+                    })
+                })
+            }
+        }
+    }, [])
     
     
     useEffect(() => {
@@ -164,6 +179,7 @@ const ScenePlayer = forwardRef<
         
         const player = videojs.getPlayer(videoElm);
         if (player) {
+            videojsPlayerRef.current = player;
             setVideojsPlayer(player);
         }
     }, []);
