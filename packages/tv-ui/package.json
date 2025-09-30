@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build src/ --mode development --sourcemap true --emptyOutDir --base './' --outDir ../dist/app --minify false"
+    "build": "vite build src/ --mode development --sourcemap true --emptyOutDir --base './' -c ./vite.config.ts --outDir ../dist/app --minify false"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.3.0",
