@@ -112,14 +112,43 @@
       width: $ui-button-size;
 
       background-color: transparent;
-      color: white;
       font-size: 28px;
       line-height: 1;
-    }
+      
+      // Rotate icon if device is landscape to reflect device
+      @container viewport (min-aspect-ratio: 1/1) {
+        /* width >= height */
+        &.letterboxing svg {
+          transform: rotate(90deg);
+        }
+      }
+      
+      svg {
+        height: 1em;
+        --shadow-layer-opacity: 0.1;
+        /* Compensate for icons with less mass having visually lighter shadows */
+        &.fa-expand {
+          --shadow-layer-opacity: 0.24;
+        }
+        &.fa-down-left-and-up-right-to-center {
+          --shadow-layer-opacity: 0.14;
+        }
+        &.fa-repeat {
+          --shadow-layer-opacity: 0.19;
+        }
+        &.fa-ellipsis-vertical {
+          --shadow-layer-opacity: 0.26;
+        }
+        filter: 
+          drop-shadow(5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) 
+          drop-shadow(-5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) 
+          drop-shadow(5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) 
+          drop-shadow(-5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity)));
+      }
 
-    &.active {
-      button {
-        background-color: $ui-active-bg-color;
+      path {
+        stroke: white;
+        color: white;
       }
     }
   }

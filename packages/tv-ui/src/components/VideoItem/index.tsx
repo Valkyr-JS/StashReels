@@ -1,19 +1,11 @@
-import { faDownLeftAndUpRightToCenter as faRectanglePortrait } from "@fortawesome/free-solid-svg-icons";
-import { faUpRightAndDownLeftFromCenter as faDistributeSpacingHorizontal } from "@fortawesome/free-solid-svg-icons";
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 import { faExpand } from "@fortawesome/free-solid-svg-icons";
 import { faRepeat } from "@fortawesome/free-solid-svg-icons";
+import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { faClosedCaptioning as faSubtitles } from "@fortawesome/free-solid-svg-icons";
 import { faVolumeHigh as faVolume } from "@fortawesome/free-solid-svg-icons";
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
-import { faEllipsisVertical as faEllipsisStrokeVertical } from "@fortawesome/free-solid-svg-icons";
-import { faCircleInfo as faCircleInfoOff } from "@fortawesome/free-solid-svg-icons";
-import { faExpand as faExpandOff } from "@fortawesome/free-solid-svg-icons";
-import { faGear as faGearOff } from "@fortawesome/free-solid-svg-icons";
-import { faRepeat as faRepeatOff } from "@fortawesome/free-solid-svg-icons";
 import { faClosedCaptioning as faSubtitlesOff } from "@fortawesome/free-solid-svg-icons";
-import { faVolumeXmark as faVolumeOff } from "@fortawesome/free-solid-svg-icons";
-import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
@@ -37,6 +29,16 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useAppStateStore } from "../../store/appStateStore";
 import { useStashConfigStore } from "../../store/stashConfigStore";
 import CrtEffect from "../CrtEffect";
+import VolumeMuteOutlineIcon from '../../assets/volume-mute-outline.svg?react';
+import ExpandOutlineIcon from '../../assets/expand-outline.svg?react';
+import ContainIcon from '../../assets/contain.svg?react';
+import CoverOutlineIcon from '../../assets/cover-outline.svg?react';
+import PortraitOutlineIcon from '../../assets/portrait-rotation-outline.svg?react';
+import LandscapeIcon from '../../assets/landscape-rotation.svg?react';
+import LoopOutlineIcon from '../../assets/loop-outline.svg?react';
+import InfoOutlineIcon from '../../assets/info-outline.svg?react';
+import CogOutlineIcon from '../../assets/cog-outline.svg?react';
+import VerticalEllipsisOutlineIcon from '../../assets/vertical-ellipsis-outline.svg?react';
 
 export interface VideoItemProps {
   scene: GQL.TvSceneDataFragment;
@@ -269,11 +271,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const sceneInfoButton = sceneInfoDataAvailable ? (
     <UiButton
+      className="show-scene-info"
       active={sceneInfoOpen}
       activeIcon={faCircleInfo}
       activeText="Close scene info"
       data-testid="VideoItem--infoButton"
-      inactiveIcon={faCircleInfoOff}
+      inactiveIcon={InfoOutlineIcon}
       inactiveText="Show scene info"
       onClick={sceneInfoButtonClickHandler}
     />
@@ -402,53 +405,58 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 }}
               >
                 <UiButton
-                  active={audioMuted}
-                  activeIcon={faVolumeOff}
-                  activeText="Unmute"
+                  className="mute"
+                  active={!audioMuted}
+                  activeIcon={faVolume}
+                  activeText="Mute"
                   data-testid="VideoItem--muteButton"
-                  inactiveIcon={faVolume}
-                  inactiveText="Mute"
+                  inactiveIcon={VolumeMuteOutlineIcon}
+                  inactiveText="Unmute"
                   onClick={() => setAudioMuted((prev) => !prev)}
                 />
 
                 {subtitlesButton}
 
                 <UiButton
+                  className="fullscreen"
                   active={fullscreen}
                   activeIcon={faExpand}
                   activeText="Close fullscreen"
                   data-testid="VideoItem--fullscreenButton"
-                  inactiveIcon={faExpandOff}
+                  inactiveIcon={ExpandOutlineIcon}
                   inactiveText="Open fullscreen"
                   onClick={() => setFullscreen((prev) => !prev)}
                 />
 
                 <UiButton
+                  className="letterboxing"
                   active={!letterboxing}
-                  activeIcon={faRectanglePortrait}
+                  activeIcon={CoverOutlineIcon}
                   activeText="Constrain to screen"
                   data-testid="VideoItem--letterboxButton"
-                  inactiveIcon={faDistributeSpacingHorizontal}
+                  inactiveIcon={ContainIcon}
                   inactiveText="Fill screen"
                   onClick={() => setLetterboxing((prev) => !prev)}
                 />
 
                 <UiButton
+                  className="force-landscape"
                   active={!forceLandscape}
-                  activeIcon={faMobile}
+                  activeIcon={PortraitOutlineIcon}
                   activeText="Landscape"
                   data-testid="VideoItem--forceLandscapeButton"
-                  inactiveIcon={faDesktop}
+                  inactiveIcon={LandscapeIcon}
                   inactiveText="Portrait"
                   onClick={() => setForceLandscape((prev) => !prev)}
                 />
 
                 <UiButton
+                  className="loop"
                   active={looping}
                   activeIcon={faRepeat}
                   activeText="Stop looping scene"
                   data-testid="VideoItem--loopButton"
-                  inactiveIcon={faRepeatOff}
+                  inactiveIcon={LoopOutlineIcon}
                   inactiveText="Loop scene"
                   onClick={() => setLooping((prev) => !prev)}
                 />
@@ -456,11 +464,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 {sceneInfoButton}
 
                 <UiButton
+                  className="settings"
                   active={false}
-                  activeIcon={faGearOff}
+                  activeIcon={faGear}
                   activeText="Close settings"
                   data-testid="VideoItem--settingsButton"
-                  inactiveIcon={faGearOff}
+                  inactiveIcon={CogOutlineIcon}
                   inactiveText="Show settings"
                   onClick={() => setShowSettings(showSettings => !showSettings)}
                 />
@@ -479,7 +488,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 activeText="Hide UI"
                 className="toggleable-ui-button"
                 data-testid="VideoItem--showUiButton"
-                inactiveIcon={faEllipsisStrokeVertical}
+                inactiveIcon={VerticalEllipsisOutlineIcon}
                 inactiveText="Show UI"
                 onClick={() => setUiVisible((prev) => !prev)}
                 ref={uiButtonRef}
@@ -509,20 +518,26 @@ interface UiButtonProps
   > {
   /** Indicates if the buttons associated action is active. */
   active: boolean;
-  activeIcon: IconDefinition;
+  activeIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
   activeText: string;
-  inactiveIcon: IconDefinition;
+  inactiveIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
   inactiveText: string;
 }
 
 const UiButton = forwardRef<HTMLButtonElement, UiButtonProps>(
   (
-    { active, activeIcon, activeText, inactiveIcon, inactiveText, ...props },
+    { active, activeIcon, activeText, inactiveIcon, inactiveText, className, ...props },
     ref
   ) => {
+    const fullClassName = cx(className, { active });
+    const Icon = active ? activeIcon : inactiveIcon;
     return (
-      <button {...props} onClick={props.onClick} type="button" ref={ref}>
-        <FontAwesomeIcon icon={active ? activeIcon : inactiveIcon} />
+      <button className={fullClassName} {...props} onClick={props.onClick} type="button" ref={ref}>
+        {'icon' in Icon ? (
+          <FontAwesomeIcon icon={Icon} />
+        ) : (
+          <Icon className="icon" />
+        )}
         <span className="sr-only">
           {active ? activeText : inactiveText}
         </span>

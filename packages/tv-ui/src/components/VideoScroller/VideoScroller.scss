@@ -6,6 +6,7 @@
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
+  container: viewport / size;
   
   .dummy-video-item {
     height: 100%;
