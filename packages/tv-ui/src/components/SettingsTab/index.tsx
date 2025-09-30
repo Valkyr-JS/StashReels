@@ -227,105 +227,107 @@ export default function SettingsTab() {
 
   return <>
     <animated.div
-      className={cx("SettingsTab")}
-      data-testid="SettingsTab"
-      ref={ref}
-      style={{ x }}
-      {...bind()}
-    >
-      <div className="body">
-        <div className="item">
-          <label>
-            <h3>Select a playlist</h3>
-            <Select
-              defaultValue={selectedPlaylist}
-              onChange={(newValue) => setSelectedSavedFilterId(newValue?.value ?? undefined)}
-              options={playlists}
-              placeholder="None selected. Defaulted to all portrait scenes."
-              theme={reactSelectTheme}
-            />
-          </label>
-          <small>
-            Choose a scene filter from Stash to use as your Stash TV
-            playlist
-          </small>
-
-          {fetchingDataWarning}
-          {scenelessFilterError}
-        </div>
-
-        {selectedPlaylist && selectedPlaylist.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
-          <button
-            onClick={() => {
-              updateStashTvConfig({
-                ...stashTvConfig,
-                stashTvDefaultFilterID: selectedPlaylist?.value,
-              });
-            }}
-          >
-            Set "{selectedPlaylist?.label}" as the default playlist
-          </button>
-          <div>
-            <small>
-              Set the currently selected scene filter as the default playlist
-              when opening Stash TV.
-            </small>
-          </div>
-        </div>}
-
-        <div className="item checkbox-item">
-          {sceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
-            <span>Playlist is set to random order</span>
-          ) : <>
-            <label>
-              <input
-                checked={isRandomised}
-                onChange={event => setIsRandomised(event.target.checked)}
-                type="checkbox"
-              />
-              <h3>Randomise playlist order</h3>
-            </label>
-            <small>Randomise the order of scenes in the playlist.</small>
-          </>}
-        </div>
-
-        <div className="item">
-          <label>
-            <h3>Subtitle language</h3>
-            <Select
-              defaultValue={defaultSubtitles}
-              onChange={onChangeSubLanguage}
-              options={subtitlesList}
-              theme={reactSelectTheme}
-            />
-          </label>
-          <small>
-            Select the language to use for subtitles if available.
-          </small>
-        </div>
-
-        <div className="item checkbox-item">
-          <label>
-            <input
-              checked={crtEffect}
-              onChange={event => setCrtEffect(event.target.checked)}
-              type="checkbox"
-            />
-            <h3>CRT effect</h3>
-          </label>
-          <small>Emulate the visual effects of an old CRT television.</small>
-        </div>
-      </div>
-
-      <div className="footer">
-        <h2>Settings</h2>
-        {closeButton}
-      </div>
-    </animated.div>
-    <animated.div
       className="settings-overlay"
       style={{ display: overlayDisplay, opacity: overlayOpacity }}
       onClick={() => close()}
     />
+    <animated.div
+      className={cx("SettingsTab")}
+      data-testid="SettingsTab"
+      ref={ref}
+      style={{ right: x.to(px => `calc(100% - ${px}px)`) }}
+      {...bind()}
+    >
+      <div className="content">
+        <div className="body">
+          <div className="item">
+            <label>
+              <h3>Select a playlist</h3>
+              <Select
+                defaultValue={selectedPlaylist}
+                onChange={(newValue) => setSelectedSavedFilterId(newValue?.value ?? undefined)}
+                options={playlists}
+                placeholder="None selected. Defaulted to all portrait scenes."
+                theme={reactSelectTheme}
+              />
+            </label>
+            <small>
+              Choose a scene filter from Stash to use as your Stash TV
+              playlist
+            </small>
+
+            {fetchingDataWarning}
+            {scenelessFilterError}
+          </div>
+
+          {selectedPlaylist && selectedPlaylist.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
+            <button
+              onClick={() => {
+                updateStashTvConfig({
+                  ...stashTvConfig,
+                  stashTvDefaultFilterID: selectedPlaylist?.value,
+                });
+              }}
+            >
+              Set "{selectedPlaylist?.label}" as the default playlist
+            </button>
+            <div>
+              <small>
+                Set the currently selected scene filter as the default playlist
+                when opening Stash TV.
+              </small>
+            </div>
+          </div>}
+
+          <div className="item checkbox-item">
+            {sceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
+              <span>Playlist is set to random order</span>
+            ) : <>
+              <label>
+                <input
+                  checked={isRandomised}
+                  onChange={event => setIsRandomised(event.target.checked)}
+                  type="checkbox"
+                />
+                <h3>Randomise playlist order</h3>
+              </label>
+              <small>Randomise the order of scenes in the playlist.</small>
+            </>}
+          </div>
+
+          <div className="item">
+            <label>
+              <h3>Subtitle language</h3>
+              <Select
+                defaultValue={defaultSubtitles}
+                onChange={onChangeSubLanguage}
+                options={subtitlesList}
+                theme={reactSelectTheme}
+              />
+            </label>
+            <small>
+              Select the language to use for subtitles if available.
+            </small>
+          </div>
+
+          <div className="item checkbox-item">
+            <label>
+              <input
+                checked={crtEffect}
+                onChange={event => setCrtEffect(event.target.checked)}
+                type="checkbox"
+              />
+              <h3>CRT effect</h3>
+            </label>
+            <small>Emulate the visual effects of an old CRT television.</small>
+          </div>
+        </div>
+
+        <div className="footer">
+          <h2>Settings</h2>
+          {closeButton}
+        </div>
+      </div>
+    </animated.div>
   </>;
 };

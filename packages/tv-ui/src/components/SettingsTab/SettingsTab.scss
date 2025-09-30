@@ -5,22 +5,11 @@
   @include fullHeight;
   position: absolute;
   top: 0;
-  right: 100%; /* Default position is just off-screen to the left */
   width: 85%;
   max-width: 400px;
-  z-index: 10;
   touch-action: none;
 
-  display: grid;
-  grid-template-rows:
-    [canvas-top main-top] 1fr [main-bottom footer-top] minmax(
-      $ui-button-size + ($spacer * 2),
-      max-content
-    )
-    [footer-bottom canvas-bottom];
-
   background-color: black;
-  will-change: transform;
   
   // Extend background out to the top, left and bottom to cover gaps during swipe
   &::before {
@@ -31,7 +20,6 @@
     width: 200%;
     height: 200%;
     background-color: inherit;
-    z-index: -1;
   }
   
   // Add zone to the right to capture swipe gestures
@@ -42,6 +30,23 @@
     left: 100%;
     width: 100px;
     height: 100%;
+    z-index: 1; /* This as to be at last 1 to be interactive but should be below the video progress bar */
+  }
+
+  .content {
+    background: inherit;
+    height: 100%;
+    width: 100%;
+    z-index: 10;
+    position: relative;
+
+    display: grid;
+    grid-template-rows:
+      [canvas-top main-top] 1fr [main-bottom footer-top] minmax(
+        $ui-button-size + ($spacer * 2),
+        max-content
+      )
+      [footer-bottom canvas-bottom];
   }
 
   .body {
@@ -123,7 +128,6 @@
   }
 }
 
-
 .settings-overlay {
   position: fixed;
   top: 0;
@@ -131,6 +135,5 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 5; // Below settings (z-index 10) but above other content
   cursor: pointer;
 }
