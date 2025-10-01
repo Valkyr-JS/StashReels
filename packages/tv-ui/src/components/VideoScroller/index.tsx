@@ -5,9 +5,12 @@ import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import cx from "classnames";
 import { useAppStateStore } from "../../store/appStateStore";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { useWindowVirtualizer, Virtualizer } from "@tanstack/react-virtual";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { debounce } from 'perfect-debounce';
 
 interface VideoScrollerProps {}
+
+const videoItemHeight = "calc(var(--y-unit-large) * 100)"
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const { forceLandscape: isForceLandscape, setCrtEffect } = useAppStateStore();
@@ -31,35 +34,49 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     _scenesCache.current = newValue
     return newValue;
   }, [scenes]);
-  
-  const getItemHeight = () => isForceLandscape ? window.innerWidth : window.innerHeight
+
+  const estimateSizeTesterElement = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    return () => {
+      if (estimateSizeTesterElement.current) {
+        estimateSizeTesterElement.current.remove();
+        estimateSizeTesterElement.current = null;
+      }
+    }
+  }, []);
+
 
   const rowVirtualizer = useWindowVirtualizer({
     count: cachedScenes.length,
-    estimateSize: getItemHeight,
-    overscan: 2,
+    estimateSize: () => {
+      if (!estimateSizeTesterElement.current) {
+        const el = document.createElement('div');
+        el.style.height = videoItemHeight;
+        el.style.position = 'absolute';
+        el.className = "VideoScroller--size-tester";
+        el.style.visibility = 'hidden';
+        document.body.appendChild(el);
+        estimateSizeTesterElement.current = el;
+      }
+
+      return estimateSizeTesterElement.current.offsetHeight;
+    },
+    overscan: 1,
+    horizontal: isForceLandscape,
   });
-  
-  
-  useEffect(() => { 
-    // Force re-measure when orientation changes
-    rowVirtualizer.measure();
-  }, [isForceLandscape, rowVirtualizer]);
 
   const [currentIndex, _setCurrentIndex] = useState(0);
-  const setCurrentIndex = (newIndex: React.SetStateAction<number>, {scrollTo = false}: {scrollTo: boolean} = {scrollTo: false}) => {
-    console.trace({ newIndex, scrollTo });
-    if (scrollTo) {
-      let newIndexValue;
-      if (typeof newIndex === 'function') {
-        newIndexValue = newIndex(currentIndex);
-      } else {
-        newIndexValue = newIndex;
+  const currentIndexRef = useRef(currentIndex);
+  const setCurrentIndex = useMemo(
+    () => debounce((newIndex: React.SetStateAction<number>, {scrollTo = false}: {scrollTo: boolean} = {scrollTo: false}) => {
+      currentIndexRef.current = typeof newIndex === 'function' ? newIndex(currentIndexRef.current) : newIndex;
+      _setCurrentIndex(newIndex)
+      if (scrollTo) {
+        rowVirtualizer.scrollToIndex(currentIndexRef.current, { align: 'center', behavior: "auto" });
       }
-      rowVirtualizer.scrollToIndex(newIndexValue, { align: 'center', behavior: "auto" });
-    }
-    return _setCurrentIndex(newIndex);
-  };
+    }, 100, {leading: true}),
+    [rowVirtualizer]
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -92,6 +109,130 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
+  
+  // Store scroll position when window is resized
+  useEffect(() => {
+    const container = document.scrollingElement;
+    const originalScrollSnapType = container ? getComputedStyle(container).scrollSnapType : 'none';
+    
+    let timeoutId: NodeJS.Timeout;
+    
+    const restoreScrollPosition = () => {
+      if (rowVirtualizer) {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        const oldSize = rowVirtualizer.getVirtualItems()[0].size
+        rowVirtualizer.measure();
+        const newSize = rowVirtualizer.getVirtualItems()[0].size
+        if (oldSize === newSize) return;
+          
+        // Disable scroll snapping temporarily to stop it from interfering
+        document.documentElement.style.scrollSnapType = 'none';
+
+        rowVirtualizer.scrollToIndex(currentIndex, { align: 'start', behavior: "auto" });
+
+        // Re-enable scroll snapping after a small delay
+        timeoutId = setTimeout(() => {
+          document.documentElement.style.scrollSnapType = originalScrollSnapType;
+        }, 50);
+      }
+    };
+    
+    window.addEventListener('resize', restoreScrollPosition);
+    return () => {
+      window.removeEventListener('resize', restoreScrollPosition);
+    };
+  }, [currentIndex, rowVirtualizer]);
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const mutationObserverRef = useRef<MutationObserver | null>(null);
+  const observedElementsRef = useRef<Map<Element, number>>(new Map());
+  
+  // Update the currentIndex when scrolling
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        // Find the most visible entry
+        let maxVisibility = 0;
+        let mostVisibleIndex = currentIndexRef.current;
+        
+        entries.forEach((entry) => {
+          const index = observedElementsRef.current.get(entry.target);
+          if (index === undefined) return;
+          
+          // Calculate how visible the element is (ratio of intersection)
+          const visibilityRatio = entry.intersectionRatio;
+          
+          if (visibilityRatio > maxVisibility) {
+            maxVisibility = visibilityRatio;
+            mostVisibleIndex = index;
+          }
+        });
+        
+        if (mostVisibleIndex === currentIndexRef.current) return;
+        
+        // Only update if we found a valid entry with enough visibility
+        if (maxVisibility > 0.3) {
+          setCurrentIndex(mostVisibleIndex);
+        }
+      },
+      { 
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+        rootMargin: "0px"
+      }
+    );
+    
+    // Set up a function to refresh which elements are being observed
+    const updateObservedElements = () => {
+      const observer = observerRef.current;
+      if (!observer) return;
+      
+      // Clear previous observations
+      observedElementsRef.current.forEach((_, element) => {
+        observer.unobserve(element);
+      });
+      observedElementsRef.current.clear();
+      
+      // Find all rendered items and observe them
+      document.querySelectorAll('[data-index]').forEach((element) => {
+        const indexAttr = element.getAttribute('data-index');
+        if (indexAttr !== null) {
+          const index = parseInt(indexAttr, 10);
+          if (!isNaN(index)) {
+            observedElementsRef.current.set(element, index);
+            observer.observe(element);
+          }
+        }
+      });
+    };
+
+    // Initial setup of observed elements
+    setTimeout(updateObservedElements, 100); // Short delay to ensure DOM elements are rendered
+    
+    // Set up a mutation observer to detect when the DOM changes
+    mutationObserverRef.current = new MutationObserver(updateObservedElements);
+    
+    // Start observing the container for DOM changes
+    const container = document.querySelector('.VideoScroller');
+    if (container) {
+      mutationObserverRef.current.observe(container, {
+        childList: true,
+        subtree: false,
+        attributes: false,
+      });
+    }
+
+    const observer = observerRef.current;
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+      if (mutationObserverRef.current) {
+        mutationObserverRef.current.disconnect();
+      }
+    };
+  }, []);
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -101,16 +242,23 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       className={cx("VideoScroller")}
       data-testid="VideoScroller--container"
       tabIndex={0}
-      style={{height: `calc(var(--y-unit) * 100 * ${cachedScenes.length})`}}
+      style={{ height: rowVirtualizer.getTotalSize() }}
     >
+      {import.meta.env.VITE_DEBUG && <div className="stats">
+        {rowVirtualizer.isScrolling ? "Scrolling" : "Not Scrolling"}
+      </div>}
       {cachedScenes.map((scene, i) => {
         const style = {
           position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
-          height: 'calc(var(--y-unit) * 100)',
-          transform: `translate3d(0, calc(var(--y-unit) * 100 * ${i}), 0)`,
+          height: 'calc(var(--y-unit-large) * 100)',
+          transform: `translate3d(0, calc(var(--y-unit-large) * 100 * ${i}), 0)`,
+          ...(import.meta.env.VITE_DEBUG ? {
+            "backgroundColor": `hsl(${i * 37  % 360}, 70%, 50%)`,
+            border: `10px ${i === currentIndex ? 'black' : 'transparent'} dashed`,
+          } : {})
         } as const
         if (
           rowVirtualizer.getVirtualItems().some(v => v.index === i)

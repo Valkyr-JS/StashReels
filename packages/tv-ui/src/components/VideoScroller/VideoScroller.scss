@@ -7,7 +7,14 @@
   position: relative;
   
   .VideoItem, .dummy-video-item {
-    scroll-snap-align: center;
+    scroll-snap-align: start;
     scroll-snap-stop: always;
+  }
+  
+  .dummy-video-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
   }
 }

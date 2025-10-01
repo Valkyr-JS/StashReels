@@ -8,7 +8,7 @@ import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
 import { faClosedCaptioning as faSubtitlesOff } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { default as cx } from "classnames";
+import cx from "classnames";
 import ISO6391 from "iso-639-1";
 import React, {
   forwardRef,
@@ -20,7 +20,6 @@ import React, {
 } from "react";
 import { Transition } from "react-transition-group";
 import "./VideoItem.scss";
-import { useIsInViewport } from "../../hooks";
 import { sortPerformers } from "../../helpers";
 import { TRANSITION_DURATION } from "../../constants";
 import ScenePlayer from "../ScenePlayer";
@@ -45,7 +44,8 @@ export interface VideoItemProps {
   changeItemHandler: ((newIndex: number | ((currentIndex: number) => number)) => void);
   currentIndex: number;
   index: number;
-  style: React.CSSProperties | undefined;
+  style?: React.CSSProperties | undefined;
+  currentlyScrolling?: boolean;
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
@@ -325,7 +325,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   return (
     <div
-      className="VideoItem"
+      className={cx("VideoItem", {inViewport: isInViewport})}
       data-testid="VideoItem--container"
       data-index={props.index}
       data-scene-id={props.scene.id}
@@ -362,7 +362,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
               }
             }
           }}
-        />
+        />}
         <Transition
           in={sceneInfoOpen}
           nodeRef={sceneInfoPanelRef}

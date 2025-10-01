@@ -28,7 +28,7 @@
     top: 0;
     left: 100%;
     width: 100px;
-    height: 100%;
+    height: calc(100% - var(--y-dynamic-diff) - 4em);
     z-index: 1; /* This as to be at last 1 to be interactive but should be below the video progress bar */
   }
 

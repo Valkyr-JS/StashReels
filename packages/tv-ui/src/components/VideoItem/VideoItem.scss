@@ -4,7 +4,7 @@
 
 .VideoItem {
   height: 100%;
-  scroll-snap-align: center;
+  scroll-snap-align: start;
   scroll-snap-stop: always;
   background: #000;
   position: relative;
@@ -80,6 +80,17 @@
       opacity: 0.3;
     }
   }
+  
+  &:not(.inViewport):not(.currentlyScrolling) {
+    filter: brightness(0.7);
+    transition: filter 1s;
+
+    .vjs-control-bar {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 1s;
+    }
+  }
 
   .tap-icon {
     position: absolute;
@@ -97,7 +108,7 @@
   
   .controls {
     position: absolute;
-    bottom: 3em;
+    bottom: calc(3em + var(--y-dynamic-diff));
     right: 3px;
     -webkit-transform: translateZ(1px); // Fix for weird ios bug causing video to overlap side controls
     // https://stackoverflow.com/a/49885529
@@ -210,7 +221,7 @@
     flex-wrap: wrap-reverse;
     justify-content: center;
     transition: opacity ease-in-out;
-    max-height: calc(var(--y-unit) * 100 - 100px);
+    max-height: calc(var(--y-unit-small) * 100 - 100px);
   }
 
   .toggleable-ui-button {
