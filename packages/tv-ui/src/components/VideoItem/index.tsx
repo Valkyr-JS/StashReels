@@ -111,13 +111,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   useEffect(() => {
     // Play/pause the video based only on viewport
     const videojsPlayer = videojsPlayerRef.current;
-    if (videojsPlayer) {
-      if (props.index === props.currentIndex) {
-        setPaused(false);
-        videojsPlayer.play()?.catch(() => setPaused(true));
-      } else {
-        videojsPlayer.pause();
-      }
+    if (!videojsPlayer) return;
+    // In theory we shouldn't need the conditional on props of videojsPlayer but it seems like sometimes we do
+    if (props.index === props.currentIndex) {
+      setPaused(false);
+      videojsPlayer?.play()?.catch(() => setPaused(true));
+    } else {
+      videojsPlayer?.pause();
     }
   }, [props.index, props.currentIndex]);
     
@@ -418,7 +418,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
                 {subtitlesButton}
 
-                <UiButton
+                {'exitFullscreen' in document && <UiButton
                   className="fullscreen"
                   active={fullscreen}
                   activeIcon={faExpand}
@@ -427,7 +427,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   inactiveIcon={ExpandOutlineIcon}
                   inactiveText="Open fullscreen"
                   onClick={() => setFullscreen((prev) => !prev)}
-                />
+                />}
 
                 <UiButton
                   className="letterboxing"

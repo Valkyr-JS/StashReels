@@ -29,9 +29,9 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
       return;
     }
     if (fullscreen) {
-      pageRef.current?.requestFullscreen();
+      pageRef.current?.requestFullscreen?.();
     } else {
-      document.exitFullscreen();
+      document.exitFullscreen?.();
     }
   }, [fullscreen]);
 
