@@ -35,6 +35,24 @@
   }
   
   .video-js {
+    .vjs-progress-control {
+      &:has(.vjs-marker-dot:hover) .vjs-mouse-display {
+        // Workaround for weird bug in videojs or marker plugin where the mouse display dot shifts a little bit to
+        // the right when hovering over a marker
+        translate: -4px;
+      }
+      .vjs-marker-dot {
+        top: unset;
+        transform: translate(-50%, 0);
+        
+        &:hover {
+          transform: translate(-50%, 0) scale(1.5);
+        }
+      }
+      .vjs-vtt-thumbnail-display {
+        bottom: 8em;
+      }
+    }
     .vjs-current-time, .vjs-duration {
       margin-right: unset;
       margin-left: unset;
