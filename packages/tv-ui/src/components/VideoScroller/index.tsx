@@ -123,6 +123,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
               key={scene.id}
               scene={scene}
               style={style}
+              currentlyScrolling={rowVirtualizer.isScrolling}
             />
           );
         } else return <div key={scene.id} className="dummy-video-item" style={style} />;

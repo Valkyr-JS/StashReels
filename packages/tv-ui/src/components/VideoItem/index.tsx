@@ -83,11 +83,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       el.addEventListener("pause", () => setPaused(true));
     }
   }, []);
+  
+  const [loadingDeferred, setLoadingDeferred] = useState(props.currentlyScrolling);
+  useEffect(() => {
+    if (loadingDeferred) {
+      setLoadingDeferred(props.currentlyScrolling);
+    }
+  }, [loadingDeferred, props.currentlyScrolling]);
 
-  /** Check if at least 80% of the video is in the viewport. */
-  const isInViewport = useIsInViewport(videoRef, {
-    threshold: 0.8,
-  });
+  const isInViewport = props.index === props.currentIndex;
   
   useEffect(() => {
     if (!videoRef.current) return;
@@ -329,7 +333,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       style={props.style}
     >
       <CrtEffect enabled={crtEffect}>
-        <ScenePlayer
+        {import.meta.env.VITE_DEBUG && <div className="loadingDeferredDebugBackground" />}
+        <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
+        {!loadingDeferred && <ScenePlayer
           className={cx({ 'cover': !letterboxing })}
           scene={props.scene}
           hideScrubberOverride={true}
