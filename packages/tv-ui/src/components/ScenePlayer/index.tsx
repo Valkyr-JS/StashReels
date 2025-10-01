@@ -10,7 +10,7 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
 registerVideojsOverlayButtonsExtendedPlugin();
 
-const videoJsOptions: Record<string, VideoJsPlayerOptions> = {}
+const videoJsOptionsOverride: Record<string, VideoJsPlayerOptions> = {}
 const videoJsSetupCallbacks: Record<string, (player: VideoJsPlayer) => void> = {}
 
 videojs.hook('setup', (player) => {
@@ -71,6 +71,7 @@ videojs.hook('beforesetup', function(videoEl, options) {
             bigButtons: false,
             seekButtons: false,
             skipButtons: false,
+            persistVolume: false,
             vrMenu: false,
             touchOverlay: {
                 seekLeft: {},
@@ -99,7 +100,7 @@ videojs.hook('beforesetup', function(videoEl, options) {
 videojs.hook('beforesetup', function(videoEl, options) {
     const sceneId = videoEl.parentElement?.parentElement?.parentElement?.dataset.sceneId
     if (sceneId) {
-        return videoJsOptions[sceneId] || {}
+        return videoJsOptionsOverride[sceneId] || {}
     }
     return {}
 })
@@ -119,11 +120,12 @@ export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOrigi
     onVideojsPlayerReady?: (player: VideoJsPlayer) => void;
     optionsToMerge?: VideoJsPlayerOptions;
     scene: GQL.TvSceneDataFragment;
+    muted?: boolean;
 }
 const ScenePlayer = forwardRef<
     HTMLVideoElement,
     ScenePlayerProps
->(({ className, onTimeUpdate, hideControls, hideProgressBar, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, ...otherProps }: ScenePlayerProps, ref) => {
+>(({ className, onTimeUpdate, hideControls, hideProgressBar, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, muted, ...otherProps }: ScenePlayerProps, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
@@ -132,10 +134,16 @@ const ScenePlayer = forwardRef<
     if (onVideojsPlayerReady) {
         videoJsSetupCallbacks[otherProps.scene.id] = onVideojsPlayerReady;
     }
-    
-    if (optionsToMerge) {
-        videoJsOptions[otherProps.scene.id] = optionsToMerge
+
+    videoJsOptionsOverride[otherProps.scene.id] = {
+        muted: muted,
+        ...optionsToMerge
     }
+    
+    useEffect(() => {
+        if (muted === undefined) return;
+        videojsPlayerRef.current?.muted(muted);
+    }, [muted]);
     
     useEffect(() => {
         return () => {

@@ -218,18 +218,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     unmounted: {},
   };
 
-  /* ----------------------------- Audio handling ----------------------------- */
-
-  // Update the mute property via the ref object
-  useEffect(() => {
-    if (isInViewport && videojsPlayerRef.current) {
-      if (audioMuted !== videojsPlayerRef.current.muted()) {
-        videojsPlayerRef.current.muted(audioMuted);
-        videojsPlayerRef.current.volume(1);
-      }
-    }
-  }, [audioMuted]);
-
   /* ------------------------------ On end event ------------------------------ */
 
   const itemRef = useRef<HTMLDivElement>(null);
@@ -345,6 +333,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           className={cx({ 'cover': !letterboxing })}
           scene={props.scene}
           hideScrubberOverride={true}
+          muted={audioMuted}
           autoplay={false}
           permitLoop={true}
           initialTimestamp={0}

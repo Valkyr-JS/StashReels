@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware'
 
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
@@ -37,61 +38,72 @@ type AppState = {
   setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => void;
 }
 
-export const useAppStateStore = create<AppState>((set, get) => ({
-  selectedSavedFilterId: undefined,
-  sceneFilter: undefined,
-  scenes: [],
-  scenesLoading: true,
-  showSettings: false,
-  audioMuted: false,
-  showSubtitles: false,
-  fullscreen: false,
-  letterboxing: false,
-  forceLandscape: false,
-  looping: false,
-  uiVisible: true,
-  isRandomised: false,
-  crtEffect: false,
-  setSelectedSavedFilterId: (id: string | undefined) => set({ selectedSavedFilterId: id }),
-  setSceneFilter: async (apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter) => {
-    set({ scenesLoading: true });
-    const scenes = await fetchScenesFromStash(apolloClient, filter)
-    set({ sceneFilter: filter, scenes, scenesLoading: false })
-  },
-  setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    showSettings: typeof newValue === "boolean" ? newValue : newValue(state.showSettings)
-  })),
-  setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    audioMuted: typeof newValue === "boolean" ? newValue : newValue(state.audioMuted)
-  })),
-  setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    showSubtitles: typeof newValue === "boolean" ? newValue : newValue(state.showSubtitles)
-  })),
-  setFullscreen: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    fullscreen: typeof newValue === "boolean" ? newValue : newValue(state.fullscreen)
-  })),
-  setLetterboxing: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    letterboxing: typeof newValue === "boolean" ? newValue : newValue(state.letterboxing)
-  })),
-  setForceLandscape: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    forceLandscape: typeof newValue === "boolean" ? newValue : newValue(state.forceLandscape)
-  })),
-  setLooping: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    looping: typeof newValue === "boolean" ? newValue : newValue(state.looping)
-  })),
-  toggleLooping: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    looping: typeof newValue === "boolean" ? newValue : newValue(state.looping)
-  })),
-  setUiVisible: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    uiVisible: typeof newValue === "boolean" ? newValue : newValue(state.uiVisible)
-  })),
-  setIsRandomised: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    isRandomised: typeof newValue === "boolean" ? newValue : newValue(state.isRandomised)
-  })),
-  setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-    crtEffect: typeof newValue === "boolean" ? newValue : newValue(state.crtEffect)
-  })),
-}));
+export const useAppStateStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      selectedSavedFilterId: undefined,
+      sceneFilter: undefined,
+      scenes: [],
+      scenesLoading: true,
+      showSettings: false,
+      audioMuted: false,
+      showSubtitles: false,
+      fullscreen: false,
+      letterboxing: false,
+      forceLandscape: false,
+      looping: false,
+      uiVisible: true,
+      isRandomised: false,
+      crtEffect: false,
+      setSelectedSavedFilterId: (id: string | undefined) => set({ selectedSavedFilterId: id }),
+      setSceneFilter: async (apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter) => {
+        set({ scenesLoading: true });
+        const scenes = await fetchScenesFromStash(apolloClient, filter)
+        set({ sceneFilter: filter, scenes, scenesLoading: false })
+      },
+      setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        showSettings: typeof newValue === "boolean" ? newValue : newValue(state.showSettings)
+      })),
+      setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        audioMuted: typeof newValue === "boolean" ? newValue : newValue(state.audioMuted)
+      })),
+      setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        showSubtitles: typeof newValue === "boolean" ? newValue : newValue(state.showSubtitles)
+      })),
+      setFullscreen: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        fullscreen: typeof newValue === "boolean" ? newValue : newValue(state.fullscreen)
+      })),
+      setLetterboxing: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        letterboxing: typeof newValue === "boolean" ? newValue : newValue(state.letterboxing)
+      })),
+      setForceLandscape: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        forceLandscape: typeof newValue === "boolean" ? newValue : newValue(state.forceLandscape)
+      })),
+      setLooping: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        looping: typeof newValue === "boolean" ? newValue : newValue(state.looping)
+      })),
+      toggleLooping: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        looping: typeof newValue === "boolean" ? newValue : newValue(state.looping)
+      })),
+      setUiVisible: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        uiVisible: typeof newValue === "boolean" ? newValue : newValue(state.uiVisible)
+      })),
+      setIsRandomised: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        isRandomised: typeof newValue === "boolean" ? newValue : newValue(state.isRandomised)
+      })),
+      setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        crtEffect: typeof newValue === "boolean" ? newValue : newValue(state.crtEffect)
+      })),
+    }),
+    {
+      name: 'app-state',
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => !['sceneFilter', 'scenes', 'scenesLoading', 'selectedSavedFilterId', 'showSettings', 'fullscreen'].includes(key)),
+        ),
+    }
+  )
+);
 
 async function fetchScenesFromStash(apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter): Promise<GQL.TvSceneDataFragment[]> {
   const { data } = await apolloClient.query<GQL.FindScenesForTvQuery, GQL.FindScenesForTvQueryVariables>({
