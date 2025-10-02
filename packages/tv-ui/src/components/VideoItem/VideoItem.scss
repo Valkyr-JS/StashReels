@@ -35,17 +35,39 @@
   }
     
   .video-js {
+    background-color: unset;
+    
     .vjs-control-bar {
-      height: 1.5em;
+      height: unset;
+      padding-bottom: var(--y-dynamic-diff);
+      flex-wrap: wrap;
+      column-gap: 1em;
+      align-items: center;
+      
+      .vjs-control {
+        width: unset;
+      }
+      
+      // Move the first and last items in a bit to account for curved corners of mobile devices
+      .vjs-current-time {
+        padding-left: 35px;
+      }
+      > .vjs-duration {
+        padding-right: 35px;
+      }
+
       .vjs-time-control {
-        padding: 0 35px;
         font-size: $timecode-font-size;
+        display: block;
+        height: unset;
       }
       .vjs-progress-control {
+        position: unset;
         margin: 0 15px;
         width: calc(100% - (15px * 2));
-        bottom: 1em;
         height: 2em; /* give the container (but not the bar itself) more height to make it a larger touch target on mobile */
+        translate: 0 0.7em; /* but move down visually so it's not too spaced out */
+        
         .vjs-progress-holder {
           margin: 0;
           background-color: rgb(115 115 115 / 20%);

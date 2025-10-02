@@ -49,9 +49,6 @@
           transform: translate(-50%, 0) scale(1.5);
         }
       }
-      .vjs-vtt-thumbnail-display {
-        bottom: 8em;
-      }
     }
     .vjs-current-time, .vjs-duration {
       margin-right: unset;
@@ -74,6 +71,12 @@
     */
     .vjs-source-selector {
       display: none;
+    }
+    
+    // The cast button is injected by a plugin so we can't control it's dom placement but we want it to appear to the
+    // right of the video duration so we use order to make duration last
+    .vjs-duration {
+      order: 10;
     }
   }
 }

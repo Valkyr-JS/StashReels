@@ -1,6 +1,10 @@
 .video-js {
-    .d-none {
-      display: initial !important;
+    // Stop control bar from hiding after timeout
+    .vjs-control-bar.d-none {
+      display: flex !important;
+    }
+    &.vjs-has-started.vjs-user-inactive.vjs-playing .vjs-control-bar {
+      opacity: 0.5;
     }
     
     .vjs-overlay {
@@ -10,7 +14,10 @@
       .vjs-overlay {
         opacity: 0.1;
       }
-      .d-none {   
+      // After timeout make controls overlay invisible but still interactive
+      .vjs-overlay.d-none,
+      .vjs-overlay .d-none {  
+        display: initial !important; 
         opacity: 0 !important;
       }
     }
