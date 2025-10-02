@@ -48,6 +48,8 @@
         width: unset;
       }
       
+      padding-right: var(--safe-inset-right);
+      
       // Move the first and last items in a bit to account for curved corners of mobile devices
       .vjs-current-time {
         padding-left: 35px;
@@ -141,6 +143,8 @@
   .controls {
     position: absolute;
     bottom: calc(3em + var(--y-dynamic-diff));
+    padding-top: var(--safe-inset-top);
+    padding-right: var(--safe-inset-right);
     right: 3px;
     -webkit-transform: translateZ(1px); // Fix for weird ios bug causing video to overlap side controls
     // https://stackoverflow.com/a/49885529
