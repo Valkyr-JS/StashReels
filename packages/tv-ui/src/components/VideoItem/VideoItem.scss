@@ -21,6 +21,18 @@
   .loadingDeferredDebugBackground {
     background-color: greenyellow;
   }
+  
+  .debugStats {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: white;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 5;
+    font-size: 12px;
+    padding: 2px 5px;
+    max-width: fit-content;
+  }
     
   .video-js {
     .vjs-control-bar {

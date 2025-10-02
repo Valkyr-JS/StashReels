@@ -127,6 +127,10 @@ const ScenePlayer = forwardRef<
     ScenePlayerProps
 >(({ className, onTimeUpdate, hideControls, hideProgressBar, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, muted, ...otherProps }: ScenePlayerProps, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
+    import.meta.env.VITE_DEBUG && useEffect(() => {
+        console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);
+        return () => console.log(`Unmounted ScenePlayer sceneId=${otherProps.scene.id}`);
+    },[]);
     
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);

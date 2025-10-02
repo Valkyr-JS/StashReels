@@ -49,6 +49,10 @@ export interface VideoItemProps {
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
+  useEffect(() => {
+    console.log(`Mounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
+    return () => console.log(`Unmounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
+  },[]);
   const {
     showSettings,
     fullscreen,
@@ -96,9 +100,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
+      import.meta.env.VITE_DEBUG && console.log("volumechange", player.muted());
       setAudioMuted(player.muted());
     });
     if (audioMuted !== player.muted()) {
+      import.meta.env.VITE_DEBUG && console.log("volumechange on load", player.muted());
       setAudioMuted(player.muted());
     }
   }
@@ -326,6 +332,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       style={props.style}
     >
       <CrtEffect enabled={crtEffect}>
+        {import.meta.env.VITE_DEBUG && <div className="debugStats">
+          {props.index} - {props.scene.id} {paused ? "Paused" : "Playing"} {loadingDeferred ? "(Loading deferred)" : ""} {isInViewport ? "<- In viewport" : ""}
+        </div>}
         {import.meta.env.VITE_DEBUG && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
         {!loadingDeferred && <ScenePlayer
