@@ -213,7 +213,7 @@
   
   .scene-info {
     position: absolute;
-    bottom: 3em;
+    bottom: calc(5em + var(--y-dynamic-diff));
     left: 0;
     width: 100%;
     padding: 1em 5em 1em 3em;
@@ -226,6 +226,11 @@
 
     display: grid;
     transition: opacity ease-in-out;
+    
+    a {
+      color: inherit;
+      text-decoration-color: #ffffff85;
+    }
 
     // Title
     h5 {

@@ -376,6 +376,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
             <SceneInfoPanel
               {...props.scene}
               ref={sceneInfoPanelRef}
+              scene={props.scene}
               style={{
                 ...toggleableUiStyles,
                 ...toggleableUiTransitionStyles[state],
@@ -550,6 +551,7 @@ const UiButton = forwardRef<HTMLButtonElement, UiButtonProps>(
 
 interface SceneInfoPanelProps extends GQL.TvSceneDataFragment {
   style: React.CSSProperties;
+  scene: GQL.TvSceneDataFragment;
 }
 
 const SceneInfoPanel = forwardRef(
@@ -601,6 +603,7 @@ const SceneInfoPanel = forwardRef(
     /* ---------------------------------- Title --------------------------------- */
 
     const title = props.title ? <h5>{props.title}</h5> : null;
+    const sceneUrl = props.paths.stream?.split("/stream")[0]?.replace("/scene", "/scenes")
 
     /* -------------------------------- Component ------------------------------- */
 
@@ -615,7 +618,7 @@ const SceneInfoPanel = forwardRef(
         }}
       >
         {studio}
-        {title}
+        <a href={sceneUrl || ""}>{title}</a>
         {performers}
         {date}
       </div>
