@@ -21,7 +21,24 @@
   .loadingDeferredDebugBackground {
     background-color: greenyellow;
   }
-  
+
+  &.cover {
+    video, img {
+      object-fit: cover;
+    }
+    .vjs-poster {
+      background-size: cover;
+    }
+  }
+  &:not(.cover) {
+    video, img {
+      object-fit: contain;
+    }
+    .vjs-poster {
+      background-size: contain;
+    }
+  }
+
   .debugStats {
     position: absolute;
     top: 0;
@@ -169,8 +186,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: $ui-button-size;
-      width: $ui-button-size;
+      height: 48px; /* slightly smaller height as a hack to fit all icons on iPhone screen in landscape */
+      width: 50px;
 
       background-color: transparent;
       font-size: 28px;
@@ -268,9 +285,7 @@
   .toggleable-ui-button {
     transition: opacity ease-in-out;
   }
-}
 
-.VideoItem {
   .ScenePlayer {
     width: 100%;
     height: 100%;
@@ -283,15 +298,6 @@
     .VideoPlayer {
       width: 100%;
       height: 100%;
-    }
-
-    &.cover {
-      video {
-        object-fit: cover;
-      }
-      .vjs-poster {
-        background-size: cover;
-      }
     }
     
     .video-wrapper {

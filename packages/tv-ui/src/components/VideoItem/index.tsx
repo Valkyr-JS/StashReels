@@ -328,7 +328,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   return (
     <div
-      className={cx("VideoItem", {inViewport: isInViewport})}
+      className={cx("VideoItem", {inViewport: isInViewport, 'cover': !letterboxing})}
       data-testid="VideoItem--container"
       data-index={props.index}
       data-scene-id={props.scene.id}
@@ -342,7 +342,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         {import.meta.env.VITE_DEBUG && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
         {!loadingDeferred && <ScenePlayer
-          className={cx({ 'cover': !letterboxing })}
           scene={props.scene}
           hideScrubberOverride={true}
           muted={audioMuted}
