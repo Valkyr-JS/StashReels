@@ -27,9 +27,10 @@ type ReactSelectOnChange = (
 
 export default function SettingsTab() {
   const ref = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const { savedSceneFilters, stashTvConfig, updateStashTvConfig } = useStashConfigStore();
 
-  const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, setShowSettings, crtEffect, setCrtEffect, showSettings } = useAppStateStore();
+  const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, setShowSettings, crtEffect, setCrtEffect, showSettings, forceLandscape } = useAppStateStore();
   const noScenesAvailable = !scenesLoading && scenes.length === 0;
 
   const [sidebarWidth, setSidebarWidth] = React.useState(window.innerWidth);
@@ -84,24 +85,38 @@ export default function SettingsTab() {
 
   // Setup drag gesture for swiping
   const bind = useDrag((event) => {
-    const { values, direction: [dx], dragging, offset: [ox], cancel, last, velocity: [vx], canceled } = event
+    const {
+      xy: [xCord, yCord],
+      direction: [xDirection, yDirection],
+      offset: [xOffset, yOffset],
+      velocity: [xVelocity, yVelocity],
+      dragging,
+      cancel,
+      last,
+      canceled
+    } = event
+    
+    const xCordEffective = !forceLandscape ? xCord : window.innerHeight - yCord
+    const xOffsetEffective = !forceLandscape ? xOffset : -yOffset
+    const xVelocityEffective = !forceLandscape ? xVelocity : yVelocity
+    const xDirectionEffective = !forceLandscape ? xDirection : -yDirection
 
     if (dragging) {
-      // If we drag more than 1.5x the sidebar width, we cancel the drag and snap back
-      if (values[0] / sidebarWidth > 3) {
+      // If we drag more than 2x the sidebar width, we cancel the drag and snap back
+      if (xCordEffective / sidebarWidth > 2) {
         cancel()
       } else {
-        api.start({ x: ox, immediate: true });
+        api.start({ x: xOffsetEffective, immediate: true });
       }
     } else if (last) {
       // Quick but maybe short swipe to the right
-      if (vx > 0.5 && dx > 0) {
+      if (xVelocityEffective > 0.5 && xDirectionEffective > 0) {
         open({ canceled })
         // Quick but maybe short swipe to the left
-      } else if (vx > 0.5 && dx < 0) {
+      } else if (xVelocityEffective > 0.5 && xDirectionEffective < 0) {
         close()
         // Swipe to the right past halfway point
-      } else if (ox > (sidebarWidth * 0.5)) {
+      } else if (xOffsetEffective > (sidebarWidth * 0.5)) {
         open({ canceled })
         // Swipe to the left past halfway point
       } else {
@@ -112,7 +127,7 @@ export default function SettingsTab() {
     filterTaps: true,
     bounds: () => ({ left: 0, right: sidebarWidth }),
     rubberband: true,
-    from: () => [x.get(), 0],
+    from: () => !forceLandscape ? [x.get(), 0] : [0, -x.get()],
   });
   
   const swipeZoneRef = useRef<HTMLDivElement>(null);
@@ -138,7 +153,27 @@ export default function SettingsTab() {
 
   const overlayOpacity = x.to((px) => Math.min(sidebarWidth, (px / sidebarWidth)))
   const overlayDisplay = x.to((px) => px > 0 ? 'block' : 'none')
-
+  
+  // Ugly hack to workaround the issue that in iOS Safari the "fixed" position is buggy for elements inside a
+  // `rotate()`ed element. We get around this by positioning it with js instead.
+  const getLandscapeModePositionStyleHack = () => forceLandscape ? {
+    position: "absolute",
+    top: `${document.body.scrollTop}px`,
+  } as const : {}
+  const landscapeModePositionStyleHack = getLandscapeModePositionStyleHack()
+  useEffect(() => {
+    const handleScroll = () => {
+      const rootElement = ref.current;
+      const overlayElement = overlayRef.current;
+      rootElement && Object.assign(rootElement.style, getLandscapeModePositionStyleHack())
+      overlayElement && Object.assign(overlayElement.style, getLandscapeModePositionStyleHack())
+    }
+    const scrollElement = forceLandscape ? document.body : document.scrollingElement
+    if (!scrollElement) return;
+    scrollElement.addEventListener("scroll", handleScroll);
+    return () => scrollElement.removeEventListener("scroll", handleScroll);
+  }, [forceLandscape])
+  
   const closeButton =
     noScenesAvailable || scenesLoading ? null : (
       <button
@@ -249,14 +284,15 @@ export default function SettingsTab() {
   return <>
     <animated.div
       className="settings-overlay"
-      style={{ display: overlayDisplay, opacity: overlayOpacity }}
+      style={{ display: overlayDisplay, opacity: overlayOpacity, ...landscapeModePositionStyleHack }}
       onClick={() => close()}
+      ref={overlayRef}
     />
     <animated.div
       className={cx("SettingsTab")}
       data-testid="SettingsTab"
       ref={ref}
-      style={{ right: x.to(px => `calc(100% - ${px}px)`) }}
+      style={{ right: x.to(px => `calc(100% - ${px}px)`), ...landscapeModePositionStyleHack }}
       {...bind()}
     >
       <div className="swipe-zone" ref={swipeZoneRef}></div>
