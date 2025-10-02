@@ -114,6 +114,27 @@ export default function SettingsTab() {
     rubberband: true,
     from: () => [x.get(), 0],
   });
+  
+  const swipeZoneRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = swipeZoneRef.current;
+    if (!element) return;
+
+    const handleClick = (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const allElementsAtClickPoint = document.elementsFromPoint(event.clientX, event.clientY);
+      const nextElementBelow = allElementsAtClickPoint.find(el => el !== element);
+      
+      if (nextElementBelow) {
+        nextElementBelow.dispatchEvent(new MouseEvent(event.type, event));
+      }
+    }
+    
+    element.addEventListener("click", handleClick);
+    return () => element.removeEventListener("click", handleClick);
+  }, [swipeZoneRef.current])
 
   const overlayOpacity = x.to((px) => Math.min(sidebarWidth, (px / sidebarWidth)))
   const overlayDisplay = x.to((px) => px > 0 ? 'block' : 'none')
@@ -238,6 +259,7 @@ export default function SettingsTab() {
       style={{ right: x.to(px => `calc(100% - ${px}px)`) }}
       {...bind()}
     >
+      <div className="swipe-zone" ref={swipeZoneRef}></div>
       <div className="content">
         <div className="body">
           <div className="item">

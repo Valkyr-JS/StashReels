@@ -22,13 +22,13 @@
   }
   
   // Add zone to the right to capture swipe gestures
-  &::after {
+  .swipe-zone {
     content: "";
     position: absolute;
     top: 0;
     left: 100%;
-    width: 100px;
-    height: calc(100% - var(--y-dynamic-diff) - 4em);
+    width: 50%;
+    height: calc(100% - var(--y-dynamic-diff) - 2em); /* Bit of a hack to stop it covering the video progress bar */
     z-index: 1; /* This as to be at last 1 to be interactive but should be below the video progress bar */
   }
 
