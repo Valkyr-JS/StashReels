@@ -1,4 +1,0 @@
-@mixin fullHeight {
-  height: 100vh; // Fallback
-  height: calc(var(--vsr-vh, 1vh) * 100);
-}

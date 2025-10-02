@@ -4,7 +4,7 @@
 .SettingsTab {
   height: calc(var(--y-unit-small) * 100);
   position: fixed;
-  top: 0;
+  top: var(--safe-inset-top);
   width: min(300px, 80%);
   touch-action: none;
   background-color: black;
@@ -14,10 +14,10 @@
   &::before {
     content: "";
     position: absolute;
-    top: 0;
+    top: -50%;
     right: 0;
     width: 200%;
-    height: 100lvh;
+    height: 200%;
     background-color: inherit;
   }
   
@@ -35,6 +35,7 @@
   .content {
     background: inherit;
     height: 100%;
+    height: calc(var(--y-unit-dynamic) * 100);
     width: 100%;
     z-index: 10;
     position: relative;

@@ -1,5 +1,5 @@
 name: Stash TV
-description: TikTok for Stash.
+description: A TikTok-like vertical scroller interface for Stash. Forked from Stash Reels.
 url: https://github.com/secondfolder/stash-tv
 version: 0.2.1
 ui:
