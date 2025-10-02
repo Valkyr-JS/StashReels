@@ -129,15 +129,19 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
       const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
+      console.log("forawrd key", seekForwardsKey)
       if (e.key === seekBackwardsKey) {
         seekBackwards()
         e.preventDefault()
+        e.stopPropagation();
       } else if (e.key === seekForwardsKey) {
         seekForwards()
         e.preventDefault()
+        e.stopPropagation();
       }
     }
-    window.addEventListener("keydown", handleKeyDown);
+    // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
