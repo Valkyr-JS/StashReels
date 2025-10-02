@@ -113,8 +113,8 @@ html {
   container: viewport/size;
 }
 
-html:has(main.force-landscape),
-body:has(main.force-landscape) {
+html.force-landscape,
+html.force-landscape body {
   /*
   When in force landscape mode it shouldn't be possible to scroll up and down
   the viewport, instead scrolling should occur horizontally inside the rotated
@@ -123,19 +123,11 @@ body:has(main.force-landscape) {
   when attempting to scroll passed the top or bottom. This breaks the illusion
   that we're in a true landscape orientation so we disable it.
   */
-  overscroll-behavior: none;
+  overscroll-behavior-y: none;
 }
 
-html:has(main.force-landscape) {
-  height: 100svw;
-  width: 100svh;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  transform-origin: center center 0px;
-  overflow-y: hidden;
-  scroll-snap-type: unset; /* Scroll snapping is currently buggy in landscape mode */
+html.force-landscape {
+  scroll-snap-type: unset; /* When the root is rotated scroll snapping doesn't seem to work on the root so we set it on a child instead */
   
   --x-unit-small: 1svh;
   --y-unit-small: 1svw;
@@ -148,6 +140,21 @@ html:has(main.force-landscape) {
   .VideoItem .ScenePlayer {
     height: 100%;
   }
+}
+
+html.force-landscape body {
+  height: 100svw;
+  width: 100svh;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center 0px;
+  overflow-y: hidden;
+  height: 100svw;
+  width: 100svh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
 }
 
 

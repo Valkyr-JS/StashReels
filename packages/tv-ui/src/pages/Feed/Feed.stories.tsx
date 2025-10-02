@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
-import { DEFAULT_MAXIMUM_SCENES, ITEM_BUFFER_EACH_SIDE } from "../../constants";
+import { DEFAULT_MAXIMUM_SCENES } from "../../constants";
+import {itemBufferEitherSide} from "../../components/VideoScroller";
 import { setCssVHDecorator } from "../../../../../.storybook/decorators";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
@@ -82,7 +83,7 @@ export const LoadVideosOnRender: Story = {
 
       // No more than 11 videos should be loaded at once
       const allItems = canvas.getAllByTestId("VideoItem--container");
-      expect(allItems.length).not.toBeGreaterThan(ITEM_BUFFER_EACH_SIDE + 1);
+      expect(allItems.length).not.toBeGreaterThan(itemBufferEitherSide + 1);
     });
   },
 };
@@ -100,7 +101,7 @@ export const LoadVideosOnScroll: Story = {
     // Fire 15 scroll events, and check that there are never more than 11 videos at once (current plus five either side)
 
     // Fire a scroll down event to item index 1.
-    for (let i = 0; i < ITEM_BUFFER_EACH_SIDE * 2 + 1; i++) {
+    for (let i = 0; i < itemBufferEitherSide * 2 + 1; i++) {
       setTimeout(
         () => {
           const allItems = canvas.getAllByTestId("VideoItem--container");
@@ -111,7 +112,7 @@ export const LoadVideosOnScroll: Story = {
           );
 
           expect(allItems.length).not.toBeGreaterThan(
-            ITEM_BUFFER_EACH_SIDE * 2 + 1
+            itemBufferEitherSide * 2 + 1
           );
         },
         1000 * i + 1000

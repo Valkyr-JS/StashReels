@@ -1,8 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import FeedPage from "../pages/Feed";
-import {
-  setCssVH,
-} from "../helpers";
 import cx from "classnames";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { ListFilterModel } from "stash-ui/dist/src/models/list-filter/filter";
@@ -12,7 +9,6 @@ import { SceneFilter, useAppStateStore } from "../store/appStateStore";
 
 const App = () => {
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
-  setCssVH();
 
   const { loadStashConfig, getSavedFilter, stashTvConfig, loading: stashConfigLoading,  } = useStashConfigStore();
   const { setSceneFilter, sceneFilter, scenesLoading, selectedSavedFilterId, setSelectedSavedFilterId, forceLandscape, ...otherAppState  } = useAppStateStore()
@@ -53,9 +49,13 @@ const App = () => {
       }
     });
   }, [stashConfigLoading, selectedSavedFilterId, otherAppState.isRandomised]);
+  
+  // <html /> is outside of React's control so we have to set the class manually
+  import.meta.env.VITE_DEBUG && console.log("forceLandscape", forceLandscape);
+  document.documentElement.className = cx({ "force-landscape": forceLandscape });
 
   return (
-    <FeedPage className={cx({ "force-landscape": forceLandscape })} />
+    <FeedPage />
   );
 };
 

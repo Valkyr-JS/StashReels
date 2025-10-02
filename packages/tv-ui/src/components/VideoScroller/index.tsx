@@ -1,19 +1,23 @@
 import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
-import { ITEM_BUFFER_EACH_SIDE } from "../../constants";
 import cx from "classnames";
 import { useAppStateStore } from "../../store/appStateStore";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { debounce } from 'perfect-debounce';
+import { useVirtualizer, useWindowVirtualizer, windowScroll, elementScroll } from "@tanstack/react-virtual";
+import throttle from 'throttleit';
+import { clamp } from "../../helpers";
 
 interface VideoScrollerProps {}
 
 const videoItemHeight = "calc(var(--y-unit-large) * 100)"
 
+/** The number of items to fetch data for. */
+export const itemBufferEitherSide = 1 as const;
+
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const { forceLandscape: isForceLandscape, setCrtEffect } = useAppStateStore();
+  const rootElmRef = useRef<HTMLDivElement | null>(null);
 
   /* ------------------------ Handle loading new videos ----------------------- */
 
@@ -46,7 +50,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   }, []);
 
 
-  const rowVirtualizer = useWindowVirtualizer({
+  const sharedOptions = {
     count: cachedScenes.length,
     estimateSize: () => {
       if (!estimateSizeTesterElement.current) {
@@ -59,24 +63,79 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         estimateSizeTesterElement.current = el;
       }
 
-      return estimateSizeTesterElement.current.offsetHeight;
-    },
-    overscan: 1,
-    horizontal: isForceLandscape,
-  });
+      const itemHeight = estimateSizeTesterElement.current.offsetHeight;
+      import.meta.env.VITE_DEBUG && console.log("Estimated item height:", itemHeight)
 
-  const [currentIndex, _setCurrentIndex] = useState(0);
-  const currentIndexRef = useRef(currentIndex);
+      return itemHeight;
+    },
+    overscan: itemBufferEitherSide,
+  }
+  const windowRowVirtualizer = useWindowVirtualizer({
+    ...sharedOptions,
+    enabled: !isForceLandscape,
+    scrollToFn: (...args) => {
+      import.meta.env.VITE_DEBUG && console.log("Window virtualizer scrolling to height:", args[0])
+      return windowScroll(...args);
+    }
+  });
+  const elementRowVirtualizer = useVirtualizer({
+    ...sharedOptions,
+    enabled: isForceLandscape,
+    getScrollElement: () => document.querySelector('body'),
+    scrollToFn: (...args) => {
+      import.meta.env.VITE_DEBUG && console.log("Element virtualizer scrolling to height:", args[0])
+      return elementScroll(...args);
+    }
+  });
+  
+  const rowVirtualizer = isForceLandscape ? elementRowVirtualizer : windowRowVirtualizer;
+
+  const [currentIndex, _setCurrentIndex] = useReducer(
+    (currentState: number, newState: React.SetStateAction<number>) => {
+      newState = typeof newState === 'function' ? newState(currentState) : newState;
+      return clamp(0, newState, cachedScenes.length - 1);
+    }, 0
+  );
+  const newPendingIndexRef = useRef(currentIndex);
+
   const setCurrentIndex = useMemo(
-    () => debounce((newIndex: React.SetStateAction<number>, {scrollTo = false}: {scrollTo: boolean} = {scrollTo: false}) => {
-      currentIndexRef.current = typeof newIndex === 'function' ? newIndex(currentIndexRef.current) : newIndex;
-      _setCurrentIndex(newIndex)
-      if (scrollTo) {
-        rowVirtualizer.scrollToIndex(currentIndexRef.current, { align: 'center', behavior: "auto" });
-      }
-    }, 100, {leading: true}),
+    () => {
+      const throttledSetCurrentIndex = throttle((newIndex: number) => {
+        import.meta.env.VITE_DEBUG && console.log("setCurrentIndex received:", newIndex)
+        _setCurrentIndex(newIndex)
+      }, 100)
+      return ((newIndex: React.SetStateAction<number>) => {
+        newPendingIndexRef.current = typeof newIndex === 'function' ? newIndex(newPendingIndexRef.current) : newIndex;
+
+        return throttledSetCurrentIndex(newPendingIndexRef.current);
+      })
+    },
     [rowVirtualizer]
   );
+  
+  const scrollToIndex = useMemo(
+    () => (index: React.SetStateAction<number>) => {
+      index = typeof index === 'function' ? index(newPendingIndexRef.current) : index;
+      // TanStack Virtual won't scroll to an item that isn't rendered yet so we manually
+      // scroll to the position where it would be if not rendered
+      if (rowVirtualizer.getVirtualItems().some(v => v.index === index)) {
+        import.meta.env.VITE_DEBUG && console.log("Scrolling to index:", index);
+        rowVirtualizer.scrollToIndex(index, { align: 'start', behavior: "auto" });
+      } else {
+        const container = rowVirtualizer.scrollElement
+        if (!container) return;
+        const itemHeight = rowVirtualizer.getVirtualItems()[0].size
+        const newScrollTop = index * itemHeight
+        import.meta.env.VITE_DEBUG && console.log("Scrolling to height:", newScrollTop, index);
+        rowVirtualizer.scrollElement?.scrollTo({ top: newScrollTop, align: 'start', behavior: "auto" });
+      }
+    },
+    [rowVirtualizer]
+  );
+  
+  useEffect(() => {
+    import.meta.env.VITE_DEBUG && console.log("currentIndex changed to", currentIndex);
+  }, [currentIndex]); 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,15 +143,25 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       const previousKey = isForceLandscape ? "ArrowLeft" : "ArrowUp";
       if (e.key === previousKey) {
         // Go to the previous item
-        setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0), {scrollTo: true});
+        import.meta.env.VITE_DEBUG && console.log("Previous key pressed");
+        const newIndex = (prevIndex: number) => prevIndex - 1
+        scrollToIndex(newIndex);
+        setCurrentIndex(newIndex);
         e.preventDefault();
+        e.stopPropagation();
       } else if (e.key === nextKey) {
         // Go to the next item
-        setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, cachedScenes.length - 1), {scrollTo: true});
+        import.meta.env.VITE_DEBUG && console.log("Next key pressed");
+        const newIndex = (prevIndex: number) => prevIndex + 1
+        scrollToIndex(newIndex);
+        import.meta.env.VITE_DEBUG && console.log("setCurrentIndex sent");
+        setCurrentIndex(newIndex);
         e.preventDefault();
+        e.stopPropagation();
       }
     }
-    window.addEventListener("keydown", handleKeyDown);
+    // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
+    window.addEventListener("keydown", handleKeyDown, {capture: true});
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -112,9 +181,6 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   
   // Store scroll position when window is resized
   useEffect(() => {
-    const container = document.scrollingElement;
-    const originalScrollSnapType = container ? getComputedStyle(container).scrollSnapType : 'none';
-    
     let timeoutId: NodeJS.Timeout;
     
     const restoreScrollPosition = () => {
@@ -128,13 +194,13 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         if (oldSize === newSize) return;
           
         // Disable scroll snapping temporarily to stop it from interfering
-        document.documentElement.style.scrollSnapType = 'none';
-
-        rowVirtualizer.scrollToIndex(currentIndex, { align: 'start', behavior: "auto" });
+        setScrollSnappingEnabled(false);
+        
+        scrollToIndex(currentIndex => currentIndex);
 
         // Re-enable scroll snapping after a small delay
         timeoutId = setTimeout(() => {
-          document.documentElement.style.scrollSnapType = originalScrollSnapType;
+          setScrollSnappingEnabled(true);
         }, 50);
       }
     };
@@ -143,7 +209,29 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     return () => {
       window.removeEventListener('resize', restoreScrollPosition);
     };
-  }, [currentIndex, rowVirtualizer]);
+  }, [scrollToIndex, rowVirtualizer]);
+  
+  const scrollSnappingEnabledRef = useRef(false);
+  function setScrollSnappingEnabled(enabled: boolean) {
+    scrollSnappingEnabledRef.current = enabled;
+    if (rootElmRef.current) {
+      rootElmRef.current.classList.toggle('scrollSnappingEnabled', enabled);
+    }
+  }
+  
+  const prevForceLandscapeRef = useRef(isForceLandscape);
+  if (prevForceLandscapeRef.current !== isForceLandscape) {
+    setScrollSnappingEnabled(false);
+  }
+  
+  useEffect(() => {
+    prevForceLandscapeRef.current = isForceLandscape;
+    // Restore scroll position after items have been resized for landscape/portrait mode
+    scrollToIndex(currentIndex => currentIndex);
+    import.meta.env.VITE_DEBUG && console.log("isForceLandscape changed, enabling scroll snapping");
+    // We enable scroll snapping after a short delay stops iOS from restoring scroll position on reload
+    setTimeout(() => setScrollSnappingEnabled(true), 100);
+  }, [isForceLandscape]);  
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const mutationObserverRef = useRef<MutationObserver | null>(null);
@@ -155,7 +243,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       (entries) => {
         // Find the most visible entry
         let maxVisibility = 0;
-        let mostVisibleIndex = currentIndexRef.current;
+        let mostVisibleIndex = newPendingIndexRef.current;
         
         entries.forEach((entry) => {
           const index = observedElementsRef.current.get(entry.target);
@@ -170,7 +258,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
           }
         });
         
-        if (mostVisibleIndex === currentIndexRef.current) return;
+        if (mostVisibleIndex === newPendingIndexRef.current) return;
         
         // Only update if we found a valid entry with enough visibility
         if (maxVisibility > 0.3) {
@@ -239,12 +327,13 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   // ? Added tabIndex to container to satisfy accessible scroll region.
   return (
     <div
-      className={cx("VideoScroller")}
+      className={cx("VideoScroller", {scrollSnappingEnabled: scrollSnappingEnabledRef.current })}
       data-testid="VideoScroller--container"
       tabIndex={0}
+      ref={rootElmRef}
       style={{ height: rowVirtualizer.getTotalSize() }}
     >
-      {import.meta.env.VITE_DEBUG && <div className="stats">
+      {import.meta.env.VITE_DEBUG && <div className="debugStats">
         {rowVirtualizer.isScrolling ? "Scrolling" : "Not Scrolling"}
       </div>}
       {cachedScenes.map((scene, i) => {
@@ -265,7 +354,10 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         ) {
           return (
             <VideoItem
-              changeItemHandler={setCurrentIndex}
+              changeItemHandler={(newIndex) => {
+                scrollToIndex(newIndex);
+                setCurrentIndex(newIndex);
+              }}
               currentIndex={currentIndex}
               index={i}
               key={scene.id}

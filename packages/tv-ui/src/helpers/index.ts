@@ -1,13 +1,4 @@
-import { useWindowSize } from "../hooks";
 import { GenderEnum, Maybe } from "stash-ui/dist/src/core/generated-graphql";
-
-
-/** Function for setting the --vsr-vh CSS variable used in video items. */
-export const setCssVH = () => {
-  const windowSize = useWindowSize();
-  let vh = windowSize.height * 0.01;
-  document.documentElement.style.setProperty("--vsr-vh", `${vh}px`);
-};
 
 /** Sort performers by gender then alphabetically. */
 export function sortPerformers<T extends IPerformerFragment>(performers: T[]) {
@@ -41,3 +32,7 @@ export const GENDERS = [
   "INTERSEX",
   "NON_BINARY",
 ] as GenderEnum[];
+
+export function clamp(min: number, num: number, max: number) {
+  return Math.min(Math.max(num, min), max);
+}

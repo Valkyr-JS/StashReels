@@ -3,12 +3,25 @@
 
 
 .VideoScroller {
-  // height: 100dvh;
   position: relative;
   
-  .VideoItem, .dummy-video-item {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
+  .debugStats {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    background: rgba(0,0,0,0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    color: white;
+  }
+  
+  &.scrollSnappingEnabled {
+    .VideoItem, .dummy-video-item {
+      scroll-snap-align: start;
+      scroll-snap-stop: normal;
+    }
   }
   
   .dummy-video-item {

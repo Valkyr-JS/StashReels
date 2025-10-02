@@ -93,13 +93,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const isInViewport = props.index === props.currentIndex;
   
-  useEffect(() => {
-    if (!videoRef.current) return;
-    if (props.currentIndex === props.index) {
-      videoRef.current.focus();
-    }
-  }, [videoRef, props.currentIndex, props.index])
-  
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {

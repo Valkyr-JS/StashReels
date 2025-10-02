@@ -2,7 +2,7 @@
 @import "../../styles/variables.scss";
 
 .SettingsTab {
-  @include fullHeight;
+  height: calc(var(--y-unit-small) * 100);
   position: fixed;
   top: 0;
   width: min(300px, 80%);

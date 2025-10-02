@@ -2,7 +2,7 @@
 @import "../../styles/variables.scss";
 
 .Loading {
-  @include fullHeight;
+  height: calc(var(--y-unit-small) * 100);
   width: 100%;
   padding: $spacer * 2;
   text-align: center;
