@@ -11,6 +11,12 @@ export default defineConfig( ({mode}) => {
   const host = env.DEV_HOST?.toLowerCase() === "true" ? true : env.DEV_HOST
   const allowedHosts = env.DEV_ALLOWED_HOSTS?.toLowerCase() === "true" ? true : env.DEV_ALLOWED_HOSTS?.split(",");
 
+  // We reuse the code Stash's UI which connects to the Stash server from the client and that expects
+  // VITE_APP_PLATFORM_URL to be set to the Stash server address when running in dev mode.
+  if (mode === "development") {
+    process.env.VITE_APP_PLATFORM_URL=env.STASH_ADDRESS
+  }
+
   return {
     root: "src",
     envDir: "..",

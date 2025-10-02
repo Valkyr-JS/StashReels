@@ -4,9 +4,8 @@
 
 # Stash TV
 
-Stash TV allows you to swipe through scene playlists based on your Stash filters. Featuring a non-instrusive, hideable
-UI, Stash TV is based heavily on apps like TikTok and Instagram. It's been forked from [Stash
-Reels](https://github.com/Valkyr-JS/StashReels) and is currently not that different.
+Stash TV allows you to view your scenes by swiping though them similar to TikTok. It's based on [Stash
+Reels](https://github.com/Valkyr-JS/StashReels) with a few modest improvements and additional options.
 
 <p align="center">
   <img alt="Screenshot of the main stash tv interface." src="https://raw.githubusercontent.com/secondfolder/stash-tv/main/docs/stash-tv-screenshot.png">
@@ -93,3 +92,17 @@ The user experience quality of Stash TV is highly dependant on the setup of each
 Stash TV only loads up to eleven scenes at once - the current scene, and up to five before and after it - in order to provide as smooth an experience when swiping through scenes, without overloading the browser's memory.
 
 As of version 0.1.2, a config option has been added in the Stash plugin settings to set the maximum number of scenes loaded in a playlist. The default is 500. Increasing or decreasing this number will reduce or increase load times respectively.
+
+## Contributing
+### Run the dev server
+To run first copy the sample `.env` file
+```shell
+cp packages/tv-ui/.env.sample packages/tv-ui/.env
+```
+Then update the env vars in the new `packages/tv-ui/.env` file.
+
+Now you can install the required dependences and run the dev server
+```shell
+yarn install
+yarn dev
+```
