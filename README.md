@@ -12,6 +12,7 @@ Reels](https://github.com/Valkyr-JS/StashReels) with a few modest improvements a
 </p>
 
 **Features:**
+- Filter scenes using your scene filters saved in Stash.
 - Tap to jump forwards or back in the video.
 - Scrub though the video with a video thumbnail.
 - Video tags shown on the video progress bar.
@@ -77,13 +78,13 @@ At the bottom of the screen is the scene scrubber, showing the current scene pro
 
 ### Settings
 
-1. Select a playlist - Choose from one of your Stash scene filters in the dropdown to use as a playlist. If you don't have any scene filters, all portrait scenes will be fetched as a default playlist.
-2. Set current playlist as default - Makes the currently selected playlist the default when Stash TV is launched. (Only
-   shown if currently selected playlist is not already default)
-3. Randomise playlist order. (Only shown if currently selected playlist is not already sorted by random.)
+1. Select a filter - Choose from one of your Stash scene filters in the dropdown. If you don't have any filters, all portrait scenes will be fetched as a default filter.
+2. Set current filter as default - Makes the currently selected filter the default when Stash TV is launched. (Only
+   shown if currently selected filter is not already default)
+3. Randomise filter order. (Only shown if currently selected filter is not already sorted by random.)
 4. Subtitle language - Set your preferred subtitle language. If subtitles are available for a scene in this language,
    they will be displayed. These can be toggled on or off in the main scene UI.
-5. CRT Effect - A fun little filter that simulates an old CRT TV look (you can also press the "c" key to toggle this).
+5. CRT Effect - A fun little visual filter that simulates an old CRT TV look (you can also press the "c" key to toggle this).
 
 ## Technical info
 
@@ -91,7 +92,7 @@ The user experience quality of Stash TV is highly dependant on the setup of each
 
 Stash TV only loads up to eleven scenes at once - the current scene, and up to five before and after it - in order to provide as smooth an experience when swiping through scenes, without overloading the browser's memory.
 
-As of version 0.1.2, a config option has been added in the Stash plugin settings to set the maximum number of scenes loaded in a playlist. The default is 500. Increasing or decreasing this number will reduce or increase load times respectively.
+As of version 0.1.2, a config option has been added in the Stash plugin settings to set the maximum number of scenes loaded in a filter. The default is 500. Increasing or decreasing this number will reduce or increase load times respectively.
 
 ## Contributing
 ### Run the dev server

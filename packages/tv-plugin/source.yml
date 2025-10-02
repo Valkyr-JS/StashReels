@@ -14,5 +14,5 @@ settings:
     type: BOOLEAN
   maximumScenes:
     displayName: Maximum scenes
-    description: Set the maximum number of scenes that included in a playlist. The default value is 500. High values may result in long loading times or crashes.
+    description: Set the maximum number of scenes that included in a filter. The default value is 500. High values may result in long loading times or crashes.
     type: NUMBER

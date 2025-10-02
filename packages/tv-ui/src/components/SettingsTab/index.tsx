@@ -166,8 +166,8 @@ export default function SettingsTab() {
     },
   });
 
-  // 1. Select a playlist
-  const playlists = useMemo(
+  // 1. Select a scene filter
+  const filters = useMemo(
     () => savedSceneFilters
       .map(filter => ({
         value: filter.id,
@@ -176,21 +176,21 @@ export default function SettingsTab() {
       .sort((a, b) => a.label.localeCompare(b.label)),
     [savedSceneFilters, stashTvConfig.stashTvDefaultFilterID]
   )
-  const selectedPlaylist = useMemo(() => playlists.find(filter => filter.value === selectedSavedFilterId), [selectedSavedFilterId, playlists]);
+  const selectedFilter = useMemo(() => filters.find(filter => filter.value === selectedSavedFilterId), [selectedSavedFilterId, filters]);
 
   const scenelessFilterError = noScenesAvailable ? (
     <div className="error">
-      <h2>Playlist contains no scenes!</h2>
+      <h2>Filter contains no scenes!</h2>
       <p>
-        No scenes were found in the currently selected playlist. Please choose
+        No scenes were found in the currently selected filter. Please choose
         a different one.
       </p>
     </div>
   ) : null;
 
-  // 2. Set current playlist as default
+  // 2. Set current filter as default
 
-  // 3. Randomise playlist order
+  // 3. Randomise filter order
 
   // 4. Set subtitles language
   const subtitlesList = ISO6391.getAllNames()
@@ -242,38 +242,38 @@ export default function SettingsTab() {
         <div className="body">
           <div className="item">
             <label>
-              <h3>Select a playlist</h3>
+              <h3>Select a filter</h3>
               <Select
-                defaultValue={selectedPlaylist}
+                defaultValue={selectedFilter}
                 onChange={(newValue) => setSelectedSavedFilterId(newValue?.value ?? undefined)}
-                options={playlists}
+                options={filters}
                 placeholder="None selected. Defaulted to all portrait scenes."
                 theme={reactSelectTheme}
               />
             </label>
             <small>
               Choose a scene filter from Stash to use as your Stash TV
-              playlist
+              filter
             </small>
 
             {fetchingDataWarning}
             {scenelessFilterError}
           </div>
 
-          {selectedPlaylist && selectedPlaylist.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
+          {selectedFilter && selectedFilter.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
             <button
               onClick={() => {
                 updateStashTvConfig({
                   ...stashTvConfig,
-                  stashTvDefaultFilterID: selectedPlaylist?.value,
+                  stashTvDefaultFilterID: selectedFilter?.value,
                 });
               }}
             >
-              Set "{selectedPlaylist?.label}" as the default playlist
+              Set "{selectedFilter?.label}" as the default filter
             </button>
             <div>
               <small>
-                Set the currently selected scene filter as the default playlist
+                Set the currently selected scene filter as the default filter
                 when opening Stash TV.
               </small>
             </div>
@@ -281,7 +281,7 @@ export default function SettingsTab() {
 
           <div className="item checkbox-item">
             {sceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
-              <span>Playlist is set to random order</span>
+              <span>Filter is set to random order</span>
             ) : <>
               <label>
                 <input
@@ -289,9 +289,9 @@ export default function SettingsTab() {
                   onChange={event => setIsRandomised(event.target.checked)}
                   type="checkbox"
                 />
-                <h3>Randomise playlist order</h3>
+                <h3>Randomise filter order</h3>
               </label>
-              <small>Randomise the order of scenes in the playlist.</small>
+              <small>Randomise the order of scenes in the filter.</small>
             </>}
           </div>
 

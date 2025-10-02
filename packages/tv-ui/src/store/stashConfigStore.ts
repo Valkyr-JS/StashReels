@@ -6,9 +6,9 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 export type StashTvConfig = {
   /** The ID of the default filter to be loaded on startup. */
   stashTvDefaultFilterID?: string,
-  /** Hide the main navigation link to Stash TV.  */
+  /** Hide the main navigation link to Stash TV. */
   hideNavButton?: boolean;
-  /** Set the maximum number of scenes that included in a playlist. The default value is 500. High values may result in long loading times or crashes. */
+  /** Set the maximum number of scenes to fetch. The default value is 500. High values may result in long loading times or crashes. */
   maximumScenes: number;
   /** The subtitle language code to be used when available. */
   subtitleLanguage?: string;
