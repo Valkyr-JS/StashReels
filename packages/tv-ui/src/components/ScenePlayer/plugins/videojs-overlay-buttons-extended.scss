@@ -14,12 +14,12 @@
       .vjs-overlay {
         opacity: 0.1;
       }
-      // After timeout make controls overlay invisible but still interactive
-      .vjs-overlay.d-none,
-      .vjs-overlay .d-none {  
-        display: initial !important; 
-        opacity: 0 !important;
-      }
+    }
+    // After timeout make controls overlay invisible but still interactive
+    .vjs-overlay.d-none,
+    .vjs-overlay .d-none {  
+      display: initial !important; 
+      opacity: 0 !important;
     }
     
     .vjs-overlay {

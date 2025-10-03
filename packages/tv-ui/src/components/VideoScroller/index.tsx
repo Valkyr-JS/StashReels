@@ -96,7 +96,16 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       return clamp(0, newState, cachedScenes.length - 1);
     }, 0
   );
-  const newPendingIndexRef = useRef(currentIndex);
+  
+  /**
+   * The currentIndex value in ref form for when it needs to be accessed in
+   * async functions without being a dependency that causes re-renders.
+   *
+   * It's state may sometimes differ from currentIndex as the updating of currentIndex
+   * is throttled to avoid excessive re-renders. However currentIndex should eventually
+   * catch up to this value.
+   * */
+  const currentIndexRef = useRef(currentIndex);
 
   const setCurrentIndex = useMemo(
     () => {
@@ -105,30 +114,66 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         _setCurrentIndex(newIndex)
       }, 100)
       return ((newIndex: React.SetStateAction<number>) => {
-        newPendingIndexRef.current = typeof newIndex === 'function' ? newIndex(newPendingIndexRef.current) : newIndex;
+        currentIndexRef.current = typeof newIndex === 'function' ? newIndex(currentIndexRef.current) : newIndex;
 
-        return throttledSetCurrentIndex(newPendingIndexRef.current);
+        return throttledSetCurrentIndex(currentIndexRef.current);
       })
     },
     [rowVirtualizer]
   );
-  
-  const scrollToIndex = useMemo(
-    () => (index: React.SetStateAction<number>) => {
-      index = typeof index === 'function' ? index(newPendingIndexRef.current) : index;
-      // TanStack Virtual won't scroll to an item that isn't rendered yet so we manually
-      // scroll to the position where it would be if not rendered
-      if (rowVirtualizer.getVirtualItems().some(v => v.index === index)) {
-        import.meta.env.VITE_DEBUG && console.log("Scrolling to index:", index);
-        rowVirtualizer.scrollToIndex(index, { align: 'start', behavior: "auto" });
-      } else {
-        const container = rowVirtualizer.scrollElement
-        if (!container) return;
-        const itemHeight = rowVirtualizer.getVirtualItems()[0].size
-        const newScrollTop = index * itemHeight
-        import.meta.env.VITE_DEBUG && console.log("Scrolling to height:", newScrollTop, index);
-        rowVirtualizer.scrollElement?.scrollTo({ top: newScrollTop, align: 'start', behavior: "auto" });
+
+  const scrollSnappingReenableTimeoutRef = useRef<NodeJS.Timeout | undefined>();
+  const scrollSnappingEnabled = () => !scrollSnappingReenableTimeoutRef.current
+  const scrollSnappingReenableTimeoutMs = 100;
+  const getScrollSnappingReenableHandler = () => () => {
+    clearTimeout(scrollSnappingReenableTimeoutRef.current);
+    scrollSnappingReenableTimeoutRef.current = undefined
+    rootElmRef.current?.classList.add('scrollSnappingEnabled');
+  }
+
+  // Temporarily disable scroll snapping to help with bugs that occur when trying to programmatically scroll
+  // when scroll snapping is on. Also if scroll snapping is enabled when page is loaded then iOS restores the scroll
+  // position so we disable it for a short while at load to avoid this.
+  function temporarilyDisableScrollSnapping() {
+    if (scrollSnappingReenableTimeoutRef.current) {
+      clearTimeout(scrollSnappingReenableTimeoutRef.current);
+    }
+    scrollSnappingReenableTimeoutRef.current = setTimeout(
+      getScrollSnappingReenableHandler(),
+      scrollSnappingReenableTimeoutMs
+    );
+    import.meta.env.VITE_DEBUG && console.log('Temporarily disabling scroll snapping');
+    rootElmRef.current?.classList.remove('scrollSnappingEnabled');
+  }
+
+  // Delay reenabling scroll snapping if a scroll occurs within the timeout period
+  useEffect(() => {
+    const scrollHandler = () => {
+      if (!scrollSnappingEnabled()) {
+        clearTimeout(scrollSnappingReenableTimeoutRef.current);
+        scrollSnappingReenableTimeoutRef.current = setTimeout(
+          getScrollSnappingReenableHandler(),
+          scrollSnappingReenableTimeoutMs
+        );
       }
+    }
+    window.addEventListener('scroll', scrollHandler);
+    return () => window.removeEventListener('scroll', scrollHandler);
+  }, []);
+  const scrollToIndex = useMemo(
+    () => (index: React.SetStateAction<number>, options?: { behavior?: ScrollBehavior }) => {
+      index = typeof index === 'function' ? index(currentIndexRef.current) : index;
+      // We don't use TanStack Virtual's `scrollToIndex()` here since it won't scroll to the position for an item that 
+      // isn't rendered yet + it seems to be a bit buggy around smooth scrolling since it scrolls then immediately
+      // checks to see if it's finished scrolling and will try again if not (causing jumpiness).
+      const container = rowVirtualizer.scrollElement
+      if (!container) return;
+      const itemHeight = rowVirtualizer.getVirtualItems()[0].size
+      const newScrollTop = index * itemHeight
+      temporarilyDisableScrollSnapping();
+      import.meta.env.VITE_DEBUG && console.log(`Scrolling to index ${index} at height ${newScrollTop}`);
+      console.log({ top: newScrollTop, behavior: "smooth", ...options }, options)
+      rowVirtualizer.scrollElement?.scrollTo({ top: newScrollTop, behavior: "smooth", ...options });
     },
     [rowVirtualizer]
   );
@@ -145,7 +190,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         // Go to the previous item
         import.meta.env.VITE_DEBUG && console.log("Previous key pressed");
         const newIndex = (prevIndex: number) => prevIndex - 1
-        scrollToIndex(newIndex);
+        scrollToIndex(newIndex, { behavior: "instant" });
         setCurrentIndex(newIndex);
         e.preventDefault();
         e.stopPropagation();
@@ -153,7 +198,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         // Go to the next item
         import.meta.env.VITE_DEBUG && console.log("Next key pressed");
         const newIndex = (prevIndex: number) => prevIndex + 1
-        scrollToIndex(newIndex);
+        scrollToIndex(newIndex, { behavior: "instant" });
         import.meta.env.VITE_DEBUG && console.log("setCurrentIndex sent");
         setCurrentIndex(newIndex);
         e.preventDefault();
@@ -181,27 +226,14 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   
   // Store scroll position when window is resized
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
     const restoreScrollPosition = () => {
       if (rowVirtualizer) {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
         const oldSize = rowVirtualizer.getVirtualItems()[0].size
         rowVirtualizer.measure();
         const newSize = rowVirtualizer.getVirtualItems()[0].size
         if (oldSize === newSize) return;
-          
-        // Disable scroll snapping temporarily to stop it from interfering
-        setScrollSnappingEnabled(false);
         
-        scrollToIndex(currentIndex => currentIndex);
-
-        // Re-enable scroll snapping after a small delay
-        timeoutId = setTimeout(() => {
-          setScrollSnappingEnabled(true);
-        }, 50);
+        scrollToIndex(currentIndex => currentIndex, { behavior: "instant" });
       }
     };
     
@@ -211,26 +243,9 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     };
   }, [scrollToIndex, rowVirtualizer]);
   
-  const scrollSnappingEnabledRef = useRef(false);
-  function setScrollSnappingEnabled(enabled: boolean) {
-    scrollSnappingEnabledRef.current = enabled;
-    if (rootElmRef.current) {
-      rootElmRef.current.classList.toggle('scrollSnappingEnabled', enabled);
-    }
-  }
-  
-  const prevForceLandscapeRef = useRef(isForceLandscape);
-  if (prevForceLandscapeRef.current !== isForceLandscape) {
-    setScrollSnappingEnabled(false);
-  }
-  
   useEffect(() => {
-    prevForceLandscapeRef.current = isForceLandscape;
     // Restore scroll position after items have been resized for landscape/portrait mode
-    scrollToIndex(currentIndex => currentIndex);
-    import.meta.env.VITE_DEBUG && console.log("isForceLandscape changed, enabling scroll snapping");
-    // We enable scroll snapping after a short delay stops iOS from restoring scroll position on reload
-    setTimeout(() => setScrollSnappingEnabled(true), 100);
+    scrollToIndex(currentIndex => currentIndex, { behavior: "instant" });
   }, [isForceLandscape]);  
 
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -243,7 +258,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       (entries) => {
         // Find the most visible entry
         let maxVisibility = 0;
-        let mostVisibleIndex = newPendingIndexRef.current;
+        let mostVisibleIndex = currentIndexRef.current;
         
         entries.forEach((entry) => {
           const index = observedElementsRef.current.get(entry.target);
@@ -258,7 +273,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
           }
         });
         
-        if (mostVisibleIndex === newPendingIndexRef.current) return;
+        if (mostVisibleIndex === currentIndexRef.current) return;
         
         // Only update if we found a valid entry with enough visibility
         if (maxVisibility > 0.3) {
@@ -327,7 +342,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   // ? Added tabIndex to container to satisfy accessible scroll region.
   return (
     <div
-      className={cx("VideoScroller", {scrollSnappingEnabled: scrollSnappingEnabledRef.current })}
+      className={cx("VideoScroller", {scrollSnappingEnabled: scrollSnappingEnabled() })}
       data-testid="VideoScroller--container"
       tabIndex={0}
       ref={rootElmRef}

@@ -1,6 +1,7 @@
 dist
 node_modules
 .env
+.env.*.local
 .local
 
 *storybook.log

@@ -131,7 +131,10 @@
       opacity: 0.3;
     }
   }
-  
+
+  // The edges of the video before and after the current video area are visible in some browsers (like mobile browsers
+  // where a little bit of extra page content outside the viewport is visible under browser controls). To stop this 
+  // being distracting we reduce the visual weight of these.
   &:not(.inViewport):not(.currentlyScrolling) {
     filter: brightness(0.7);
     transition: filter 1s;

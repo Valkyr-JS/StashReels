@@ -45,6 +45,7 @@ export interface VideoItemProps {
   currentIndex: number;
   index: number;
   style?: React.CSSProperties | undefined;
+  className?: string;
   currentlyScrolling?: boolean;
 }
 
@@ -328,7 +329,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   return (
     <div
-      className={cx("VideoItem", {inViewport: isInViewport, 'cover': !letterboxing})}
+      className={cx("VideoItem", {inViewport: isInViewport, 'cover': !letterboxing}, props.className)}
       data-testid="VideoItem--container"
       data-index={props.index}
       data-scene-id={props.scene.id}
