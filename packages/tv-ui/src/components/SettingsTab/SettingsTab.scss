@@ -2,89 +2,6 @@
 @import "../../styles/variables.scss";
 
 .SettingsTab {
-  height: calc(var(--y-unit-small) * 100);
-  position: fixed;
-  top: var(--safe-inset-top);
-  width: min(300px, 80%);
-  touch-action: none;
-  background-color: black;
-  max-height: 100%;
-  
-  // Extend background out to the top, left and bottom to cover gaps during swipe
-  &::before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    right: 0;
-    width: calc(var(--x-unit-large) * 120);
-    height: 200%;
-    background-color: inherit;
-  }
-  
-  // Add zone to the right to capture swipe gestures
-  .swipe-zone {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 100%;
-    width: 50%;
-    height: calc(100% - var(--y-dynamic-diff) - 2em); /* Bit of a hack to stop it covering the video progress bar */
-    z-index: 1; /* This as to be at last 1 to be interactive but should be below the video progress bar */
-  }
-
-  .content {
-    background: inherit;
-    height: 100%;
-    height: calc(var(--y-unit-dynamic) * 100);
-    width: 100%;
-    z-index: 10;
-    position: relative;
-
-    display: grid;
-    grid-template-rows:
-      [canvas-top main-top] 1fr [main-bottom footer-top] minmax(
-        $ui-button-size + ($spacer * 2),
-        max-content
-      )
-      [footer-bottom canvas-bottom];
-  }
-
-  .body {
-    padding: $spacer;
-    grid-row: main-top / main-bottom;
-    overflow-y: auto;
-  }
-
-  .footer {
-    display: flex;
-    align-items: center;
-    padding: $spacer;
-    grid-row: footer-top / footer-bottom;
-
-    h2 {
-      margin-right: auto;
-      margin-bottom: 0;
-    }
-
-    button {
-      appearance: none;
-      border: 0;
-      padding: 0;
-      cursor: pointer;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: $ui-button-size;
-      width: $ui-button-size;
-
-      background-color: transparent;
-      color: white;
-      font-size: 28px;
-      line-height: 1;
-    }
-  }
-
   .item {
     &:not(:last-child) {
       margin-bottom: $spacer * 2;
@@ -126,14 +43,4 @@
   &--warning {
     border-color: gold;
   }
-}
-
-.settings-overlay {
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: calc(var(--x-unit-large) * 200);
-  height: calc(var(--y-unit-large) * 200);
-  background-color: rgba(0, 0, 0, 0.5);
-  cursor: pointer;
 }

@@ -1,18 +1,16 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { default as cx } from "classnames";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
-import React, { useMemo, useEffect, useRef } from "react";
+import React, { useMemo } from "react";
 import Select, {
   ActionMeta,
   SingleValue,
   ThemeConfig,
 } from "react-select";
-import { useDrag } from "@use-gesture/react";
-import { useSpring, animated, config } from "@react-spring/web";
 import "./SettingsTab.scss";
 import { useStashConfigStore } from "../../store/stashConfigStore";
 import { useAppStateStore } from "../../store/appStateStore";
+import SideDrawer from "../SideDrawer";
 
 type ReactSelectOnChange = (
   newValue: SingleValue<{
@@ -26,165 +24,11 @@ type ReactSelectOnChange = (
 ) => any;
 
 export default function SettingsTab() {
-  const ref = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
   const { savedSceneFilters, stashTvConfig, updateStashTvConfig } = useStashConfigStore();
 
-  const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, setShowSettings, crtEffect, setCrtEffect, showSettings, forceLandscape } = useAppStateStore();
+  const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, crtEffect, setCrtEffect } = useAppStateStore();
   const noScenesAvailable = !scenesLoading && scenes.length === 0;
-
-  const [sidebarWidth, setSidebarWidth] = React.useState(window.innerWidth);
-  useEffect(() => {
-    const width = ref?.current?.clientWidth
-    if (width) {
-      setSidebarWidth(width)
-    }
-  }, [])
-
-  const [{ x }, api] = useSpring(() => ({
-    from: {
-      x: showSettings || noScenesAvailable ? 0 : 0,
-    },
-    config: {
-      mass: 0.3,
-      tension: 600,
-      friction: 26
-    }
-  }));
-  useEffect(() => {
-    if (showSettings) {
-      open();
-    } else {
-      close();
-    }
-  }, [showSettings]);
-
-  const open = ({ canceled }: { canceled: boolean } = { canceled: false }) => {
-    api.start({
-      x: sidebarWidth,
-      immediate: false,
-      // when cancel is true, it means that the user passed the drag right threshold
-      // so we change the spring config to create a nice wobbly effect
-      config: canceled ? {
-        mass: 0.9,
-        tension: 400,
-        friction: 20
-      } : undefined,
-      onRest: () => setShowSettings(true)
-    })
-
-  }
-  const close = () => {
-    api.start({
-      x: 0,
-      immediate: false,
-      config: { ...config.stiff },
-      onRest: () => setShowSettings(false)
-    })
-  }
-
-  // Setup drag gesture for swiping
-  const bind = useDrag((event) => {
-    const {
-      xy: [xCord, yCord],
-      direction: [xDirection, yDirection],
-      offset: [xOffset, yOffset],
-      velocity: [xVelocity, yVelocity],
-      dragging,
-      cancel,
-      last,
-      canceled
-    } = event
-    
-    const xCordEffective = !forceLandscape ? xCord : window.innerHeight - yCord
-    const xOffsetEffective = !forceLandscape ? xOffset : -yOffset
-    const xVelocityEffective = !forceLandscape ? xVelocity : yVelocity
-    const xDirectionEffective = !forceLandscape ? xDirection : -yDirection
-
-    if (dragging) {
-      // If we drag more than 2x the sidebar width, we cancel the drag and snap back
-      if (xCordEffective / sidebarWidth > 2) {
-        cancel()
-      } else {
-        api.start({ x: xOffsetEffective, immediate: true });
-      }
-    } else if (last) {
-      // Quick but maybe short swipe to the right
-      if (xVelocityEffective > 0.5 && xDirectionEffective > 0) {
-        open({ canceled })
-        // Quick but maybe short swipe to the left
-      } else if (xVelocityEffective > 0.5 && xDirectionEffective < 0) {
-        close()
-        // Swipe to the right past halfway point
-      } else if (xOffsetEffective > (sidebarWidth * 0.5)) {
-        open({ canceled })
-        // Swipe to the left past halfway point
-      } else {
-        close()
-      }
-    }
-  }, {
-    filterTaps: true,
-    bounds: () => ({ left: 0, right: sidebarWidth }),
-    rubberband: true,
-    from: () => !forceLandscape ? [x.get(), 0] : [0, -x.get()],
-  });
   
-  const swipeZoneRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const element = swipeZoneRef.current;
-    if (!element) return;
-
-    const handleClick = (event: MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const allElementsAtClickPoint = document.elementsFromPoint(event.clientX, event.clientY);
-      const nextElementBelow = allElementsAtClickPoint.find(el => el !== element);
-      
-      if (nextElementBelow) {
-        nextElementBelow.dispatchEvent(new MouseEvent(event.type, event));
-      }
-    }
-    
-    element.addEventListener("click", handleClick);
-    return () => element.removeEventListener("click", handleClick);
-  }, [swipeZoneRef.current])
-
-  const overlayOpacity = x.to((px) => Math.min(sidebarWidth, (px / sidebarWidth)))
-  const overlayDisplay = x.to((px) => px > 0 ? 'block' : 'none')
-  
-  // Ugly hack to workaround the issue that in iOS Safari the "fixed" position is buggy for elements inside a
-  // `rotate()`ed element. We get around this by positioning it with js instead.
-  const getLandscapeModePositionStyleHack = () => forceLandscape ? {
-    position: "absolute",
-    top: `${document.body.scrollTop}px`,
-  } as const : {}
-  const landscapeModePositionStyleHack = getLandscapeModePositionStyleHack()
-  useEffect(() => {
-    const handleScroll = () => {
-      const rootElement = ref.current;
-      const overlayElement = overlayRef.current;
-      rootElement && Object.assign(rootElement.style, getLandscapeModePositionStyleHack())
-      overlayElement && Object.assign(overlayElement.style, getLandscapeModePositionStyleHack())
-    }
-    const scrollElement = forceLandscape ? document.body : document.scrollingElement
-    if (!scrollElement) return;
-    scrollElement.addEventListener("scroll", handleScroll);
-    return () => scrollElement.removeEventListener("scroll", handleScroll);
-  }, [forceLandscape])
-  
-  const closeButton =
-    noScenesAvailable || scenesLoading ? null : (
-      <button
-        data-testid="SettingsTab--closeButton"
-        onClick={() => setShowSettings(false)}
-        type="button"
-      >
-        <FontAwesomeIcon icon={faXmark} />
-        <span className="sr-only">Close settings</span>
-      </button>
-    );
 
   /* --------------------------- Fetching data alert -------------------------- */
 
@@ -280,112 +124,88 @@ export default function SettingsTab() {
   };
 
   /* -------------------------------- Component ------------------------------- */
+  
+  return <SideDrawer title="Settings" closeDisabled={noScenesAvailable || scenesLoading} className="SettingsTab">
+    <div className="item">
+      <label>
+        <h3>Select a filter</h3>
+        <Select
+          defaultValue={selectedFilter}
+          onChange={(newValue) => setSelectedSavedFilterId(newValue?.value ?? undefined)}
+          options={filters}
+          placeholder="None selected. Defaulted to all portrait scenes."
+          theme={reactSelectTheme}
+        />
+      </label>
+      <small>
+        Choose a scene filter from Stash to use as your Stash TV
+        filter
+      </small>
 
-  return <>
-    <animated.div
-      className="settings-overlay"
-      style={{ display: overlayDisplay, opacity: overlayOpacity, ...landscapeModePositionStyleHack }}
-      onClick={() => close()}
-      ref={overlayRef}
-    />
-    <animated.div
-      className={cx("SettingsTab")}
-      data-testid="SettingsTab"
-      ref={ref}
-      style={{ right: x.to(px => `calc(100% - ${px}px)`), ...landscapeModePositionStyleHack }}
-      {...bind()}
-    >
-      <div className="swipe-zone" ref={swipeZoneRef}></div>
-      <div className="content">
-        <div className="body">
-          <div className="item">
-            <label>
-              <h3>Select a filter</h3>
-              <Select
-                defaultValue={selectedFilter}
-                onChange={(newValue) => setSelectedSavedFilterId(newValue?.value ?? undefined)}
-                options={filters}
-                placeholder="None selected. Defaulted to all portrait scenes."
-                theme={reactSelectTheme}
-              />
-            </label>
-            <small>
-              Choose a scene filter from Stash to use as your Stash TV
-              filter
-            </small>
+      {fetchingDataWarning}
+      {scenelessFilterError}
+    </div>
 
-            {fetchingDataWarning}
-            {scenelessFilterError}
-          </div>
-
-          {selectedFilter && selectedFilter.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
-            <button
-              onClick={() => {
-                updateStashTvConfig({
-                  ...stashTvConfig,
-                  stashTvDefaultFilterID: selectedFilter?.value,
-                });
-              }}
-            >
-              Set "{selectedFilter?.label}" as the default filter
-            </button>
-            <div>
-              <small>
-                Set the currently selected scene filter as the default filter
-                when opening Stash TV.
-              </small>
-            </div>
-          </div>}
-
-          <div className="item checkbox-item">
-            {sceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
-              <span>Filter is set to random order</span>
-            ) : <>
-              <label>
-                <input
-                  checked={isRandomised}
-                  onChange={event => setIsRandomised(event.target.checked)}
-                  type="checkbox"
-                />
-                <h3>Randomise filter order</h3>
-              </label>
-              <small>Randomise the order of scenes in the filter.</small>
-            </>}
-          </div>
-
-          <div className="item">
-            <label>
-              <h3>Subtitle language</h3>
-              <Select
-                defaultValue={defaultSubtitles}
-                onChange={onChangeSubLanguage}
-                options={subtitlesList}
-                theme={reactSelectTheme}
-              />
-            </label>
-            <small>
-              Select the language to use for subtitles if available.
-            </small>
-          </div>
-
-          <div className="item checkbox-item">
-            <label>
-              <input
-                checked={crtEffect}
-                onChange={event => setCrtEffect(event.target.checked)}
-                type="checkbox"
-              />
-              <h3>CRT effect</h3>
-            </label>
-            <small>Emulate the visual effects of an old CRT television.</small>
-          </div>
-        </div>
-
-        <div className="footer">
-          <h2>Settings</h2>
-          {closeButton}
-        </div>
+    {selectedFilter && selectedFilter.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
+      <button
+        onClick={() => {
+          updateStashTvConfig({
+            ...stashTvConfig,
+            stashTvDefaultFilterID: selectedFilter?.value,
+          });
+        }}
+      >
+        Set "{selectedFilter?.label}" as the default filter
+      </button>
+      <div>
+        <small>
+          Set the currently selected scene filter as the default filter
+          when opening Stash TV.
+        </small>
       </div>
-    </animated.div>
-  </>;
+    </div>}
+
+    <div className="item checkbox-item">
+      {sceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
+        <span>Filter is set to random order</span>
+      ) : <>
+        <label>
+          <input
+            checked={isRandomised}
+            onChange={event => setIsRandomised(event.target.checked)}
+            type="checkbox"
+          />
+          <h3>Randomise filter order</h3>
+        </label>
+        <small>Randomise the order of scenes in the filter.</small>
+      </>}
+    </div>
+
+    <div className="item">
+      <label>
+        <h3>Subtitle language</h3>
+        <Select
+          defaultValue={defaultSubtitles}
+          onChange={onChangeSubLanguage}
+          options={subtitlesList}
+          theme={reactSelectTheme}
+        />
+      </label>
+      <small>
+        Select the language to use for subtitles if available.
+      </small>
+    </div>
+
+    <div className="item checkbox-item">
+      <label>
+        <input
+          checked={crtEffect}
+          onChange={event => setCrtEffect(event.target.checked)}
+          type="checkbox"
+        />
+        <h3>CRT effect</h3>
+      </label>
+      <small>Emulate the visual effects of an old CRT television.</small>
+    </div>
+  </SideDrawer>;
 };
