@@ -20,17 +20,6 @@
     height: 200%;
     background-color: inherit;
   }
-  
-  // Add zone to the right to capture swipe gestures
-  .swipe-zone {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 100%;
-    width: 50%;
-    height: calc(100% - var(--y-dynamic-diff) - 2em); /* Bit of a hack to stop it covering the video progress bar */
-    z-index: 1; /* This as to be at last 1 to be interactive but should be below the video progress bar */
-  }
 
   .content {
     background: inherit;
@@ -94,4 +83,5 @@
   height: calc(var(--y-unit-large) * 200);
   background-color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
+  touch-action: none; /* Disable scrolling videos when side drawer is open */
 }

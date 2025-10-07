@@ -76,26 +76,34 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   }
 
   // Setup drag gesture for swiping
-  const bind = useDrag((event) => {
+  useDrag((state) => {
     const {
       xy: [xCord, yCord],
-      direction: [xDirection, yDirection],
       offset: [xOffset, yOffset],
+      direction: [xDirection, yDirection],
       velocity: [xVelocity, yVelocity],
       dragging,
       cancel,
       last,
-      canceled
-    } = event
+      canceled,
+      first,
+    } = state
     
     const xCordEffective = !forceLandscape ? xCord : window.innerHeight - yCord
     const xOffsetEffective = !forceLandscape ? xOffset : -yOffset
     const xVelocityEffective = !forceLandscape ? xVelocity : yVelocity
     const xDirectionEffective = !forceLandscape ? xDirection : -yDirection
 
+    if (first) {
+      // If we start dragging from a point further than 1 sidebar width away from the sidebar when the sidebar is closed
+      // then ignore the drag
+      if (x.get() === 0 && xCordEffective > (x.get() + sidebarWidth)) {
+        return cancel()
+      }
+    }
     if (dragging) {
       // If we drag more than 2x the sidebar width, we cancel the drag and snap back
-      if (xCordEffective / sidebarWidth > 2) {
+      if (xDirectionEffective > 0 && xCordEffective / sidebarWidth > 2) {
         cancel()
       } else {
         api.start({ x: xOffsetEffective, immediate: true });
@@ -120,28 +128,16 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     bounds: () => ({ left: 0, right: sidebarWidth }),
     rubberband: true,
     from: () => !forceLandscape ? [x.get(), 0] : [0, -x.get()],
+    target: window,
+    preventScroll: !forceLandscape,
   });
   
-  const swipeZoneRef = useRef<HTMLDivElement>(null);
+  // A workaround for https://github.com/pmndrs/use-gesture/issues/593
   useEffect(() => {
-    const element = swipeZoneRef.current;
-    if (!element) return;
-
-    const handleClick = (event: MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const allElementsAtClickPoint = document.elementsFromPoint(event.clientX, event.clientY);
-      const nextElementBelow = allElementsAtClickPoint.find(el => el !== element);
-      
-      if (nextElementBelow) {
-        nextElementBelow.dispatchEvent(new MouseEvent(event.type, event));
-      }
-    }
-    
-    element.addEventListener("click", handleClick);
-    return () => element.removeEventListener("click", handleClick);
-  }, [swipeZoneRef.current])
+    window.addEventListener("click", (event) => {
+      Object.defineProperty(event, 'detail', { value: 0, writable: true });
+    }, { capture: true });
+  }, [])
 
   const overlayOpacity = x.to((px) => Math.min(sidebarWidth, (px / sidebarWidth)))
   const overlayDisplay = x.to((px) => px > 0 ? 'block' : 'none')
@@ -192,9 +188,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       data-testid="SideDrawer"
       ref={ref}
       style={{ right: x.to(px => `calc(100% - ${px}px)`), ...landscapeModePositionStyleHack }}
-      {...bind()}
     >
-      <div className="swipe-zone" ref={swipeZoneRef}></div>
       <div className="content">
         <div className="body">
           {children}

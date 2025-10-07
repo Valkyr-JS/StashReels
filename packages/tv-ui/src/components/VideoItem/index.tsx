@@ -51,8 +51,8 @@ export interface VideoItemProps {
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
   useEffect(() => {
-    console.log(`Mounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
-    return () => console.log(`Unmounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
+    import.meta.env.VITE_DEBUG && console.log(`Mounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
+    return () => import.meta.env.VITE_DEBUG && console.log(`Unmounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
   },[]);
   const {
     showSettings,
@@ -108,6 +108,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       import.meta.env.VITE_DEBUG && console.log("volumechange on load", player.muted());
       setAudioMuted(player.muted());
     }
+    // We resort to `any` here because the types for videojs are incomplete
+    ;(player.getChild('ControlBar') as any)?.progressControl?.el().addEventListener('pointermove', (event: MouseEvent) => {
+      // Stop event propagation so pointermove event doesn't make it to window and trigger a sidebar drag when we're
+      // trying to seek
+      event.stopPropagation();
+    });
   }
 
   /* ------------------------------- Play/pause ------------------------------- */
