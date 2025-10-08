@@ -16,6 +16,7 @@ type Props = {
 
 export default function SideDrawer({children, title, closeDisabled, className}: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const { setShowSettings, showSettings, forceLandscape } = useAppStateStore();
@@ -27,6 +28,46 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       setSidebarWidth(width)
     }
   }, [])
+  
+  // Kinda hacky way to prevent scrolling of the body when the sidebar is open on mobile without preventing the
+  // scrolling of the sidebar content if it overflows
+  useEffect(() => {
+    if (!showSettings || !ref.current) return;
+
+    let initialClientY: number | undefined
+    const handleTouchStart = (event: TouchEvent) => {
+      initialClientY = event.touches[0].clientY
+    }
+    const handleTouchMove = (event: TouchEvent) => {
+      if (initialClientY === undefined) return;
+      if (!bodyRef.current) return;
+
+      const atTop = bodyRef.current.scrollTop === 0;
+      const atBottom = bodyRef.current.scrollHeight - bodyRef.current.scrollTop === bodyRef.current.clientHeight;
+
+      const deltaY = event.touches[0].clientY - initialClientY;
+
+      const isScrollingDown = deltaY < 0;
+      const isScrollingUp = deltaY > 0;
+
+      // If element can scroll no further in the direction of scroll direction then prevent default to stop the body scrolling
+      if ((atTop && isScrollingUp) || (atBottom && isScrollingDown)) {
+        event.preventDefault();
+      }
+    }
+    const handleTouchEnd = () => {
+      initialClientY = undefined
+    }
+
+    ref.current?.addEventListener("touchstart", handleTouchStart);
+    ref.current?.addEventListener("touchmove", handleTouchMove);
+    ref.current?.addEventListener("touchend", handleTouchEnd);
+    return () => {
+      ref.current?.removeEventListener("touchstart", handleTouchStart);
+      ref.current?.removeEventListener("touchmove", handleTouchMove);
+      ref.current?.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [showSettings, forceLandscape]);
 
   const [{ x }, api] = useSpring(() => ({
     from: {
@@ -124,7 +165,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     rubberband: true,
     from: () => [x.get(), 0],
     target: window,
-    preventScroll: !forceLandscape,
+    preventScroll: true,
   });
   
   // A workaround for https://github.com/pmndrs/use-gesture/issues/593
@@ -185,7 +226,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       style={{ right: x.to(px => `calc(100% - ${px}px)`), ...landscapeModePositionStyleHack }}
     >
       <div className="content">
-        <div className="body">
+        <div className="body" ref={bodyRef}>
           {children}
         </div>
 
