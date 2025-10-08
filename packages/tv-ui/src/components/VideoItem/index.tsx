@@ -239,14 +239,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /** Handle the event fired at the end of video playback. */
   const handleOnEnded = () => {
     // If not looping on end, scroll to the next item.
-    if (!looping && !!itemRef.current)
-      itemRef.current.nextElementSibling?.scrollIntoView();
+    if (!looping) props.changeItemHandler((currentIndex) => currentIndex + 1);
   };
-
-  // Update the loop property via the ref object
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.loop = looping;
-  }, [looping]);
 
   /* ------------------------------- Scene info ------------------------------- */
 
@@ -353,7 +347,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           hideScrubberOverride={true}
           muted={audioMuted}
           autoplay={false}
-          permitLoop={true}
+          loop={looping}
           initialTimestamp={0}
           sendSetTimestamp={() => {}}
           onComplete={() => {}}

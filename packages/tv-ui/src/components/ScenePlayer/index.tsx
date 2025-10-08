@@ -118,11 +118,12 @@ export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOrigi
     optionsToMerge?: VideoJsPlayerOptions;
     scene: GQL.TvSceneDataFragment;
     muted?: boolean;
+    loop?: boolean;
 }
 const ScenePlayer = forwardRef<
     HTMLVideoElement,
     ScenePlayerProps
->(({ className, onTimeUpdate, hideControls, hideProgressBar, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, muted, ...otherProps }: ScenePlayerProps, ref) => {
+>(({ className, onTimeUpdate, hideControls, hideProgressBar, onClick, onEnded, onVideojsPlayerReady, optionsToMerge, muted, loop, ...otherProps }: ScenePlayerProps, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     import.meta.env.VITE_DEBUG && useEffect(() => {
         console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);
@@ -132,12 +133,19 @@ const ScenePlayer = forwardRef<
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);
     const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
-    if (onVideojsPlayerReady) {
-        videoJsSetupCallbacks[otherProps.scene.id] = onVideojsPlayerReady;
+    
+    videoJsSetupCallbacks[otherProps.scene.id] = (player) => {
+        if (loop !== undefined) {
+            // Ideally we wouldn't need this. See comment for "loop" in videoJsOptionsOverride
+            setTimeout(() => player.loop(loop), 100);
+        }
+        onVideojsPlayerReady?.(player);
     }
 
     videoJsOptionsOverride[otherProps.scene.id] = {
-        muted: muted,
+        muted: false,
+        loop: loop, // Unfortunately this doesn't seem to work since the stash ScenePlayer component seems immediately set
+            // the loop value itself after initialization so we have to set it the player ready callback
         ...optionsToMerge
     }
     
@@ -145,6 +153,11 @@ const ScenePlayer = forwardRef<
         if (muted === undefined) return;
         videojsPlayerRef.current?.muted(muted);
     }, [muted]);
+    
+    useEffect(() => {
+        if (loop === undefined) return;
+        videojsPlayerRef.current?.loop(loop);
+    }, [loop]);
     
     useEffect(() => {
         return () => {
@@ -245,6 +258,7 @@ const ScenePlayer = forwardRef<
         >
             <ScenePlayerOriginal
                 {...otherProps}
+                permitLoop={true}
                 // ScenePlayer only needs a subset of SceneDataFragment so to reduce network request
                 // times we only give it the necessary fields
                 scene={otherProps.scene as unknown as GQL.SceneDataFragment}
