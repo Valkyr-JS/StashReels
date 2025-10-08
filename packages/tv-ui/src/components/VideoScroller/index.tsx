@@ -186,29 +186,26 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const nextKey = isForceLandscape ? "ArrowRight" : "ArrowDown";
       const previousKey = isForceLandscape ? "ArrowLeft" : "ArrowUp";
+      import.meta.env.VITE_DEBUG && (e.key === previousKey || e.key === nextKey) && 
+        console.log("VideoScroller Keydown", e.key, {nextKey, previousKey});
       if (e.key === previousKey) {
         // Go to the previous item
-        import.meta.env.VITE_DEBUG && console.log("Previous key pressed");
         const newIndex = (prevIndex: number) => prevIndex - 1
         scrollToIndex(newIndex, { behavior: "instant" });
         setCurrentIndex(newIndex);
         e.preventDefault();
-        e.stopPropagation();
       } else if (e.key === nextKey) {
         // Go to the next item
-        import.meta.env.VITE_DEBUG && console.log("Next key pressed");
         const newIndex = (prevIndex: number) => prevIndex + 1
         scrollToIndex(newIndex, { behavior: "instant" });
-        import.meta.env.VITE_DEBUG && console.log("setCurrentIndex sent");
         setCurrentIndex(newIndex);
         e.preventDefault();
-        e.stopPropagation();
       }
     }
     // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
     window.addEventListener("keydown", handleKeyDown, {capture: true});
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown, {capture: true});
     };
   }, [isForceLandscape, setCurrentIndex, cachedScenes.length]);
 

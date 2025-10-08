@@ -136,21 +136,20 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
       const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
-      console.log("forawrd key", seekForwardsKey)
+      import.meta.env.VITE_DEBUG && (e.key === seekBackwardsKey || e.key === seekForwardsKey) && 
+        console.log(`VideoItem ${props.index} Keydown`, e.key, {seekBackwardsKey, seekForwardsKey});
       if (e.key === seekBackwardsKey) {
         seekBackwards()
         e.preventDefault()
-        e.stopPropagation();
       } else if (e.key === seekForwardsKey) {
         seekForwards()
         e.preventDefault()
-        e.stopPropagation();
       }
     }
     // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
     window.addEventListener("keydown", handleKeyDown, { capture: true });
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
   }, [forceLandscape, isInViewport]);
 
@@ -175,9 +174,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   
   function seekForwards() {
     const videojsPlayer = videojsPlayerRef.current;
-    if (!videojsPlayer) return null;
+    if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
     const duration = videojsPlayer.duration();
     const skipAmount = getSkipTime()
+    import.meta.env.VITE_DEBUG && console.log({skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
     if (skipAmount === null || typeof duration !== 'number') {
         return null
     }
@@ -193,9 +193,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     
   function seekBackwards() {
     const videojsPlayer = videojsPlayerRef.current;
-    if (!videojsPlayer) return null;
+    if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
     const duration = videojsPlayer.duration();
     const skipAmount = getSkipTime()
+    import.meta.env.VITE_DEBUG && console.log({skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
