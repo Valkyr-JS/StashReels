@@ -2,7 +2,7 @@
 @import "../../styles/variables.scss";
 
 .SideDrawer {
-  height: calc(var(--y-unit-small) * 100);
+  height: calc(var(--y-unit-dynamic) * 100);
   position: fixed;
   top: var(--safe-inset-top);
   width: min(300px, 80%);
@@ -22,23 +22,20 @@
 
   .content {
     background: inherit;
-    height: 100%;
-    height: calc(var(--y-unit-dynamic) * 100);
+    height: 100%; /* this is too small in iOS safari but too big when viewed as a web app on iOS */
     width: 100%;
     z-index: 10;
     position: relative;
 
     display: grid;
     grid-template-rows:
-      [canvas-top main-top] 1fr [main-bottom footer-top] minmax(
-        $ui-button-size + ($spacer * 2),
-        max-content
-      )
+      [canvas-top main-top] 1fr [main-bottom footer-top]max-content
       [footer-bottom canvas-bottom];
+    padding: 1.5em;
+    gap: 1.5em;
   }
 
   .body {
-    padding: $spacer;
     grid-row: main-top / main-bottom;
     overflow-y: auto;
   }
@@ -46,7 +43,6 @@
   .footer {
     display: flex;
     align-items: center;
-    padding: $spacer;
     grid-row: footer-top / footer-bottom;
 
     h2 {
