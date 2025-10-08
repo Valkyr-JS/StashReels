@@ -3,7 +3,6 @@ import "./ScenePlayer.scss";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { default as cx } from "classnames";
 import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
-import { addSupportForLandscapeSupport } from "./hooks/force-landscape-support";
 import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
 import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-overlay-buttons-extended";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
@@ -43,8 +42,6 @@ videojs.hook('setup', function(player) {
     const sceneId = player.el().parentElement?.parentElement?.parentElement?.dataset.sceneId
     videoJsSetupCallbacks[sceneId || ""]?.(player)
 })
-
-addSupportForLandscapeSupport(videojs);
 
 videojs.hook('beforesetup', function(videoEl, options) {
     // Will be merged in with existing options

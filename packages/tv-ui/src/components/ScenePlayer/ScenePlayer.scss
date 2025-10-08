@@ -35,6 +35,11 @@
   }
   
   .video-js {
+    &:not(.vjs-has-started):not(.vjs-using-native-controls) video {
+      // The DOM order should mean that the poster is always on top if visible but there's a weird iOS bug that 
+      // causes the video to appear on top of the poster when the video is over halfway off screen;
+      opacity: 0;
+    }
     .vjs-progress-control {
       &:has(.vjs-marker-dot:hover) .vjs-mouse-display {
         // Workaround for weird bug in videojs or marker plugin where the mouse display dot shifts a little bit to

@@ -117,8 +117,7 @@ html {
   container: viewport/size;
 }
 
-html.force-landscape,
-html.force-landscape body {
+html.force-landscape {
   /*
   When in force landscape mode it shouldn't be possible to scroll up and down
   the viewport, instead scrolling should occur horizontally inside the rotated
@@ -131,8 +130,6 @@ html.force-landscape body {
 }
 
 html.force-landscape {
-  scroll-snap-type: unset; /* When the root is rotated scroll snapping doesn't seem to work on the root so we set it on a child instead */
-  
   --x-unit-small: 1svh;
   --y-unit-small: 1svw;
   --x-unit-large: 1lvh;
@@ -143,24 +140,27 @@ html.force-landscape {
   --safe-inset-right: env(safe-area-inset-top, 0);
   --safe-inset-bottom: env(safe-area-inset-right, 0);
   --safe-inset-left: env(safe-area-inset-bottom, 0);
-  
-  .VideoItem,
-  .VideoItem .ScenePlayer {
-    height: 100%;
-  }
-}
 
-html.force-landscape body {
-  height: 100svw;
-  width: calc(100svh + env(safe-area-inset-top));
+  scroll-snap-type: unset; /* When the root is rotated scroll snapping doesn't seem to work on the root so we set it on a child instead */
   position: absolute;
   left: 50%;
   top: calc(50% + (env(safe-area-inset-top)/2));
   transform: translate(-50%, -50%) rotate(-90deg);
   transform-origin: center center 0px;
+  overflow: hidden;
+}
+
+html.force-landscape,
+html.force-landscape body {
+  height: 100svw;
+  width: calc(100svh + env(safe-area-inset-top));
+}
+
+html.force-landscape body {
   overflow-y: scroll;
   overflow-x: hidden; /* Prevent SettingsTab from causing horizontal scroll */
   scroll-snap-type: y mandatory;
+  position: relative;
 }
 
 

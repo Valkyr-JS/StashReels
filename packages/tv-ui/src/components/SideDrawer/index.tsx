@@ -78,45 +78,40 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   // Setup drag gesture for swiping
   useDrag((state) => {
     const {
-      xy: [xCord, yCord],
-      offset: [xOffset, yOffset],
-      direction: [xDirection, yDirection],
-      velocity: [xVelocity, yVelocity],
+      xy: [xCord],
+      offset: [xOffset],
+      direction: [xDirection],
+      velocity: [xVelocity],
       dragging,
       cancel,
       last,
       canceled,
       first,
     } = state
-    
-    const xCordEffective = !forceLandscape ? xCord : window.innerHeight - yCord
-    const xOffsetEffective = !forceLandscape ? xOffset : -yOffset
-    const xVelocityEffective = !forceLandscape ? xVelocity : yVelocity
-    const xDirectionEffective = !forceLandscape ? xDirection : -yDirection
 
     if (first) {
       // If we start dragging from a point further than 1 sidebar width away from the sidebar when the sidebar is closed
       // then ignore the drag
-      if (x.get() === 0 && xCordEffective > (x.get() + sidebarWidth)) {
+      if (x.get() === 0 && xCord > (x.get() + sidebarWidth)) {
         return cancel()
       }
     }
     if (dragging) {
       // If we drag more than 2x the sidebar width, we cancel the drag and snap back
-      if (xDirectionEffective > 0 && xCordEffective / sidebarWidth > 2) {
+      if (xDirection > 0 && xCord / sidebarWidth > 2) {
         cancel()
       } else {
-        api.start({ x: xOffsetEffective, immediate: true });
+        api.start({ x: xOffset, immediate: true });
       }
     } else if (last) {
       // Quick but maybe short swipe to the right
-      if (xVelocityEffective > 0.5 && xDirectionEffective > 0) {
+      if (xVelocity > 0.5 && xDirection > 0) {
         open({ canceled })
         // Quick but maybe short swipe to the left
-      } else if (xVelocityEffective > 0.5 && xDirectionEffective < 0) {
+      } else if (xVelocity > 0.5 && xDirection < 0) {
         close()
         // Swipe to the right past halfway point
-      } else if (xOffsetEffective > (sidebarWidth * 0.5)) {
+      } else if (xOffset > (sidebarWidth * 0.5)) {
         open({ canceled })
         // Swipe to the left past halfway point
       } else {
@@ -127,7 +122,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     filterTaps: true,
     bounds: () => ({ left: 0, right: sidebarWidth }),
     rubberband: true,
-    from: () => !forceLandscape ? [x.get(), 0] : [0, -x.get()],
+    from: () => [x.get(), 0],
     target: window,
     preventScroll: !forceLandscape,
   });

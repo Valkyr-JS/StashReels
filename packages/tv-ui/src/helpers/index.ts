@@ -36,3 +36,23 @@ export const GENDERS = [
 export function clamp(min: number, num: number, max: number) {
   return Math.min(Math.max(num, min), max);
 }
+
+export function updateReadOnlyProp(obj: any, prop: string, value: any) {
+  Object.defineProperty(obj, prop, { value, writable: true, enumerable: isEnumerableIncludingInherited(obj, prop) });
+}
+
+export function updateReadOnlyProps(obj: any, props: Record<string, any>) {
+  for (const [prop, value] of Object.entries(props)) {
+    updateReadOnlyProp(obj, prop, value);
+  }
+} 
+
+function isEnumerableIncludingInherited(obj: any, prop: string) {
+  let current = obj;
+  while (current) {
+    const desc = Object.getOwnPropertyDescriptor(current, prop);
+    if (desc) return !!desc.enumerable;
+    current = Object.getPrototypeOf(current);
+  }
+  return false; // not found anywhere in the chain
+}
