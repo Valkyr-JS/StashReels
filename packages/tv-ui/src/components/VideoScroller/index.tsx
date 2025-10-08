@@ -336,6 +336,36 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       }
     };
   }, []);
+  
+  
+  // Freeze the list of items to render while changing orientation and switching virtualizers
+  // to avoid unmounting and remounting all items which would loose video playback state.
+  // This is a fairly ugly solution for that but it works.
+  const [itemsToRenderFrozen, setItemsToRenderFrozen] = useState(false);
+  const itemsToRenderFrozenRef = useRef(false);
+  const previousIsForceLandscapeRef = useRef<boolean>(undefined);
+  if (previousIsForceLandscapeRef.current !== isForceLandscape) {
+    const previousIsForceLandscape = previousIsForceLandscapeRef.current;
+    previousIsForceLandscapeRef.current = isForceLandscape;
+    if (previousIsForceLandscape !== undefined) {
+      setItemsToRenderFrozen(true);
+      itemsToRenderFrozenRef.current = true;
+      setTimeout(() => {
+        setItemsToRenderFrozen(false);
+        itemsToRenderFrozenRef.current = false;
+      }, 100);
+    };
+  }
+  const previousItemIndexesToRenderRef = useRef<number[]>([]);
+  const itemIndexesToRender = useMemo(() => {
+    if (itemsToRenderFrozenRef.current && previousItemIndexesToRenderRef.current) {
+      return previousItemIndexesToRenderRef.current;
+    }
+    const newItemIndexesToRender = rowVirtualizer.getVirtualItems().map(v => v.index);
+    previousItemIndexesToRenderRef.current = newItemIndexesToRender;
+    return newItemIndexesToRender;
+  }, [rowVirtualizer.getVirtualItems(), itemsToRenderFrozen]);
+  
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -365,7 +395,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
           } : {})
         } as const
         if (
-          rowVirtualizer.getVirtualItems().some(v => v.index === i)
+          itemIndexesToRender.includes(i)
         ) {
           return (
             <VideoItem

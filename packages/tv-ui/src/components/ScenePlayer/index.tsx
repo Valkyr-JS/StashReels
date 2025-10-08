@@ -137,7 +137,7 @@ const ScenePlayer = forwardRef<
     videoJsSetupCallbacks[otherProps.scene.id] = (player) => {
         if (loop !== undefined) {
             // Ideally we wouldn't need this. See comment for "loop" in videoJsOptionsOverride
-            setTimeout(() => player.loop(loop), 100);
+            setTimeout(() => !player.isDisposed() && player.loop(loop), 100);
         }
         onVideojsPlayerReady?.(player);
     }
