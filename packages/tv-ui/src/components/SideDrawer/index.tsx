@@ -116,6 +116,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     })
   }
 
+  const didDragRef = useRef(false);
   // Setup drag gesture for swiping
   useDrag((state) => {
     const {
@@ -138,6 +139,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       }
     }
     if (dragging) {
+      didDragRef.current = true;
       // If we drag more than 2x the sidebar width, we cancel the drag and snap back
       if (xDirection > 0 && xCord / sidebarWidth > 2) {
         cancel()
@@ -145,6 +147,15 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
         api.start({ x: xOffset, immediate: true });
       }
     } else if (last) {
+      if (didDragRef.current) {
+        // On desktop a click event fires after a drag which we don't want to 
+        window.addEventListener(
+          "click",
+          (event) =>  didDragRef.current && event.stopPropagation(),
+          { once: true, capture: true }
+        )
+        setTimeout(() => didDragRef.current = false, 50);
+      }
       // Quick but maybe short swipe to the right
       if (xVelocity > 0.5 && xDirection > 0) {
         open({ canceled })
