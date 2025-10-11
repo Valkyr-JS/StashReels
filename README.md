@@ -18,6 +18,7 @@ Reels](https://github.com/Valkyr-JS/StashReels) with some performance improvemen
 - Video tags shown on the video progress bar.
 - Video rotation for easy landscape viewing when lying down on your side.
 - A fun CRT TV filter option.
+- Updates your play count in Stash for scenes you watch.
 
 
 ## Installation
