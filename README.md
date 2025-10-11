@@ -96,6 +96,41 @@ Then update the env vars in the new `packages/tv-ui/.env` file.
 
 Now you can install the required dependences and run the dev server
 ```shell
+git submodule update --init --recursive
 yarn install
 yarn dev
 ```
+
+### Technical info
+The codebase is split into 3 packages.
+- `packages/tv-ui` is where the actual app code for the plugin lives.
+- `packages/tv-plugin` is responsible for taking that web app and building it into a Stash plugin with any config that Stash requires to understand that the output is a stash plugin. 
+- `packages/stash-ui` includes a copy of the actual
+Stash app codebase and some code to extract and build just the frontend code from that. This is so we can reuse various parts
+of stash's frontend code such as react components, Stash API client and typescript types without needing to rewrite all that
+ourselves or try to manually keep a copy of those in sync.
+
+We use the same Apollo client as the stash frontend with a small wrapper around it to make a few tweaks and some additions to the GraphQL
+schema so that we can optimise what data we fetch from the API. At first we load 20 scenes but as the user approaches the
+bottom of the list of loaded scenes we load some more. The code for loading scenes is abstracted out into `packages/tv-ui/src/hooks/useScenes.ts`.
+
+The storybook code is from the original Stash Reels fork and is currently broken as it hasn't yet been updated to
+working with the major code refactoring in Stash TV.
+
+Most of the app's state lives in a Zustand store in `packages/tv-ui/src/store/appStateStore.ts` so that it can be
+accessed anywhere in the codebase without needing to do lots of prop drilling.
+`packages/tv-ui/src/store/stashConfigStore.ts` houses config that lives in stash such as the users saved filters
+(although this has ended up being a little clunky and maybe refactored into a hook like `useScenes()` at some point in
+the future).
+
+Stash's ScenePlayer component is in some ways tightly coupled to Stash's codebase so
+`packages/tv-ui/src/components/ScenePlayer` is a wrapper around it that tries to make it a little more contained and
+provide more options for tweaking it's behaviour. That is intended to be a bit more of a generic component that could be
+used in other Stash related plugins where as `packages/tv-ui/src/components/VideoItem` uses ScenePlayer but adds explicitly Stash
+TV related additions.
+
+The `forceLandscape` setting (toggled by the "view rotation" button) is a bit complex since a bunch of things break when
+you rotate the entire page. We need to do a bunch of tricks to make that work like catching and remapping various
+mouse/touch events. Currently the code for this feature is a little bit scatted all over the place such as in
+`packages/tv-ui/src/app/App.tsx` and `packages/tv-ui/src/styles/globals.scss` but at some point I hope to refactor this
+into one place as much as possible.
