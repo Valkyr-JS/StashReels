@@ -5,7 +5,7 @@
 # Stash TV
 
 Stash TV allows you to view your scenes by swiping though them similar to TikTok. It's based on [Stash
-Reels](https://github.com/Valkyr-JS/StashReels) with a few modest improvements and additional options.
+Reels](https://github.com/Valkyr-JS/StashReels) with some performance improvements and additional features.
 
 <p align="center">
   <img alt="Screenshot of the main stash tv interface." src="https://raw.githubusercontent.com/secondfolder/stash-tv/main/docs/stash-tv-screenshot.png">
@@ -85,14 +85,6 @@ At the bottom of the screen is the scene scrubber, showing the current scene pro
 4. Subtitle language - Set your preferred subtitle language. If subtitles are available for a scene in this language,
    they will be displayed. These can be toggled on or off in the main scene UI.
 5. CRT Effect - A fun little visual filter that simulates an old CRT TV look (you can also press the "c" key to toggle this).
-
-## Technical info
-
-The user experience quality of Stash TV is highly dependant on the setup of each user. A slow server and a poor network speed can result in longer buffering times between scenes.
-
-Stash TV only loads up to eleven scenes at once - the current scene, and up to five before and after it - in order to provide as smooth an experience when swiping through scenes, without overloading the browser's memory.
-
-As of version 0.1.2, a config option has been added in the Stash plugin settings to set the maximum number of scenes loaded in a filter. The default is 500. Increasing or decreasing this number will reduce or increase load times respectively.
 
 ## Contributing
 ### Run the dev server

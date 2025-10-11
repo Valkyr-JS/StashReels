@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { DEFAULT_MAXIMUM_SCENES, PLUGIN_NAMESPACE } from "../constants";
+import { PLUGIN_NAMESPACE } from "../constants";
 import { type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 
@@ -7,9 +7,7 @@ export type StashTvConfig = {
   /** The ID of the default filter to be loaded on startup. */
   stashTvDefaultFilterID?: string,
   /** Hide the main navigation link to Stash TV. */
-  hideNavButton?: boolean;
-  /** Set the maximum number of scenes to fetch. The default value is 500. High values may result in long loading times or crashes. */
-  maximumScenes: number;
+  hideNavButton?: boolean,
   /** The subtitle language code to be used when available. */
   subtitleLanguage?: string;
 }
@@ -33,7 +31,6 @@ export const useStashConfigStore = create<StashConfigState & StashConfigAction>(
   savedSceneFilters: [],
   stashTvConfig: {
     defaultFilterID: undefined,
-    maximumScenes: DEFAULT_MAXIMUM_SCENES
   },
   apolloClient: undefined,
   loading: true,

@@ -11,6 +11,7 @@ import "./SettingsTab.scss";
 import { useStashConfigStore } from "../../store/stashConfigStore";
 import { useAppStateStore } from "../../store/appStateStore";
 import SideDrawer from "../SideDrawer";
+import { useScenes } from "../../hooks/useScenes";
 
 type ReactSelectOnChange = (
   newValue: SingleValue<{
@@ -26,8 +27,10 @@ type ReactSelectOnChange = (
 export default function SettingsTab() {
   const { savedSceneFilters, stashTvConfig, updateStashTvConfig } = useStashConfigStore();
 
-  const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, setIsRandomised, scenesLoading, scenes, crtEffect, setCrtEffect } = useAppStateStore();
-  const noScenesAvailable = !scenesLoading && scenes.length === 0;
+  const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, sceneFilterLoading, setIsRandomised, crtEffect, setCrtEffect } = useAppStateStore();
+  const { scenes, scenesLoading } = useScenes()
+    
+  const noScenesAvailable = !sceneFilterLoading && !scenesLoading && scenes.length === 0
   
 
   /* --------------------------- Fetching data alert -------------------------- */

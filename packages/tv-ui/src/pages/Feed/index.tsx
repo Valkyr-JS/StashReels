@@ -5,6 +5,7 @@ import { useAppStateStore } from "../../store/appStateStore";
 import SettingsTab from "../../components/SettingsTab";
 import Loading from "../../components/Loading";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
+import { useScenes } from "../../hooks/useScenes";
 
 export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesForTvQuery>[0]
 
@@ -13,10 +14,11 @@ interface FeedPageProps {
 }
 
 const FeedPage: React.FC<FeedPageProps> = ({className}) => {
-  const { scenesLoading, scenes, showSettings, setShowSettings, fullscreen } = useAppStateStore();
-
-  // Settings tab
-  if (!scenesLoading && scenes.length === 0) {
+  const { showSettings, setShowSettings, sceneFilterLoading, fullscreen } = useAppStateStore();
+  const { scenes, scenesLoading } = useScenes()
+  
+  // Show settings tab if we've finished loading scenes but have no scenes to show
+  if (!sceneFilterLoading && !scenesLoading && scenes.length === 0 && !showSettings) {
     setShowSettings(true);
   }
   

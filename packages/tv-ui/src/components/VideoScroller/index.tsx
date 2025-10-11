@@ -7,6 +7,7 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useVirtualizer, useWindowVirtualizer, windowScroll, elementScroll } from "@tanstack/react-virtual";
 import throttle from 'throttleit';
 import { clamp } from "../../helpers";
+import { useScenes } from "../../hooks/useScenes";
 
 interface VideoScrollerProps {}
 
@@ -22,22 +23,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   /* ------------------------ Handle loading new videos ----------------------- */
 
   
-  const { scenes } = useAppStateStore();
-
-  // Cache items to avoid unnecessary re-renders
-  const _scenesCache = useRef<GQL.TvSceneDataFragment[]>([]);
-  const cachedScenes = useMemo(() => {
-    if (!scenes) return [];
-    const newValue = scenes.map(
-      (newlyFetchedScene) => (
-        _scenesCache.current.find(
-          cachedScene => cachedScene.id === newlyFetchedScene.id
-        ) || newlyFetchedScene
-      )
-    ).filter(scene => !!scene);
-    _scenesCache.current = newValue
-    return newValue;
-  }, [scenes]);
+  const { scenes, loadMoreScenes } = useScenes()
 
   const estimateSizeTesterElement = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -51,7 +37,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
 
 
   const sharedOptions = {
-    count: cachedScenes.length,
+    count: scenes.length,
     estimateSize: () => {
       if (!estimateSizeTesterElement.current) {
         const el = document.createElement('div');
@@ -93,7 +79,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const [currentIndex, _setCurrentIndex] = useReducer(
     (currentState: number, newState: React.SetStateAction<number>) => {
       newState = typeof newState === 'function' ? newState(currentState) : newState;
-      return clamp(0, newState, cachedScenes.length - 1);
+      return clamp(0, newState, scenes.length - 1);
     }, 0
   );
   
@@ -168,11 +154,10 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       // checks to see if it's finished scrolling and will try again if not (causing jumpiness).
       const container = rowVirtualizer.scrollElement
       if (!container) return;
-      const itemHeight = rowVirtualizer.getVirtualItems()[0].size
+      const itemHeight = rowVirtualizer.getVirtualItems()[0]?.size || 0;
       const newScrollTop = index * itemHeight
       temporarilyDisableScrollSnapping();
       import.meta.env.VITE_DEBUG && console.log(`Scrolling to index ${index} at height ${newScrollTop}`);
-      console.log({ top: newScrollTop, behavior: "smooth", ...options }, options)
       rowVirtualizer.scrollElement?.scrollTo({ top: newScrollTop, behavior: "smooth", ...options });
     },
     [rowVirtualizer]
@@ -180,6 +165,9 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   
   useEffect(() => {
     import.meta.env.VITE_DEBUG && console.log("currentIndex changed to", currentIndex);
+    if (currentIndex >= scenes.length - 5) {
+      loadMoreScenes();
+    }
   }, [currentIndex]); 
 
   useEffect(() => {
@@ -207,7 +195,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown, {capture: true});
     };
-  }, [isForceLandscape, setCurrentIndex, cachedScenes.length]);
+  }, [isForceLandscape, setCurrentIndex, scenes.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -377,8 +365,9 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     >
       {import.meta.env.VITE_DEBUG && <div className="debugStats">
         {rowVirtualizer.isScrolling ? "Scrolling" : "Not Scrolling"}
+        {" "}({scenes.length} scenes)
       </div>}
-      {cachedScenes.map((scene, i) => {
+      {scenes.map((scene, i) => {
         const style = {
           position: 'absolute',
           top: 0,

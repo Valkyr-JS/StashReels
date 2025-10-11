@@ -12,7 +12,7 @@ const App = () => {
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
 
   const { loadStashConfig, getSavedFilter, stashTvConfig, loading: stashConfigLoading,  } = useStashConfigStore();
-  const { setSceneFilter, sceneFilter, scenesLoading, selectedSavedFilterId, setSelectedSavedFilterId, forceLandscape, ...otherAppState  } = useAppStateStore()
+  const { setSceneFilter, sceneFilter, selectedSavedFilterId, setSelectedSavedFilterId, forceLandscape, ...otherAppState  } = useAppStateStore()
   
 
   /* ------------------------------ Initial load ------------------------------ */
@@ -35,7 +35,6 @@ const App = () => {
       if (selectedSavedFilterIdRef.current !== selectedSavedFilterId) return;
       if (savedFilter) {
         setSceneFilter(
-          apolloClient,
           {
             generalFilter: processSavedFilterToGeneralFilter(
               savedFilter,
@@ -52,9 +51,7 @@ const App = () => {
   }, [stashConfigLoading, selectedSavedFilterId, otherAppState.isRandomised]);
   
   // <html /> is outside of React's control so we have to set the class manually
-  import.meta.env.VITE_DEBUG && console.log("forceLandscape", forceLandscape);
   document.documentElement.className = cx({ "force-landscape": forceLandscape });
-  
   
   useEffect(() => {
     if (!forceLandscape) return;
@@ -169,10 +166,6 @@ const processSavedFilterToGeneralFilter = (
     let seed = Math.round(Math.random() * 1000000)
     updatedFilter.sort = `random_${seed}`
   }
-
-  // Always get the set number of scenes, irrelevant of what the original filter
-  // states.
-  updatedFilter.per_page = stashTvConfig.maximumScenes;
 
   return updatedFilter;
 };

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import FeedPage from ".";
-import { DEFAULT_MAXIMUM_SCENES } from "../../constants";
 import {itemBufferEitherSide} from "../../components/VideoScroller";
 import { setCssVHDecorator } from "../../../../../.storybook/decorators";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
+import { scenesPerPage } from "../../hooks/useScenes";
 
 const meta = {
   title: "Pages/Feed",
@@ -210,7 +210,7 @@ export const ToggleCaptions: Story = {
   args: {
     queryOptions: {
       variables: {
-        filter: { per_page: DEFAULT_MAXIMUM_SCENES, sort: "random" },
+        filter: { per_page: scenesPerPage, sort: "random" },
         scene_filter: {
           orientation: { value: [GQL.OrientationEnum.Portrait] }, 
           captions: { modifier: GQL.CriterionModifier.NotNull, value: "" },

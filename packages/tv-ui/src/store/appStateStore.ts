@@ -12,8 +12,7 @@ export type SceneFilter = {
 type AppState = {
   selectedSavedFilterId: string | undefined,
   sceneFilter: SceneFilter | undefined,
-  scenes: GQL.TvSceneDataFragment[],
-  scenesLoading: boolean;
+  sceneFilterLoading: boolean,
   showSettings: boolean;
   audioMuted: boolean;
   showSubtitles: boolean;
@@ -25,7 +24,7 @@ type AppState = {
   isRandomised: boolean;
   crtEffect: boolean;
   setSelectedSavedFilterId: (id: string | undefined) => void;
-  setSceneFilter: (apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter) => Promise<void>;
+  setSceneFilter: (filter: SceneFilter) => Promise<void>;
   setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => void;
@@ -43,8 +42,7 @@ export const useAppStateStore = create<AppState>()(
     (set, get) => ({
       selectedSavedFilterId: undefined,
       sceneFilter: undefined,
-      scenes: [],
-      scenesLoading: true,
+      sceneFilterLoading: true,
       showSettings: false,
       audioMuted: false,
       showSubtitles: false,
@@ -56,10 +54,8 @@ export const useAppStateStore = create<AppState>()(
       isRandomised: false,
       crtEffect: false,
       setSelectedSavedFilterId: (id: string | undefined) => set({ selectedSavedFilterId: id }),
-      setSceneFilter: async (apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter) => {
-        set({ scenesLoading: true });
-        const scenes = await fetchScenesFromStash(apolloClient, filter)
-        set({ sceneFilter: filter, scenes, scenesLoading: false })
+      setSceneFilter: async (filter: SceneFilter) => {
+        set({ sceneFilter: filter, sceneFilterLoading: false })
       },
       setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
         showSettings: typeof newValue === "boolean" ? newValue : newValue(state.showSettings)
@@ -99,20 +95,14 @@ export const useAppStateStore = create<AppState>()(
       name: 'app-state',
       partialize: (state) =>
         Object.fromEntries(
-          Object.entries(state).filter(([key]) => !['sceneFilter', 'scenes', 'scenesLoading', 'selectedSavedFilterId', 'showSettings', 'fullscreen'].includes(key)),
+          Object.entries(state).filter(([key]) => ![
+            'sceneFilter',
+            'sceneFilterLoading',
+            'selectedSavedFilterId',
+            'showSettings',
+            'fullscreen'
+          ].includes(key)),
         ),
     }
   )
 );
-
-async function fetchScenesFromStash(apolloClient: ApolloClient<NormalizedCacheObject>, filter: SceneFilter): Promise<GQL.TvSceneDataFragment[]> {
-  const { data } = await apolloClient.query<GQL.FindScenesForTvQuery, GQL.FindScenesForTvQueryVariables>({
-    query: GQL.FindScenesForTvDocument,
-    variables: { 
-      filter: filter.generalFilter,
-      scene_filter: filter.sceneFilter
-    },
-  });
-
-  return data.findScenes.scenes;
-}

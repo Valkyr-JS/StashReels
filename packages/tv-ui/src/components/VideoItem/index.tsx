@@ -177,7 +177,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
     const duration = videojsPlayer.duration();
     const skipAmount = getSkipTime()
-    import.meta.env.VITE_DEBUG && console.log({skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
+    import.meta.env.VITE_DEBUG && console.log("Seeking forwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
     if (skipAmount === null || typeof duration !== 'number') {
         return null
     }
@@ -196,7 +196,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
     const duration = videojsPlayer.duration();
     const skipAmount = getSkipTime()
-    import.meta.env.VITE_DEBUG && console.log({skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
+    import.meta.env.VITE_DEBUG && console.log("Seeking backwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
@@ -339,7 +339,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     >
       <CrtEffect enabled={crtEffect}>
         {import.meta.env.VITE_DEBUG && <div className="debugStats">
-          {props.index} - {props.scene.id} {paused ? "Paused" : "Playing"} {loadingDeferred ? "(Loading deferred)" : ""} {isInViewport ? "<- In viewport" : ""}
+          {props.index} - {props.scene.id} {paused ? "Paused" : "Playing"} {loadingDeferred ? "(Loading deferred)" : ""}
         </div>}
         {import.meta.env.VITE_DEBUG && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
