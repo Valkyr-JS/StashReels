@@ -1,11 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
 
-import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
-
-
-
 type AppState = {
   showSettings: boolean;
   audioMuted: boolean;
@@ -36,7 +31,7 @@ export const useAppStateStore = create<AppState>()(
       sceneFilter: undefined,
       sceneFilterLoading: true,
       showSettings: false,
-      audioMuted: false,
+      audioMuted: true,
       showSubtitles: false,
       fullscreen: false,
       letterboxing: false,
