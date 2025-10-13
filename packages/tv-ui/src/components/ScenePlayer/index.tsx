@@ -143,7 +143,7 @@ const ScenePlayer = forwardRef<
     }
 
     videoJsOptionsOverride[otherProps.scene.id] = {
-        muted: false,
+        muted,
         loop: loop, // Unfortunately this doesn't seem to work since the stash ScenePlayer component seems immediately set
             // the loop value itself after initialization so we have to set it the player ready callback
         ...optionsToMerge

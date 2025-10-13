@@ -101,11 +101,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
-      import.meta.env.VITE_DEBUG && console.log("volumechange", player.muted());
+      import.meta.env.VITE_DEBUG && console.log(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
       setAudioMuted(player.muted());
     });
     if (audioMuted !== player.muted()) {
-      import.meta.env.VITE_DEBUG && console.log("volumechange on load", player.muted());
+      import.meta.env.VITE_DEBUG && console.log(`Video.js player loaded - player ${player.muted() ? "" : "not"} muted`);
       setAudioMuted(player.muted());
     }
     // We resort to `any` here because the types for videojs are incomplete
