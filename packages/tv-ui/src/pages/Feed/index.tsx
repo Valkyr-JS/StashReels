@@ -17,8 +17,10 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   const { showSettings, setShowSettings, sceneFilterLoading, fullscreen } = useAppStateStore();
   const { scenes, scenesLoading } = useScenes()
   
+  const loadedButNoScenes = !sceneFilterLoading && !scenesLoading && scenes.length === 0
+  
   // Show settings tab if we've finished loading scenes but have no scenes to show
-  if (!sceneFilterLoading && !scenesLoading && scenes.length === 0 && !showSettings) {
+  if (loadedButNoScenes && !showSettings) {
     setShowSettings(true);
   }
   
@@ -39,13 +41,11 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
 
   /* -------------------------------- component ------------------------------- */
 
-  // Show loading icon when fetching data
-  if (scenesLoading && !showSettings)
-    return <Loading heading="Fetching scenes..." />;
-
   return (
   <main data-testid="FeedPage" ref={pageRef} className={className}>
-      <VideoScroller />
+      {scenesLoading && <Loading heading="Fetching scenes..." />}
+      {scenes.length > 0 && <VideoScroller />}
+      {loadedButNoScenes && <div>No Scenes Found</div>}
       <SettingsTab />
     </main>
   );

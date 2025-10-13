@@ -108,6 +108,10 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
 
   }
   const close = () => {
+    if (closeDisabled) {
+      open();
+      return;
+    }
     api.start({
       x: 0,
       immediate: false,
