@@ -87,6 +87,11 @@ At the bottom of the screen is the scene scrubber, showing the current scene pro
    they will be displayed. These can be toggled on or off in the main scene UI.
 5. CRT Effect - A fun little visual filter that simulates an old CRT TV look (you can also press the "c" key to toggle this).
 
+## Roadmap
+A very rough list of features I'd like to add at some point can be found in the [Stash TV thread in the Stash
+Forums](https://discourse.stashapp.cc/t/stash-tv/3627#p-7207-roadmap-6). You can make any feature ideas you have in
+either a GitHub ticket or a post in that forum.
+
 ## Contributing
 ### Run the dev server
 To run first copy the sample `.env` file
