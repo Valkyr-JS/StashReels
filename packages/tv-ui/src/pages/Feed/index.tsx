@@ -6,6 +6,7 @@ import SettingsTab from "../../components/SettingsTab";
 import Loading from "../../components/Loading";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useScenes } from "../../hooks/useScenes";
+import { useSceneFilters } from "../../hooks/useSceneFilters";
 
 export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesForTvQuery>[0]
 
@@ -14,10 +15,11 @@ interface FeedPageProps {
 }
 
 const FeedPage: React.FC<FeedPageProps> = ({className}) => {
-  const { showSettings, setShowSettings, sceneFilterLoading, fullscreen } = useAppStateStore();
+  const { showSettings, setShowSettings, fullscreen } = useAppStateStore();
+  const { sceneFiltersLoading } = useSceneFilters()
   const { scenes, scenesLoading } = useScenes()
   
-  const loadedButNoScenes = !sceneFilterLoading && !scenesLoading && scenes.length === 0
+  const loadedButNoScenes = !sceneFiltersLoading && !scenesLoading && scenes.length === 0
   
   // Show settings tab if we've finished loading scenes but have no scenes to show
   if (loadedButNoScenes && !showSettings) {
@@ -43,7 +45,7 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
 
   return (
   <main data-testid="FeedPage" ref={pageRef} className={className}>
-      {scenesLoading && <Loading heading="Fetching scenes..." />}
+      {(sceneFiltersLoading || scenesLoading) && <Loading heading="Fetching scenes..." />}
       {scenes.length > 0 && <VideoScroller />}
       {loadedButNoScenes && <div>No Scenes Found</div>}
       <SettingsTab />

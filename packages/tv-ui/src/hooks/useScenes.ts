@@ -1,10 +1,10 @@
-import { useAppStateStore } from '../store/appStateStore'
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
+import { useSceneFilters } from './useSceneFilters';
 
 export const scenesPerPage = 20
 
 export function useScenes() {
-  const { sceneFilter } = useAppStateStore()
+  const { currentSceneFilter } = useSceneFilters()
 
   const {
     data,
@@ -14,14 +14,14 @@ export function useScenes() {
   } = GQL.useFindScenesForTvQuery({
     variables: {
       filter: {
-        ...sceneFilter?.generalFilter,
+        ...currentSceneFilter?.generalFilter,
         // We manage pagination ourselves and so override whatever the saved filter had
         page: 1,
         per_page: scenesPerPage,
       },
-      scene_filter: sceneFilter?.sceneFilter
+      scene_filter: currentSceneFilter?.sceneFilter
     },
-    skip: !sceneFilter,
+    skip: !currentSceneFilter,
   })
   
   return {
@@ -32,12 +32,12 @@ export function useScenes() {
       fetchMore({
         variables: {
           filter: {
-            ...sceneFilter?.generalFilter,
+            ...currentSceneFilter?.generalFilter,
             // We manage pagination ourselves and so override whatever the saved filter had
             page: nextPage,
             per_page: scenesPerPage,
           },
-          scene_filter: sceneFilter?.sceneFilter
+          scene_filter: currentSceneFilter?.sceneFilter
         } 
       })
     },

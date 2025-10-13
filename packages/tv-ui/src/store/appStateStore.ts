@@ -4,15 +4,9 @@ import { persist } from 'zustand/middleware'
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
 
-export type SceneFilter = {
-  generalFilter: GQL.FindScenesForTvQueryVariables["filter"],
-  sceneFilter: GQL.FindScenesForTvQueryVariables["scene_filter"],
-}
+
 
 type AppState = {
-  selectedSavedFilterId: string | undefined,
-  sceneFilter: SceneFilter | undefined,
-  sceneFilterLoading: boolean,
   showSettings: boolean;
   audioMuted: boolean;
   showSubtitles: boolean;
@@ -23,8 +17,6 @@ type AppState = {
   uiVisible: boolean;
   isRandomised: boolean;
   crtEffect: boolean;
-  setSelectedSavedFilterId: (id: string | undefined) => void;
-  setSceneFilter: (filter: SceneFilter) => Promise<void>;
   setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => void;
@@ -53,10 +45,6 @@ export const useAppStateStore = create<AppState>()(
       uiVisible: true,
       isRandomised: false,
       crtEffect: false,
-      setSelectedSavedFilterId: (id: string | undefined) => set({ selectedSavedFilterId: id }),
-      setSceneFilter: async (filter: SceneFilter) => {
-        set({ sceneFilter: filter, sceneFilterLoading: false })
-      },
       setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
         showSettings: typeof newValue === "boolean" ? newValue : newValue(state.showSettings)
       })),
@@ -96,9 +84,6 @@ export const useAppStateStore = create<AppState>()(
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(([key]) => ![
-            'sceneFilter',
-            'sceneFilterLoading',
-            'selectedSavedFilterId',
             'showSettings',
             'fullscreen'
           ].includes(key)),

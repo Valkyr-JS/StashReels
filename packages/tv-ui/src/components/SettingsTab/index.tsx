@@ -12,6 +12,8 @@ import { useStashConfigStore } from "../../store/stashConfigStore";
 import { useAppStateStore } from "../../store/appStateStore";
 import SideDrawer from "../SideDrawer";
 import { useScenes } from "../../hooks/useScenes";
+import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
+import { useSceneFilters } from "../../hooks/useSceneFilters";
 
 type ReactSelectOnChange = (
   newValue: SingleValue<{
@@ -25,12 +27,21 @@ type ReactSelectOnChange = (
 ) => any;
 
 export default function SettingsTab() {
-  const { savedSceneFilters, stashTvConfig, updateStashTvConfig } = useStashConfigStore();
+  const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
+  const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
+  const {
+    sceneFiltersNameAndIds,
+    defaultStashTvFilterId,
+    sceneFiltersLoading,
+    currentSceneFilter,
+    currentSceneFilterId,
+    setCurrentSceneFilterById
+  } = useSceneFilters()
 
-  const { selectedSavedFilterId, setSelectedSavedFilterId, isRandomised, sceneFilter, sceneFilterLoading, setIsRandomised, crtEffect, setCrtEffect } = useAppStateStore();
+  const { isRandomised, setIsRandomised, crtEffect, setCrtEffect } = useAppStateStore();
   const { scenes, scenesLoading } = useScenes()
     
-  const noScenesAvailable = !sceneFilterLoading && !scenesLoading && scenes.length === 0
+  const noScenesAvailable = !sceneFiltersLoading && !scenesLoading && scenes.length === 0
   
 
   /* --------------------------- Fetching data alert -------------------------- */
@@ -71,15 +82,15 @@ export default function SettingsTab() {
 
   // 1. Select a scene filter
   const filters = useMemo(
-    () => savedSceneFilters
+    () => sceneFiltersNameAndIds
       .map(filter => ({
         value: filter.id,
-        label: filter.name + (filter.id === stashTvConfig.stashTvDefaultFilterID ? " (default)" : "")
+        label: filter.name + (filter.id === defaultStashTvFilterId ? " (default)" : "")
       }))
       .sort((a, b) => a.label.localeCompare(b.label)),
-    [savedSceneFilters, stashTvConfig.stashTvDefaultFilterID]
+    [sceneFiltersNameAndIds, defaultStashTvFilterId]
   )
-  const selectedFilter = useMemo(() => filters.find(filter => filter.value === selectedSavedFilterId), [selectedSavedFilterId, filters]);
+  const selectedFilter = useMemo(() => filters.find(filter => filter.value === currentSceneFilterId), [currentSceneFilterId, filters]);
 
   const scenelessFilterError = noScenesAvailable ? (
     <div className="error">
@@ -111,18 +122,20 @@ export default function SettingsTab() {
       return 0;
     });
 
-  const defaultSubtitles = stashTvConfig?.subtitleLanguage
+  const defaultSubtitles = subtitleLanguage
     ? {
-      label: ISO6391.getName(stashTvConfig.subtitleLanguage),
-      value: stashTvConfig.subtitleLanguage,
+      label: ISO6391.getName(subtitleLanguage),
+      value: subtitleLanguage,
     }
     : undefined;
 
   const onChangeSubLanguage: ReactSelectOnChange = (option) => {
-    updateStashTvConfig({
-      ...stashTvConfig,
-      subtitleLanguage: option?.value ?? undefined,
-    });
+    updateStashTvConfig(
+      apolloClient,
+      {
+        subtitleLanguage: option?.value ?? undefined,
+      }
+    );
     // Refresh the scene list without changing the current index.
   };
 
@@ -132,13 +145,17 @@ export default function SettingsTab() {
     <div className="item">
       <label>
         <h3>Select a filter</h3>
-        <Select
-          defaultValue={selectedFilter}
-          onChange={(newValue) => setSelectedSavedFilterId(newValue?.value ?? undefined)}
-          options={filters}
-          placeholder="None selected. Defaulted to all portrait scenes."
-          theme={reactSelectTheme}
-        />
+        {!sceneFiltersLoading ? (
+          <Select
+            defaultValue={selectedFilter}
+            onChange={(newValue) => newValue && setCurrentSceneFilterById(newValue.value)}
+            options={filters}
+            placeholder="None selected. Defaulted to all portrait scenes."
+            theme={reactSelectTheme}
+          />
+        ) : (
+          <div>Loading...</div>
+        )}
       </label>
       <small>
         Choose a scene filter from Stash to use as your Stash TV
@@ -149,13 +166,15 @@ export default function SettingsTab() {
       {scenelessFilterError}
     </div>
 
-    {selectedFilter && selectedFilter.value !== stashTvConfig.stashTvDefaultFilterID && <div className="item">
+    {selectedFilter && selectedFilter.value !== defaultStashTvFilterId && <div className="item">
       <button
         onClick={() => {
-          updateStashTvConfig({
-            ...stashTvConfig,
-            stashTvDefaultFilterID: selectedFilter?.value,
-          });
+          updateStashTvConfig(
+            apolloClient,
+            {
+              defaultFilterId: selectedFilter?.value,
+            }
+          );
         }}
       >
         Set "{selectedFilter?.label}" as the default filter
@@ -169,7 +188,7 @@ export default function SettingsTab() {
     </div>}
 
     <div className="item checkbox-item">
-      {sceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
+      {currentSceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
         <span>Filter is set to random order</span>
       ) : <>
         <label>
