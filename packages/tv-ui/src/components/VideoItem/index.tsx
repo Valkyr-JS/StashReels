@@ -99,7 +99,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const isInViewport = props.index === props.currentIndex;
   
   // Currently hardcoded but could be made configurable later
-  const autoplay = false;
+  const autoplay = true;
   
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
