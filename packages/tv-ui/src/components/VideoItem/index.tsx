@@ -98,6 +98,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   const isInViewport = props.index === props.currentIndex;
   
+  // Currently hardcoded but could be made configurable later
+  const autoplay = false;
+  
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
@@ -124,6 +127,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (!videojsPlayer) return;
     // In theory we shouldn't need the conditional on props of videojsPlayer but it seems like sometimes we do
     if (props.index === props.currentIndex) {
+      if (!autoplay) return;
       setPaused(false);
       videojsPlayer?.play()?.catch(() => setPaused(true));
     } else {
@@ -347,7 +351,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           scene={props.scene}
           hideScrubberOverride={true}
           muted={audioMuted}
-          autoplay={false}
+          autoplay={autoplay}
           loop={looping}
           initialTimestamp={0}
           sendSetTimestamp={() => {}}

@@ -94,6 +94,7 @@ videojs.hook('beforesetup', function(videoEl, options) {
     }
 });
 
+// Merge in any option overrides set by this component
 videojs.hook('beforesetup', function(videoEl, options) {
     const sceneId = videoEl.parentElement?.parentElement?.parentElement?.dataset.sceneId
     if (sceneId) {
