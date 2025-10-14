@@ -3,11 +3,11 @@ import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
 import cx from "classnames";
 import { useAppStateStore } from "../../store/appStateStore";
-import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useVirtualizer, useWindowVirtualizer, windowScroll, elementScroll } from "@tanstack/react-virtual";
 import throttle from 'throttleit';
 import { clamp } from "../../helpers";
 import { useScenes } from "../../hooks/useScenes";
+import { useWindowSize } from "../../hooks/useWindowSize";
 
 interface VideoScrollerProps {}
 
@@ -17,7 +17,8 @@ const videoItemHeight = "calc(var(--y-unit-large) * 100)"
 export const itemBufferEitherSide = 1 as const;
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
-  const { forceLandscape: isForceLandscape, setCrtEffect, scenePreviewOnly } = useAppStateStore();
+  const { forceLandscape: isForceLandscape, setCrtEffect, scenePreviewOnly, onlyShowMatchingOrientation } = useAppStateStore();
+  const { orientation } = useWindowSize()
   const rootElmRef = useRef<HTMLDivElement | null>(null);
 
   /* ------------------------ Handle loading new videos ----------------------- */
@@ -366,6 +367,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       {import.meta.env.VITE_DEBUG && <div className="debugStats">
         {rowVirtualizer.isScrolling ? "Scrolling" : "Not Scrolling"}
         {" "}({scenes.length} scenes)
+        {onlyShowMatchingOrientation && ` limiting to ${orientation} orientation`}
       </div>}
       {scenes.map((scene, i) => {
         const style = {

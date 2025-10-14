@@ -33,12 +33,12 @@ export default function SettingsTab() {
     sceneFiltersNameAndIds,
     defaultStashTvFilterId,
     sceneFiltersLoading,
-    currentSceneFilter,
     currentSceneFilterId,
-    setCurrentSceneFilterById
+    setCurrentSceneFilterById,
+    currentStashFilter
   } = useSceneFilters()
 
-  const { isRandomised, setIsRandomised, crtEffect, setCrtEffect, scenePreviewOnly, setScenePreviewOnly } = useAppStateStore();
+  const { isRandomised, setIsRandomised, crtEffect, setCrtEffect, scenePreviewOnly, setScenePreviewOnly, onlyShowMatchingOrientation, setOnlyShowMatchingOrientation } = useAppStateStore();
   const { scenes, scenesLoading } = useScenes()
     
   const noScenesAvailable = !sceneFiltersLoading && !scenesLoading && scenes.length === 0
@@ -188,8 +188,8 @@ export default function SettingsTab() {
     </div>}
 
     <div className="item checkbox-item">
-      {currentSceneFilter?.generalFilter?.sort?.startsWith("random_") ? (
-        <span>Filter is set to random order</span>
+      {currentStashFilter?.find_filter?.sort?.startsWith("random_") ? (
+        <span>Filter sort order is random</span>
       ) : <>
         <label>
           <input
@@ -228,6 +228,18 @@ export default function SettingsTab() {
         <h3>Scene Preview Only</h3>
       </label>
       <small>Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</small>
+    </div>
+
+    <div className="item checkbox-item">
+      <label>
+        <input
+          checked={onlyShowMatchingOrientation}
+          onChange={event => setOnlyShowMatchingOrientation(event.target.checked)}
+          type="checkbox"
+        />
+        <h3>Only Show Scenes Matching Orientation</h3>
+      </label>
+      <small>Limit scenes to only those in the same orientation as the current window.</small>
     </div>
 
     <div className="item checkbox-item">

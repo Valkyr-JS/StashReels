@@ -1,27 +1,26 @@
 
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useStashConfigStore } from "../store/stashConfigStore";
 import { ListFilterModel } from "stash-ui/dist/src/models/list-filter/filter";
 import { useAppStateStore } from "../store/appStateStore";
 import { createGlobalState } from "react-use";
+import { useWindowSize } from "./useWindowSize";
 
 export type SceneFilter = {
   generalFilter: GQL.FindScenesForTvQueryVariables["filter"],
   sceneFilter: GQL.FindScenesForTvQueryVariables["scene_filter"],
 }
 
-const useCurrentSceneFilter = createGlobalState<SceneFilter>();
-const useCurrentSceneFilterId = createGlobalState<string | undefined>();
+const useCurrentStashFilter = createGlobalState<GQL.SavedFilterDataFragment | undefined>();
 const useSceneFiltersLoading = createGlobalState(true);
 const useSceneFiltersError = createGlobalState<unknown>();
 
 export function useSceneFilters() {
   const [sceneFiltersLoading, setSceneFiltersLoading] = useSceneFiltersLoading();
   const [sceneFiltersError, setSceneFiltersError] = useSceneFiltersError();
-  const [currentSceneFilter, setCurrentSceneFilter] = useCurrentSceneFilter();
-  const [currentSceneFilterId, setCurrentSceneFilterId] = useCurrentSceneFilterId();
+  const [currentStashFilter, setCurrentStashFilter] = useCurrentStashFilter();
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
 
   const {
@@ -29,7 +28,23 @@ export function useSceneFilters() {
     tv: { defaultFilterId: stashTvDefaultFilterId },
     loading: stashConfigLoading,
   } = useStashConfigStore();
-  const { isRandomised } = useAppStateStore();
+  const { isRandomised, onlyShowMatchingOrientation } = useAppStateStore();
+  const { orientation } = useWindowSize()
+  
+  let limitOrientation: "landscape" | "portrait" | undefined = undefined
+  if (onlyShowMatchingOrientation && orientation !== "square") {
+    limitOrientation = orientation
+  }
+  
+  const currentSceneFilter = useMemo(
+    () => currentStashFilter && convertSavedFilterInStashFormatToUsableFormat(currentStashFilter),
+    [currentStashFilter, isRandomised, onlyShowMatchingOrientation && orientation]
+  );
+  const currentSceneFilterId = useMemo(
+    () => currentStashFilter?.id,
+    [currentStashFilter]
+  );
+  
   
   
   // Load default filter on initial load.
@@ -42,17 +57,14 @@ export function useSceneFilters() {
           await setCurrentSceneFilterById(stashTvDefaultFilterId)
         } else if (stashDefaultScenesFilter)  {
           // No default filter ID set for Stash TV specifically so we use the default Stash filter
-          setCurrentSceneFilter(
-            convertSavedFilterInStashFormatToUsableFormat(stashDefaultScenesFilter)
-          )
-          setCurrentSceneFilterId(undefined);
+          setCurrentStashFilter(stashDefaultScenesFilter)
         } else {
           // No Stash default filter so we should use an empty filter
-          setCurrentSceneFilter({
-            generalFilter: {},
-            sceneFilter: {}
+          setCurrentStashFilter({
+            id: "",
+            mode: GQL.FilterMode.Scenes,
+            name: "",
           })
-          setCurrentSceneFilterId(undefined);
         }
       } catch (error) {
         setSceneFiltersError(error);
@@ -70,12 +82,7 @@ export function useSceneFilters() {
       return undefined;
     }
     
-    setCurrentSceneFilter(
-      convertSavedFilterInStashFormatToUsableFormat(
-        sceneFiltersStashResponse
-      )
-    );
-    setCurrentSceneFilterId(id);
+    setCurrentStashFilter(sceneFiltersStashResponse);
   }
 
   async function fetchSavedFilterFromStash(apolloClient: ApolloClient<NormalizedCacheObject>, filterId: string): Promise<GQL.SavedFilterDataFragment | null> {
@@ -95,7 +102,10 @@ export function useSceneFilters() {
         stashFormatFilter,
         { forceRandomise: isRandomised }
       ),
-      sceneFilter: processSavedFilterToSceneFilter(stashFormatFilter)
+      sceneFilter: processSavedFilterToSceneFilter(
+        stashFormatFilter,
+        { limitOrientation }
+      )
     }
   }
   
@@ -107,12 +117,13 @@ export function useSceneFilters() {
     setCurrentSceneFilterById,
     sceneFiltersNameAndIds: savedSceneFiltersNameAndIds,
     defaultStashTvFilterId: stashTvDefaultFilterId,
+    currentStashFilter,
   }
 }
 
 const processSavedFilterToGeneralFilter = (
   savedFilter: GQL.SavedFilterDataFragment,
-  { forceRandomise }: { forceRandomise: boolean } 
+  { forceRandomise }: { forceRandomise?: boolean } = {}
 ): SceneFilter["generalFilter"] => {
   const filter = new ListFilterModel(GQL.FilterMode.Scenes)
   filter.configureFromSavedFilter(savedFilter);
@@ -127,9 +138,22 @@ const processSavedFilterToGeneralFilter = (
 };
 
 /** Process the raw `object_filter` data from Stash into GQL. */
-const processSavedFilterToSceneFilter = (savedFilter: GQL.SavedFilterDataFragment): SceneFilter["sceneFilter"] => {
+const processSavedFilterToSceneFilter = (
+  savedFilter: GQL.SavedFilterDataFragment,
+   { limitOrientation }: { limitOrientation?: "landscape" | "portrait" } = {}
+): SceneFilter["sceneFilter"] => {
   const filter = new ListFilterModel(GQL.FilterMode.Scenes)
   filter.configureFromSavedFilter(savedFilter);
 
-  return filter.makeFilter();
+  const sceneFilter = filter.makeFilter();
+  if (limitOrientation) {
+    sceneFilter.orientation = {
+      "value": [
+        limitOrientation.toUpperCase(),
+        "SQUARE"
+      ]
+    };
+	}
+  
+  return sceneFilter;
 };
