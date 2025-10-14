@@ -38,7 +38,7 @@ export default function SettingsTab() {
     setCurrentSceneFilterById
   } = useSceneFilters()
 
-  const { isRandomised, setIsRandomised, crtEffect, setCrtEffect } = useAppStateStore();
+  const { isRandomised, setIsRandomised, crtEffect, setCrtEffect, scenePreviewOnly, setScenePreviewOnly } = useAppStateStore();
   const { scenes, scenesLoading } = useScenes()
     
   const noScenesAvailable = !sceneFiltersLoading && !scenesLoading && scenes.length === 0
@@ -216,6 +216,18 @@ export default function SettingsTab() {
       <small>
         Select the language to use for subtitles if available.
       </small>
+    </div>
+
+    <div className="item checkbox-item">
+      <label>
+        <input
+          checked={scenePreviewOnly}
+          onChange={event => setScenePreviewOnly(event.target.checked)}
+          type="checkbox"
+        />
+        <h3>Scene Preview Only</h3>
+      </label>
+      <small>Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</small>
     </div>
 
     <div className="item checkbox-item">

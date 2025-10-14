@@ -12,6 +12,7 @@ type AppState = {
   uiVisible: boolean;
   isRandomised: boolean;
   crtEffect: boolean;
+  scenePreviewOnly: boolean;
   setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => void;
@@ -22,6 +23,7 @@ type AppState = {
   setUiVisible: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setIsRandomised: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => void;
+  setScenePreviewOnly: (newValue: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 export const useAppStateStore = create<AppState>()(
@@ -40,6 +42,7 @@ export const useAppStateStore = create<AppState>()(
       uiVisible: true,
       isRandomised: false,
       crtEffect: false,
+      scenePreviewOnly: false,
       setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
         showSettings: typeof newValue === "boolean" ? newValue : newValue(state.showSettings)
       })),
@@ -72,6 +75,9 @@ export const useAppStateStore = create<AppState>()(
       })),
       setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
         crtEffect: typeof newValue === "boolean" ? newValue : newValue(state.crtEffect)
+      })),
+      setScenePreviewOnly: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        scenePreviewOnly: typeof newValue === "boolean" ? newValue : newValue(state.scenePreviewOnly)
       })),
     }),
     {

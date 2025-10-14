@@ -64,6 +64,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     showSubtitles,
     uiVisible,
     crtEffect,
+    scenePreviewOnly,
     setShowSettings,
     setAudioMuted,
     setFullscreen,
@@ -348,6 +349,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         {import.meta.env.VITE_DEBUG && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
         {!loadingDeferred && <ScenePlayer
+          key={JSON.stringify([props.scene.id, scenePreviewOnly])}
           scene={props.scene}
           hideScrubberOverride={true}
           muted={audioMuted}
@@ -361,6 +363,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           ref={setVideoRef}
           onEnded={handleOnEnded}
           onVideojsPlayerReady={handleVideojsPlayerReady}
+          trackActivity={!scenePreviewOnly}
+          scrubberThumbnail={!scenePreviewOnly}
+          markers={!scenePreviewOnly}
           optionsToMerge={{
             plugins: {
               touchOverlay: {

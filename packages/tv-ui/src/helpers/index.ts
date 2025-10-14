@@ -56,3 +56,15 @@ function isEnumerableIncludingInherited(obj: any, prop: string) {
   }
   return false; // not found anywhere in the chain
 }
+
+export function getSceneIdForVideoJsPlayer(videoElm: Element): string {
+  let node: Element | null = videoElm;
+  while (node !== null) {
+    if (node instanceof HTMLElement && 'sceneId' in node.dataset && node.dataset.sceneId) {
+      return node.dataset.sceneId;
+    }
+    node = node.parentElement;
+  }
+  throw new Error("Could not find sceneId for Video.js player");
+}
+    
