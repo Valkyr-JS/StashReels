@@ -15,6 +15,7 @@ type AppState = {
   scenePreviewOnly: boolean;
   onlyShowMatchingOrientation: boolean;
   debugMode: boolean;
+  autoPlay: boolean;
   setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => void;
@@ -28,6 +29,7 @@ type AppState = {
   setScenePreviewOnly: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setOnlyShowMatchingOrientation: (newValue: boolean | ((prev: boolean) => boolean)) => void;
   setDebugMode: (newValue: boolean | ((prev: boolean) => boolean)) => void;
+  setAutoPlay: (newValue: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 export const useAppStateStore = create<AppState>()(
@@ -49,6 +51,7 @@ export const useAppStateStore = create<AppState>()(
       scenePreviewOnly: false,
       onlyShowMatchingOrientation: false,
       debugMode: false,
+      autoPlay: true,
       setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
         showSettings: typeof newValue === "boolean" ? newValue : newValue(state.showSettings)
       })),
@@ -90,6 +93,9 @@ export const useAppStateStore = create<AppState>()(
       })),
       setDebugMode: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
         debugMode: typeof newValue === "boolean" ? newValue : newValue(state.debugMode)
+      })),
+      setAutoPlay: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
+        autoPlay: typeof newValue === "boolean" ? newValue : newValue(state.autoPlay)
       })),
     }),
     {

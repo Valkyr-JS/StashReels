@@ -48,7 +48,9 @@ export default function SettingsTab() {
     onlyShowMatchingOrientation,
     setOnlyShowMatchingOrientation,
     debugMode,
-    setDebugMode
+    setDebugMode,
+    autoPlay,
+    setAutoPlay,
   } = useAppStateStore();
   const { scenes, scenesLoading } = useScenes()
     
@@ -276,6 +278,18 @@ export default function SettingsTab() {
         <h3>Only Show Scenes Matching Orientation</h3>
       </label>
       <small>Limit scenes to only those in the same orientation as the current window.</small>
+    </div>
+
+    <div className="item checkbox-item">
+      <label>
+        <input
+          checked={autoPlay}
+          onChange={event => setAutoPlay(event.target.checked)}
+          type="checkbox"
+        />
+        <h3>Auto Play</h3>
+      </label>
+      <small>Automatically play scenes.</small>
     </div>
 
     <div className="item checkbox-item">

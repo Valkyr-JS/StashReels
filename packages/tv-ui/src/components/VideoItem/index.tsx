@@ -62,6 +62,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     crtEffect,
     scenePreviewOnly,
     debugMode,
+    autoPlay: globalAutoPlay,
     setShowSettings,
     setAudioMuted,
     setFullscreen,
@@ -103,7 +104,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const isCurrentVideo = props.index === props.currentIndex;
   
   // Currently hardcoded but could be made configurable later
-  const autoplay = isCurrentVideo;
+  const autoplay = globalAutoPlay && isCurrentVideo;
   
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
