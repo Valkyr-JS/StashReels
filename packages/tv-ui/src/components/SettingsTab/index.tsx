@@ -315,5 +315,13 @@ export default function SettingsTab() {
       </label>
       <small>Enable debug mode for additional logging and information.</small>
     </div>
+
+    {debugMode && <div className="item">
+      <button
+        onClick={() => window.location.reload()}
+      >
+        Reload Page
+      </button>
+    </div>}
   </SideDrawer>;
 };
