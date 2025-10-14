@@ -96,10 +96,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     }
   }, [loadingDeferred, props.currentlyScrolling]);
 
-  const isInViewport = props.index === props.currentIndex;
+  const isCurrentVideo = props.index === props.currentIndex;
   
   // Currently hardcoded but could be made configurable later
-  const autoplay = true;
+  const autoplay = isCurrentVideo;
   
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
@@ -133,10 +133,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     } else {
       videojsPlayer?.pause();
     }
-  }, [props.index, props.currentIndex]);
+  }, [props.index, props.currentIndex, autoplay]);
     
   useEffect(() => {
-    if (!isInViewport) return;
+    if (!isCurrentVideo) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
       const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
@@ -155,7 +155,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
-  }, [forceLandscape, isInViewport]);
+  }, [forceLandscape, isCurrentVideo]);
 
   function getSkipTime() {
     const duration = props.scene.files?.[0].duration;
@@ -244,7 +244,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /** Handle the event fired at the end of video playback. */
   const handleOnEnded = () => {
     // If not looping on end, scroll to the next item.
-    if (!looping) props.changeItemHandler((currentIndex) => currentIndex + 1);
+    if (!looping && isCurrentVideo) props.changeItemHandler((currentIndex) => currentIndex + 1);
   };
 
   /* ------------------------------- Scene info ------------------------------- */
@@ -256,12 +256,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const sceneInfoPanelRef = useRef(null);
 
   const sceneInfoButtonClickHandler = () => {
-    if (isInViewport) setSceneInfoOpen((prev) => !prev);
+    if (isCurrentVideo) setSceneInfoOpen((prev) => !prev);
   };
 
   useEffect(() => {
-    if (!isInViewport) setSceneInfoOpen(false);
-  }, [isInViewport]);
+    if (!isCurrentVideo) setSceneInfoOpen(false);
+  }, [isCurrentVideo]);
 
   // Only render the button if there is available data
   const sceneInfoDataAvailable =
@@ -334,7 +334,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   return (
     <div
-      className={cx("VideoItem", {inViewport: isInViewport, 'cover': !letterboxing}, props.className)}
+      className={cx("VideoItem", {inViewport: isCurrentVideo, 'cover': !letterboxing}, props.className)}
       data-testid="VideoItem--container"
       data-index={props.index}
       data-scene-id={props.scene.id}
