@@ -2,6 +2,7 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useSceneFilters } from './useSceneFilters';
 import { useEffect, useState } from "react";
 import { getSceneIdForVideoJsPlayer } from "../helpers";
+import { useAppStateStore } from "../store/appStateStore";
 
 export const scenesPerPage = 20
 
@@ -9,6 +10,7 @@ type Scene = GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]
 
 export function useScenes({previewOnly}: {previewOnly?: boolean} = {}) {
   const { currentSceneFilter } = useSceneFilters()
+  const { debugMode } = useAppStateStore()
 
   const {
     data,
@@ -99,7 +101,7 @@ export function useScenes({previewOnly}: {previewOnly?: boolean} = {}) {
     scenes,
     loadMoreScenes: () => {
       const nextPage = data?.findScenes?.scenes.length ? Math.ceil(data.findScenes.scenes.length / scenesPerPage) + 1 : 1
-      import.meta.env.VITE_DEBUG && console.log("Fetch next scenes page:", nextPage)
+      debugMode && console.log("Fetch next scenes page:", nextPage)
       fetchMore({
         variables: {
           filter: {

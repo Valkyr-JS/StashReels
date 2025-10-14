@@ -7,6 +7,7 @@ import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
 import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-overlay-buttons-extended";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { getSceneIdForVideoJsPlayer } from "../../helpers";
+import { useAppStateStore } from "../../store/appStateStore";
 
 registerVideojsOverlayButtonsExtendedPlugin();
 
@@ -140,9 +141,12 @@ const ScenePlayer = forwardRef<
     ...otherProps
 }: ScenePlayerProps, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
-    import.meta.env.VITE_DEBUG && useEffect(() => {
-        console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);
-        return () => console.log(`Unmounted ScenePlayer sceneId=${otherProps.scene.id}`);
+    const { debugMode } = useAppStateStore();
+    useEffect(() => {
+        debugMode && console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);
+        return () => {
+            debugMode && console.log(`Unmounted ScenePlayer sceneId=${otherProps.scene.id}`);
+        }
     },[]);
     
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);

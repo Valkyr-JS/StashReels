@@ -9,7 +9,7 @@ import { useAppStateStore } from "../../store/appStateStore";
 
 type Props = {
   children?: React.ReactNode,
-  title?: string,
+  title?: string | React.ReactNode,
   closeDisabled?: boolean,
   className?: string
 }

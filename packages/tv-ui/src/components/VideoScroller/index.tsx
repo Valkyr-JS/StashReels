@@ -17,7 +17,7 @@ const videoItemHeight = "calc(var(--y-unit-large) * 100)"
 export const itemBufferEitherSide = 1 as const;
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
-  const { forceLandscape: isForceLandscape, setCrtEffect, scenePreviewOnly, onlyShowMatchingOrientation } = useAppStateStore();
+  const { forceLandscape: isForceLandscape, setCrtEffect, scenePreviewOnly, onlyShowMatchingOrientation, debugMode } = useAppStateStore();
   const { orientation } = useWindowSize()
   const rootElmRef = useRef<HTMLDivElement | null>(null);
 
@@ -51,7 +51,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       }
 
       const itemHeight = estimateSizeTesterElement.current.offsetHeight;
-      import.meta.env.VITE_DEBUG && console.log("Estimated item height:", itemHeight)
+      debugMode && console.log("Estimated item height:", itemHeight)
 
       return itemHeight;
     },
@@ -61,7 +61,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     ...sharedOptions,
     enabled: !isForceLandscape,
     scrollToFn: (...args) => {
-      import.meta.env.VITE_DEBUG && console.log("Window virtualizer scrolling to height:", args[0])
+      debugMode && console.log("Window virtualizer scrolling to height:", args[0])
       return windowScroll(...args);
     }
   });
@@ -70,7 +70,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     enabled: isForceLandscape,
     getScrollElement: () => document.querySelector('body'),
     scrollToFn: (...args) => {
-      import.meta.env.VITE_DEBUG && console.log("Element virtualizer scrolling to height:", args[0])
+      debugMode && console.log("Element virtualizer scrolling to height:", args[0])
       return elementScroll(...args);
     }
   });
@@ -97,7 +97,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const setCurrentIndex = useMemo(
     () => {
       const throttledSetCurrentIndex = throttle((newIndex: number) => {
-        import.meta.env.VITE_DEBUG && console.log("setCurrentIndex received:", newIndex)
+        debugMode && console.log("setCurrentIndex received:", newIndex)
         _setCurrentIndex(newIndex)
       }, 100)
       return ((newIndex: React.SetStateAction<number>) => {
@@ -129,7 +129,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       getScrollSnappingReenableHandler(),
       scrollSnappingReenableTimeoutMs
     );
-    import.meta.env.VITE_DEBUG && console.log('Temporarily disabling scroll snapping');
+    debugMode && console.log('Temporarily disabling scroll snapping');
     rootElmRef.current?.classList.remove('scrollSnappingEnabled');
   }
 
@@ -158,14 +158,14 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       const itemHeight = rowVirtualizer.getVirtualItems()[0]?.size || 0;
       const newScrollTop = index * itemHeight
       temporarilyDisableScrollSnapping();
-      import.meta.env.VITE_DEBUG && console.log(`Scrolling to index ${index} at height ${newScrollTop}`);
+      debugMode && console.log(`Scrolling to index ${index} at height ${newScrollTop}`);
       rowVirtualizer.scrollElement?.scrollTo({ top: newScrollTop, behavior: "smooth", ...options });
     },
     [rowVirtualizer]
   );
   
   useEffect(() => {
-    import.meta.env.VITE_DEBUG && console.log("currentIndex changed to", currentIndex);
+    debugMode && console.log("currentIndex changed to", currentIndex);
     if (currentIndex >= scenes.length - 5) {
       loadMoreScenes();
     }
@@ -175,7 +175,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const nextKey = isForceLandscape ? "ArrowRight" : "ArrowDown";
       const previousKey = isForceLandscape ? "ArrowLeft" : "ArrowUp";
-      import.meta.env.VITE_DEBUG && (e.key === previousKey || e.key === nextKey) && 
+      debugMode && (e.key === previousKey || e.key === nextKey) && 
         console.log("VideoScroller Keydown", e.key, {nextKey, previousKey});
       if (e.key === previousKey) {
         // Go to the previous item
@@ -364,7 +364,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       ref={rootElmRef}
       style={{ height: rowVirtualizer.getTotalSize() }}
     >
-      {import.meta.env.VITE_DEBUG && <div className="debugStats">
+      {debugMode && <div className="debugStats">
         {rowVirtualizer.isScrolling ? "Scrolling" : "Not Scrolling"}
         {" "}({scenes.length} scenes)
         {onlyShowMatchingOrientation && ` limiting to ${orientation} orientation`}
@@ -377,7 +377,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
           width: '100%',
           height: 'calc(var(--y-unit-large) * 100)',
           transform: `translate3d(0, calc(var(--y-unit-large) * 100 * ${i}), 0)`,
-          ...(import.meta.env.VITE_DEBUG ? {
+          ...(debugMode ? {
             "backgroundColor": `hsl(${i * 37  % 360}, 70%, 50%)`,
             border: `10px ${i === currentIndex ? 'black' : 'transparent'} dashed`,
           } : {})

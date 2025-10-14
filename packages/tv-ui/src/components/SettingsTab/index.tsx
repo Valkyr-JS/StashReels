@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import Select, {
   ActionMeta,
   SingleValue,
@@ -38,7 +38,18 @@ export default function SettingsTab() {
     currentStashFilter
   } = useSceneFilters()
 
-  const { isRandomised, setIsRandomised, crtEffect, setCrtEffect, scenePreviewOnly, setScenePreviewOnly, onlyShowMatchingOrientation, setOnlyShowMatchingOrientation } = useAppStateStore();
+  const { 
+    isRandomised,
+    setIsRandomised,
+    crtEffect,
+    setCrtEffect,
+    scenePreviewOnly,
+    setScenePreviewOnly,
+    onlyShowMatchingOrientation,
+    setOnlyShowMatchingOrientation,
+    debugMode,
+    setDebugMode
+  } = useAppStateStore();
   const { scenes, scenesLoading } = useScenes()
     
   const noScenesAvailable = !sceneFiltersLoading && !scenesLoading && scenes.length === 0
@@ -138,10 +149,35 @@ export default function SettingsTab() {
     );
     // Refresh the scene list without changing the current index.
   };
+  
+  const titleRef = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!titleRef.current) return;
+    let enableDebugModeTimer: NodeJS.Timeout | undefined;
+    const handlePointerDown = () => {
+      enableDebugModeTimer = setTimeout(() => {
+        setDebugMode(true);
+      }, 5000);
+    };
+    const handlePointerUp = () => {
+      clearTimeout(enableDebugModeTimer);
+    };
+    titleRef.current.addEventListener("pointerdown", handlePointerDown)
+    titleRef.current.addEventListener("pointerup", handlePointerUp)
+    return () => {
+      titleRef.current?.removeEventListener("pointerdown", handlePointerDown)
+      titleRef.current?.removeEventListener("pointerup", handlePointerUp)
+    }
+      
+  }, [titleRef])
 
   /* -------------------------------- Component ------------------------------- */
   
-  return <SideDrawer title="Settings" closeDisabled={noScenesAvailable || scenesLoading} className="SettingsTab">
+  return <SideDrawer
+    title={<span ref={titleRef}>Settings</span>}
+    closeDisabled={noScenesAvailable || scenesLoading}
+    className="SettingsTab"
+  >
     <div className="item">
       <label>
         <h3>Select a filter</h3>
@@ -252,6 +288,18 @@ export default function SettingsTab() {
         <h3>CRT effect</h3>
       </label>
       <small>Emulate the visual effects of an old CRT television.</small>
+    </div>
+
+    <div className="item checkbox-item" style={{display: debugMode ? "block" : "none"}}>
+      <label>
+        <input
+          checked={debugMode}
+          onChange={event => setDebugMode(event.target.checked)}
+          type="checkbox"
+        />
+        <h3>Debug mode</h3>
+      </label>
+      <small>Enable debug mode for additional logging and information.</small>
     </div>
   </SideDrawer>;
 };

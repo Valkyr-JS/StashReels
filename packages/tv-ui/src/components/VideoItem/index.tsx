@@ -50,10 +50,6 @@ export interface VideoItemProps {
 }
 
 const VideoItem: React.FC<VideoItemProps> = (props) => {
-  useEffect(() => {
-    import.meta.env.VITE_DEBUG && console.log(`Mounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
-    return () => import.meta.env.VITE_DEBUG && console.log(`Unmounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
-  },[]);
   const {
     showSettings,
     fullscreen,
@@ -65,6 +61,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     uiVisible,
     crtEffect,
     scenePreviewOnly,
+    debugMode,
     setShowSettings,
     setAudioMuted,
     setFullscreen,
@@ -74,7 +71,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     setLooping,
     setUiVisible,
   } = useAppStateStore();
-  const { stashTvConfig } = useStashConfigStore();
+  useEffect(() => {
+    debugMode && console.log(`Mounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
+    return () => {
+      debugMode && console.log(`Unmounted VideoItem index=${props.index} sceneId=${props.scene.id}`)
+    };
+  }, []);
+  const { tv: { subtitleLanguage } } = useStashConfigStore();
   const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
   const [paused, setPaused] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -105,11 +108,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
-      import.meta.env.VITE_DEBUG && console.log(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
+      debugMode && console.log(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
       setAudioMuted(player.muted());
     });
     if (audioMuted !== player.muted()) {
-      import.meta.env.VITE_DEBUG && console.log(`Video.js player loaded - player ${player.muted() ? "" : "not"} muted`);
+      debugMode && console.log(`Video.js player loaded - player ${player.muted() ? "" : "not"} muted`);
       setAudioMuted(player.muted());
     }
     // We resort to `any` here because the types for videojs are incomplete
@@ -141,7 +144,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
       const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
-      import.meta.env.VITE_DEBUG && (e.key === seekBackwardsKey || e.key === seekForwardsKey) && 
+      debugMode && (e.key === seekBackwardsKey || e.key === seekForwardsKey) &&
         console.log(`VideoItem ${props.index} Keydown`, e.key, {seekBackwardsKey, seekForwardsKey});
       if (e.key === seekBackwardsKey) {
         seekBackwards()
@@ -182,7 +185,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
     const duration = videojsPlayer.duration();
     const skipAmount = getSkipTime()
-    import.meta.env.VITE_DEBUG && console.log("Seeking forwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
+    debugMode && console.log("Seeking forwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
     if (skipAmount === null || typeof duration !== 'number') {
         return null
     }
@@ -201,7 +204,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
     const duration = videojsPlayer.duration();
     const skipAmount = getSkipTime()
-    import.meta.env.VITE_DEBUG && console.log("Seeking backwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
+    debugMode && console.log("Seeking backwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
@@ -291,14 +294,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
    * language. Fails accessibility if missing, but there's no point rendering
    * an empty track. */
   const captionSources =
-    props.scene.captions && stashTvConfig.subtitleLanguage
+    props.scene.captions && subtitleLanguage
       ? props.scene.captions
           .map((cap, i) => {
-            if (cap.language_code === stashTvConfig.subtitleLanguage) {
+            if (cap.language_code === subtitleLanguage) {
               const src = props.scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
               return (
                 <track
-                  default={stashTvConfig.subtitleLanguage === cap.language_code}
+                  default={subtitleLanguage === cap.language_code}
                   key={i}
                   kind="captions"
                   label={ISO6391.getName(cap.language_code) || "Unknown"}
@@ -343,10 +346,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       style={props.style}
     >
       <CrtEffect enabled={crtEffect}>
-        {import.meta.env.VITE_DEBUG && <div className="debugStats">
+        {debugMode && <div className="debugStats">
           {props.index} - {props.scene.id} {paused ? "Paused" : "Playing"} {loadingDeferred ? "(Loading deferred)" : ""}
         </div>}
-        {import.meta.env.VITE_DEBUG && <div className="loadingDeferredDebugBackground" />}
+        {debugMode && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
         {!loadingDeferred && <ScenePlayer
           key={JSON.stringify([props.scene.id, scenePreviewOnly])}

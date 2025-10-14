@@ -56,7 +56,7 @@ export function getApolloClient() {
     // around this we wrap the cache modification function and specifically ignore any requests to delete scenes from
     // the cache.
     const oldModify = newCache.modify
-    newCache.modify =  (firstArg, ...otherArgs) => { 
+    newCache.modify = (firstArg, ...otherArgs) => { 
         const {fields = {}} = firstArg as {fields: Modifiers}
         if ('findScenes' in fields && typeof fields.findScenes === 'function') {
             const originalModFn = fields.findScenes
@@ -64,7 +64,6 @@ export function getApolloClient() {
                 const [originalValue, { DELETE }] = modFnArgs
                 const result = originalModFn(...modFnArgs);
                 if (result === DELETE) {
-                    import.meta.env.VITE_DEBUG && console.log("Ignoring deletion of findScenes from cache", originalValue);
                     return originalValue
                 }
                 return result
