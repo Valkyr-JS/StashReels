@@ -19,6 +19,7 @@ Reels](https://github.com/Valkyr-JS/StashReels) with some performance improvemen
 - Video rotation for easy landscape viewing when lying down on your side.
 - A fun CRT TV filter option.
 - Updates your play count in Stash for scenes you watch.
+- Optionally play just a scene's short preview.
 
 
 ## Installation
