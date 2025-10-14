@@ -27,7 +27,21 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     if (width) {
       setSidebarWidth(width)
     }
+    const handleResize = () => {
+      if (ref?.current?.clientWidth) {
+        setSidebarWidth(ref.current.clientWidth)
+      }
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [])
+  useEffect(() => {
+    if (x.get() / sidebarWidth > 0.5) {
+      open({immediate: true});
+    } else {
+      close();
+    }
+  }, [sidebarWidth]);
   
   // Kinda hacky way to prevent scrolling of the body when the sidebar is open on mobile without preventing the
   // scrolling of the sidebar content if it overflows
@@ -105,8 +119,8 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       } : undefined,
       onRest: () => setShowSettings(true)
     })
-
   }
+
   const close = () => {
     if (closeDisabled) {
       open();
