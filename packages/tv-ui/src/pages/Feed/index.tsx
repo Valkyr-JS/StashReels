@@ -27,7 +27,6 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   }
   
   /* ------------------------------- Fullscreen ------------------------------- */
-  const pageRef = useRef<HTMLElement>(null);
   const initialLoad = useRef(true);
   useEffect(() => {
     if (initialLoad.current) {
@@ -35,7 +34,7 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
       return;
     }
     if (fullscreen) {
-      pageRef.current?.requestFullscreen?.();
+      document.scrollingElement?.requestFullscreen?.();
     } else {
       document.exitFullscreen?.();
     }
@@ -44,7 +43,7 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   /* -------------------------------- component ------------------------------- */
 
   return (
-  <main data-testid="FeedPage" ref={pageRef} className={className}>
+  <main data-testid="FeedPage" className={className}>
       {(sceneFiltersLoading || scenesLoading) && <Loading heading="Fetching scenes..." />}
       {scenes.length > 0 && <VideoScroller />}
       {loadedButNoScenes && <div>No Scenes Found</div>}
