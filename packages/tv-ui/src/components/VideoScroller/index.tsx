@@ -101,7 +101,11 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         _setCurrentIndex(newIndex)
       }, 100)
       return ((newIndex: React.SetStateAction<number>) => {
-        currentIndexRef.current = typeof newIndex === 'function' ? newIndex(currentIndexRef.current) : newIndex;
+        currentIndexRef.current = clamp(
+          0,
+          typeof newIndex === 'function' ? newIndex(currentIndexRef.current) : newIndex,
+          scenes.length - 1
+        );
 
         return throttledSetCurrentIndex(currentIndexRef.current);
       })

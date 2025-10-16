@@ -188,7 +188,7 @@ export default function SettingsTab() {
             defaultValue={selectedFilter}
             onChange={(newValue) => newValue && setCurrentSceneFilterById(newValue.value)}
             options={filters}
-            placeholder="None selected. Defaulted to all portrait scenes."
+            placeholder={`${filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
             theme={reactSelectTheme}
           />
         ) : (
