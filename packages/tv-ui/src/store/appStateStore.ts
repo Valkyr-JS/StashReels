@@ -16,23 +16,13 @@ type AppState = {
   onlyShowMatchingOrientation: boolean;
   debugMode: boolean;
   autoPlay: boolean;
-  setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setFullscreen: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setLetterboxing: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setForceLandscape: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setLooping: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setUiVisible: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setIsRandomised: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setScenePreviewOnly: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setOnlyShowMatchingOrientation: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setDebugMode: (newValue: boolean | ((prev: boolean) => boolean)) => void;
-  setAutoPlay: (newValue: boolean | ((prev: boolean) => boolean)) => void;
 }
 
-export const useAppStateStore = create<AppState>()(
+type AppAction = {
+  set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => void;
+}
+
+export const useAppStateStore = create<AppState & AppAction>()(
   persist(
     (set, get) => ({
       selectedSavedFilterId: undefined,
@@ -52,51 +42,11 @@ export const useAppStateStore = create<AppState>()(
       onlyShowMatchingOrientation: false,
       debugMode: false,
       autoPlay: true,
-      setShowSettings: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        showSettings: typeof newValue === "boolean" ? newValue : newValue(state.showSettings)
-      })),
-      setAudioMuted: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        audioMuted: typeof newValue === "boolean" ? newValue : newValue(state.audioMuted)
-      })),
-      setShowSubtitles: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        showSubtitles: typeof newValue === "boolean" ? newValue : newValue(state.showSubtitles)
-      })),
-      setFullscreen: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        fullscreen: typeof newValue === "boolean" ? newValue : newValue(state.fullscreen)
-      })),
-      setLetterboxing: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        letterboxing: typeof newValue === "boolean" ? newValue : newValue(state.letterboxing)
-      })),
-      setForceLandscape: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        forceLandscape: typeof newValue === "boolean" ? newValue : newValue(state.forceLandscape)
-      })),
-      setLooping: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        looping: typeof newValue === "boolean" ? newValue : newValue(state.looping)
-      })),
-      toggleLooping: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        looping: typeof newValue === "boolean" ? newValue : newValue(state.looping)
-      })),
-      setUiVisible: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        uiVisible: typeof newValue === "boolean" ? newValue : newValue(state.uiVisible)
-      })),
-      setIsRandomised: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        isRandomised: typeof newValue === "boolean" ? newValue : newValue(state.isRandomised)
-      })),
-      setCrtEffect: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        crtEffect: typeof newValue === "boolean" ? newValue : newValue(state.crtEffect)
-      })),
-      setScenePreviewOnly: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        scenePreviewOnly: typeof newValue === "boolean" ? newValue : newValue(state.scenePreviewOnly)
-      })),
-      setOnlyShowMatchingOrientation: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        onlyShowMatchingOrientation: typeof newValue === "boolean" ? newValue : newValue(state.onlyShowMatchingOrientation)
-      })),
-      setDebugMode: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        debugMode: typeof newValue === "boolean" ? newValue : newValue(state.debugMode)
-      })),
-      setAutoPlay: (newValue: boolean | ((prev: boolean) => boolean)) => set((state) => ({
-        autoPlay: typeof newValue === "boolean" ? newValue : newValue(state.autoPlay)
-      })),
+      set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
+        set((state) => ({
+          [propName]: typeof value === "function" ? value(state[propName]) : value
+        }));
+      },
     }),
     {
       name: 'app-state',

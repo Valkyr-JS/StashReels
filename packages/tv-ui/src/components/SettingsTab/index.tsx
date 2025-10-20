@@ -40,17 +40,12 @@ export default function SettingsTab() {
 
   const { 
     isRandomised,
-    setIsRandomised,
     crtEffect,
-    setCrtEffect,
     scenePreviewOnly,
-    setScenePreviewOnly,
     onlyShowMatchingOrientation,
-    setOnlyShowMatchingOrientation,
     debugMode,
-    setDebugMode,
     autoPlay,
-    setAutoPlay,
+    set: setAppSetting
   } = useAppStateStore();
   const { scenes, scenesLoading } = useScenes()
     
@@ -158,7 +153,7 @@ export default function SettingsTab() {
     let enableDebugModeTimer: NodeJS.Timeout | undefined;
     const handlePointerDown = () => {
       enableDebugModeTimer = setTimeout(() => {
-        setDebugMode(true);
+        setAppSetting("debugMode", true);
       }, 5000);
     };
     const handlePointerUp = () => {
@@ -232,7 +227,7 @@ export default function SettingsTab() {
         <label>
           <input
             checked={isRandomised}
-            onChange={event => setIsRandomised(event.target.checked)}
+            onChange={event => setAppSetting("isRandomised", event.target.checked)}
             type="checkbox"
           />
           <h3>Randomise filter order</h3>
@@ -260,7 +255,7 @@ export default function SettingsTab() {
       <label>
         <input
           checked={scenePreviewOnly}
-          onChange={event => setScenePreviewOnly(event.target.checked)}
+          onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
           type="checkbox"
         />
         <h3>Scene Preview Only</h3>
@@ -272,7 +267,7 @@ export default function SettingsTab() {
       <label>
         <input
           checked={onlyShowMatchingOrientation}
-          onChange={event => setOnlyShowMatchingOrientation(event.target.checked)}
+          onChange={event => setAppSetting("onlyShowMatchingOrientation", event.target.checked)}
           type="checkbox"
         />
         <h3>Only Show Scenes Matching Orientation</h3>
@@ -284,7 +279,7 @@ export default function SettingsTab() {
       <label>
         <input
           checked={autoPlay}
-          onChange={event => setAutoPlay(event.target.checked)}
+          onChange={event => setAppSetting("autoPlay", event.target.checked)}
           type="checkbox"
         />
         <h3>Auto Play</h3>
@@ -296,7 +291,7 @@ export default function SettingsTab() {
       <label>
         <input
           checked={crtEffect}
-          onChange={event => setCrtEffect(event.target.checked)}
+          onChange={event => setAppSetting("crtEffect", event.target.checked)}
           type="checkbox"
         />
         <h3>CRT effect</h3>
@@ -308,7 +303,7 @@ export default function SettingsTab() {
       <label>
         <input
           checked={debugMode}
-          onChange={event => setDebugMode(event.target.checked)}
+          onChange={event => setAppSetting("debugMode", event.target.checked)}
           type="checkbox"
         />
         <h3>Debug mode</h3>

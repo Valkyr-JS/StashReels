@@ -63,14 +63,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     scenePreviewOnly,
     debugMode,
     autoPlay: globalAutoPlay,
-    setShowSettings,
-    setAudioMuted,
-    setFullscreen,
-    setLetterboxing,
-    setShowSubtitles,
-    setForceLandscape,
-    setLooping,
-    setUiVisible,
+    set: setAppSetting,
   } = useAppStateStore();
   useEffect(() => {
     debugMode && console.log(`Mounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
@@ -110,11 +103,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
       debugMode && console.log(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
-      setAudioMuted(player.muted());
+      setAppSetting("audioMuted", player.muted());
     });
     if (audioMuted !== player.muted()) {
       debugMode && console.log(`Video.js player loaded - player ${player.muted() ? "" : "not"} muted`);
-      setAudioMuted(player.muted());
+      setAppSetting("audioMuted", player.muted());
     }
     // We resort to `any` here because the types for videojs are incomplete
     ;(player.getChild('ControlBar') as any)?.progressControl?.el().addEventListener('pointermove', (event: MouseEvent) => {
@@ -323,7 +316,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       data-testid="VideoItem--subtitlesButton"
       inactiveIcon={faSubtitlesOff}
       inactiveText="Show subtitles"
-      onClick={() => setShowSubtitles((prev) => !prev)}
+      onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
     />
   ) : null;
 
@@ -429,7 +422,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   data-testid="VideoItem--muteButton"
                   inactiveIcon={VolumeMuteOutlineIcon}
                   inactiveText="Unmute"
-                  onClick={() => setAudioMuted((prev) => !prev)}
+                  onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
                 />
 
                 {subtitlesButton}
@@ -442,7 +435,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   data-testid="VideoItem--fullscreenButton"
                   inactiveIcon={ExpandOutlineIcon}
                   inactiveText="Open fullscreen"
-                  onClick={() => setFullscreen((prev) => !prev)}
+                  onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
                 />}
 
                 <UiButton
@@ -453,7 +446,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   data-testid="VideoItem--letterboxButton"
                   inactiveIcon={ContainIcon}
                   inactiveText="Fill screen"
-                  onClick={() => setLetterboxing((prev) => !prev)}
+                  onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
                 />
 
                 <UiButton
@@ -464,7 +457,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   data-testid="VideoItem--forceLandscapeButton"
                   inactiveIcon={LandscapeIcon}
                   inactiveText="Portrait"
-                  onClick={() => setForceLandscape((prev) => !prev)}
+                  onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
                 />
 
                 <UiButton
@@ -475,7 +468,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   data-testid="VideoItem--loopButton"
                   inactiveIcon={LoopOutlineIcon}
                   inactiveText="Loop scene"
-                  onClick={() => setLooping((prev) => !prev)}
+                  onClick={() => setAppSetting("looping", (prev) => !prev)}
                 />
 
                 {sceneInfoButton}
@@ -488,7 +481,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   data-testid="VideoItem--settingsButton"
                   inactiveIcon={CogOutlineIcon}
                   inactiveText="Show settings"
-                  onClick={() => setShowSettings(showSettings => !showSettings)}
+                  onClick={() => setAppSetting("showSettings", (prev) => !prev)}
                 />
               </div>
             )}
@@ -507,7 +500,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 data-testid="VideoItem--showUiButton"
                 inactiveIcon={VerticalEllipsisOutlineIcon}
                 inactiveText="Show UI"
-                onClick={() => setUiVisible((prev) => !prev)}
+                onClick={() => setAppSetting("uiVisible", (prev) => !prev)}
                 ref={uiButtonRef}
                 style={{
                   ...toggleableUiStyles,

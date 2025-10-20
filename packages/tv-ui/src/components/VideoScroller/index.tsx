@@ -17,7 +17,7 @@ const videoItemHeight = "calc(var(--y-unit-large) * 100)"
 export const itemBufferEitherSide = 1 as const;
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
-  const { forceLandscape: isForceLandscape, setCrtEffect, scenePreviewOnly, onlyShowMatchingOrientation, debugMode } = useAppStateStore();
+  const { forceLandscape: isForceLandscape, scenePreviewOnly, onlyShowMatchingOrientation, debugMode, set: setAppSetting } = useAppStateStore();
   const { orientation } = useWindowSize()
   const rootElmRef = useRef<HTMLDivElement | null>(null);
 
@@ -205,7 +205,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "c") {
-        setCrtEffect((prev) => !prev);
+        setAppSetting("crtEffect", (prev) => !prev);
       }
     }
     window.addEventListener("keydown", handleKeyDown);

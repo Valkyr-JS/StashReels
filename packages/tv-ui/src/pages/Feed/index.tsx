@@ -15,7 +15,7 @@ interface FeedPageProps {
 }
 
 const FeedPage: React.FC<FeedPageProps> = ({className}) => {
-  const { showSettings, setShowSettings, fullscreen } = useAppStateStore();
+  const { showSettings, fullscreen, set: setAppSetting } = useAppStateStore();
   const { sceneFiltersLoading } = useSceneFilters()
   const { scenes, scenesLoading } = useScenes()
   
@@ -23,7 +23,7 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   
   // Show settings tab if we've finished loading scenes but have no scenes to show
   if (loadedButNoScenes && !showSettings) {
-    setShowSettings(true);
+    setAppSetting("showSettings", true);
   }
   
   /* ------------------------------- Fullscreen ------------------------------- */

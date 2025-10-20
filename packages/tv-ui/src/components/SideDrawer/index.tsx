@@ -19,7 +19,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   const bodyRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const { setShowSettings, showSettings, forceLandscape } = useAppStateStore();
+  const { showSettings, forceLandscape, set: setAppSetting } = useAppStateStore();
 
   const [sidebarWidth, setSidebarWidth] = React.useState(window.innerWidth);
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
         tension: 400,
         friction: 20
       } : undefined,
-      onRest: () => setShowSettings(true)
+      onRest: () => setAppSetting("showSettings", true)
     })
   }
 
@@ -130,7 +130,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       x: 0,
       immediate: false,
       config: { ...config.stiff },
-      onRest: () => setShowSettings(false)
+      onRest: () => setAppSetting("showSettings", false)
     })
   }
 
@@ -231,7 +231,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     closeDisabled ? null : (
       <button
         data-testid="SideDrawer--closeButton"
-        onClick={() => setShowSettings(false)}
+        onClick={() => setAppSetting("showSettings", false)}
         type="button"
       >
         <FontAwesomeIcon icon={faXmark} />
