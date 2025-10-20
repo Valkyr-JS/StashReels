@@ -57,11 +57,16 @@ jobs:
       - name: Commit and push built project to stash-plugins
         working-directory: stash-plugins
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add plugins/stash-tv
-          git commit -m "ci: release stash-tv $(jq -r '.version' ../stash-tv/package.json)"
-          git push
+          VERSION=$(jq -r '.version' ../stash-tv/package.json)
+          if [[ ! "$VERSION" == 0.0.0* ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add plugins/stash-tv
+            git commit -m "ci: release stash-tv $VERSION"
+            git push
+          else
+            echo "No publishable changes made since last version"
+          fi
 
       - name: Create GitHub release
         env:

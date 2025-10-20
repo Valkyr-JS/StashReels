@@ -1,6 +1,6 @@
 {
   "name": "stash-tv",
-  "version": "1.0.8",
+  "version": "0.0.0-version-set-when-releasing",
   "description": "TikTok for Stash.",
   "private": true,
   "workspaces": [
