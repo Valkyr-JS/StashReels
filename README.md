@@ -103,8 +103,8 @@ Then update the env vars in the new `packages/tv-ui/.env` file.
 
 Now you can install the required dependences and run the dev server
 ```shell
-git submodule update --init --recursive
 yarn install
+yarn --cwd packages/stash-ui setup
 yarn dev
 ```
 
