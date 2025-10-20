@@ -30,7 +30,17 @@ jobs:
 
       - name: Bump version and create release notes
         working-directory: stash-tv
-        run: yarn release
+        run: |
+          COMMITTED_VERSION=$(jq -r '.version' package.json)
+          PREVIOUS_VERSION=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=0 | sed 's/^v//')
+          yarn release
+          NEW_VERSION=$(jq -r '.version' package.json)
+          if [[ "$PREVIOUS_VERSION" != "$NEW_VERSION" ]]; then
+            echo "Version bumped from $PREVIOUS_VERSION to $NEW_VERSION"
+          else
+            echo "No version bump detected"
+            jq ".version = \"$COMMITTED_VERSION\"" package.json > package.tmp.json && mv package.tmp.json package.json
+          fi
 
       - name: Build project
         working-directory: stash-tv
@@ -79,6 +89,17 @@ jobs:
             gh release create "$VERSION" --title "$VERSION" --notes-file "$RELEASE_NOTES_FILE"
           else
             echo "No release notes file found for $VERSION or version is 0.0.0*; skipping release creation."
+          fi
+
+      - name: Create git tag release
+        working-directory: stash-tv
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          if [[ ! "$VERSION" == 0.0.0* ]]; then
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          else
+            echo "No publishable changes made since last version"
           fi
 
       - name: Print publish info
