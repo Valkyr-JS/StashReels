@@ -1,4 +1,5 @@
 import ScenePlayerOriginal from "stash-ui/dist/src/components/ScenePlayer/ScenePlayer"
+import "stash-ui/dist/src/components/ScenePlayer/styles.css"
 import "./ScenePlayer.scss";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { default as cx } from "classnames";

@@ -61,17 +61,25 @@
   
     // Pixel grid
     &::before {
-      $screen-background: #121010;
+      --screen-background: rgba(18, 16, 16);
       content: " ";
       background: linear-gradient(
-          transparentize($screen-background, 1) 50%,
-          transparentize(darken($screen-background, 10), 0.75) 50%
+          color-mix(
+            in srgb,
+            var(--screen-background),
+            transparent 100%
+          ) 50%,
+          color-mix(
+            in srgb,
+            color-mix(in srgb, var(--screen-background), black 10%),
+            transparent 75%
+          ) 50%
         ),
         linear-gradient(
           90deg,
-          transparentize(#ff0000, 0.94),
-          transparentize(#00ff00, 0.98),
-          transparentize(#0000ff, 0.94)
+          rgb(255 0 0 / 6%),
+          rgb(0 255 0 / 2%),
+          rgb(0 0 255 / 6%),
         );
       z-index: 2;
       background-size: 100% 2px, 3px 100%;

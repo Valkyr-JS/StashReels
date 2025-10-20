@@ -1,6 +1,3 @@
-@import "../../styles/mixins.scss";
-@import "../../styles/variables.scss";
-
 .SideDrawer {
   height: calc(var(--y-unit-dynamic) * 100);
   position: fixed;
@@ -59,8 +56,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: $ui-button-size;
-      width: $ui-button-size;
 
       background-color: transparent;
       color: white;

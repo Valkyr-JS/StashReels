@@ -5,7 +5,11 @@
   "license": "MIT",
   "scripts": {
     "postinstall": "cd stash && git reset --hard v0.28.1 && rm -f ui/v2.5/graphql/stash-tv.graphql && git apply ../patches/stash-tv.patch && cd ui/v2.5 && yarn install",
-    "build": "yarn run in-repo gqlgen && yarn run in-repo tsc --outDir ../../../dist --noEmit false --declaration true --rootDir . && yarn run copyfiles --up 3 \"stash/ui/v2.5/src/**/*.css\" \"stash/ui/v2.5/src/**/*.scss\" dist && yarn run tsc-alias --project stash/ui/v2.5/tsconfig.json --outDir dist",
+    "build": "yarn build:graphql && yarn run build:ts && yarn run build:scss",
+    "build:graphql": "yarn run in-repo gqlgen",
+    "build:ts": "yarn run in-repo tsc --outDir ../../../dist --noEmit false --declaration true --rootDir . && yarn run tsc-alias --project stash/ui/v2.5/tsconfig.json --outDir dist",
+    "build:theme-vars-file": "node -e 'import(\"fs/promises\").then(fs => fs.readFile(\"stash/ui/v2.5/src/styles/_theme.scss\", \"utf8\")).then(file => file.match( /\\$[^;:]*?:[^;]*?;/g )?.join(\"\\n\")).then(console.log);' > stash/ui/v2.5/src/styles/theme-variables.scss",
+    "build:scss": "yarn build:theme-vars-file && bash -c 'cd stash/ui/v2.5 && cat src/styles/theme-variables.scss src/components/ScenePlayer/styles.scss | sass  --stdin src/components/ScenePlayer/styles.css' && yarn run copyfiles --up 3 \"stash/ui/v2.5/src/**/*.css\" \"stash/ui/v2.5/src/**/*.scss\" dist",
     "build-if-needed": "if [ ! -d ./dist ]; then yarn build; fi",
     "in-repo": "yarn --cwd stash/ui/v2.5",
     "add-stash-ui-deps": "jq -s '.[1] + {dependencies: .[1].dependencies + .[0].dependencies | with_entries(.) | to_entries | sort_by(.key) | from_entries}' stash/ui/v2.5/package.json package.json > package.json.tmp && mv package.json.tmp package.json"
