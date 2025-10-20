@@ -4108,6 +4108,13 @@ lie@3.1.1:
   dependencies:
     immediate "~3.0.5"
 
+light-release@^2.9.1:
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/light-release/-/light-release-2.9.1.tgz#1c4c0650949915c0fc795429b83c66c2579622e2"
+  integrity sha512-e0BfhEv/b7sgni8DzUO0XmspwsOEvO9wXOWeZg8aKUr5gleCPjzWT72TpXmfmvqdHeTbXAV8WQUP6tVw9R2Ymw==
+  dependencies:
+    fs-extra "^10.0.0"
+
 lines-and-columns@^1.1.6:
   version "1.2.4"
   resolved "https://registry.npmjs.org/lines-and-columns/-/lines-and-columns-1.2.4.tgz"
