@@ -318,5 +318,9 @@ export default function SettingsTab() {
         Reload Page
       </button>
     </div>}
+
+    {debugMode && <div className="item">
+      {import.meta.env.VITE_STASH_TV_VERSION}
+    </div>}
   </SideDrawer>;
 };
