@@ -33,13 +33,18 @@ jobs:
         run: |
           COMMITTED_VERSION=$(jq -r '.version' package.json)
           PREVIOUS_VERSION=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=0 | sed 's/^v//')
+          jq ".version = \"$PREVIOUS_VERSION\"" package.json > package.tmp.json
+          mv package.tmp.json package.json
+
           yarn release
+
           NEW_VERSION=$(jq -r '.version' package.json)
           if [[ "$PREVIOUS_VERSION" != "$NEW_VERSION" ]]; then
             echo "Version bumped from $PREVIOUS_VERSION to $NEW_VERSION"
           else
             echo "No version bump detected"
-            jq ".version = \"$COMMITTED_VERSION\"" package.json > package.tmp.json && mv package.tmp.json package.json
+            jq ".version = \"$COMMITTED_VERSION\"" package.json > package.tmp.json
+            mv package.tmp.json package.json
           fi
 
       - name: Build project
@@ -78,19 +83,6 @@ jobs:
             echo "No publishable changes made since last version"
           fi
 
-      - name: Create GitHub release
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
-        working-directory: stash-tv
-        run: |
-          VERSION=$(jq -r '.version' package.json)
-          RELEASE_NOTES_FILE=".release-notes/$VERSION.md"
-          if [[ -f "$RELEASE_NOTES_FILE" && ! "$VERSION" == 0.0.0* ]]; then
-            gh release create "$VERSION" --title "$VERSION" --notes-file "$RELEASE_NOTES_FILE"
-          else
-            echo "No release notes file found for $VERSION or version is 0.0.0*; skipping release creation."
-          fi
-
       - name: Create git tag release
         working-directory: stash-tv
         run: |
@@ -100,6 +92,19 @@ jobs:
             git push origin "v$VERSION"
           else
             echo "No publishable changes made since last version"
+          fi
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+        working-directory: stash-tv
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          RELEASE_NOTES_FILE=".release-notes/$VERSION.md"
+          if [[ -f "$RELEASE_NOTES_FILE" && ! "$VERSION" == 0.0.0* ]]; then
+              gh release create "v$VERSION" --title "$VERSION" --notes-file "$RELEASE_NOTES_FILE"
+          else
+            echo "No release notes file found for $VERSION or version is 0.0.0*; skipping release creation."
           fi
 
       - name: Print publish info
