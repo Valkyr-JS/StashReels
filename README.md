@@ -108,6 +108,10 @@ yarn --cwd packages/stash-ui setup
 yarn dev
 ```
 
+### Commit info
+Commit messages should use the [Conventional Commits](https://www.conventionalcommits.org/) format as release notes are
+generated automatically from the commit history.
+
 ### Technical info
 The codebase is split into 3 packages.
 - `packages/tv-ui` is where the actual app code for the plugin lives.
