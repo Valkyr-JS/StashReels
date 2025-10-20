@@ -1,0 +1,83 @@
+name: Build and Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Fetch all history to produce change log
+          path: stash-tv
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        working-directory: stash-tv
+        run: |
+          yarn install
+          yarn --cwd packages/stash-ui setup
+
+      - name: Bump version and create release notes
+        working-directory: stash-tv
+        run: yarn release
+
+      - name: Build project
+        working-directory: stash-tv
+        run: yarn build
+
+      # We check types after building because GraphQL related types are generated during build
+      - name: TypeScript check
+        working-directory: stash-tv
+        run: tsc --noEmit
+
+      - name: Clone stash-plugins repo
+        uses: actions/checkout@v5
+        with:
+          repository: secondfolder/stash-plugins
+          path: stash-plugins
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Copy built files to stash-plugins
+        run: |
+          rm -rf stash-plugins/plugins/stash-tv
+          mkdir -p stash-plugins/plugins/stash-tv
+          cp -r stash-tv/packages/tv-plugin/dist/* stash-plugins/plugins/stash-tv/
+
+      - name: Commit and push built project to stash-plugins
+        working-directory: stash-plugins
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add plugins/stash-tv
+          git commit -m "ci: release stash-tv $(jq -r '.version' package.json)"
+          git push
+
+      - name: Commit and push change notes to stash-tv
+        working-directory: stash-tv
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .release-notes CHANGELOG.md package.json packages/tv-plugin/source.yml
+          git commit -m "ci: release $(jq -r '.version' package.json)"
+          git push
+
+      - name: Print publish info
+        working-directory: stash-tv
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          if [[ ! "$VERSION" == 0.0.0* ]]; then
+            echo -e "### :rocket: Published new version: \n\`\`\`\n$VERSION\n\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### No publishable changes made since last version" >> $GITHUB_STEP_SUMMARY
+          fi
