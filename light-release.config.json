@@ -14,7 +14,7 @@
     "prompt": "Generate a release note for the following changes:"
   },
   "squashIntoSingleVersioning": true,
-  "showCommitImpact": true,
+  "showCommitImpact": false,
   "showAuthorLinks": true,
   "versionFileName": "package.json",
   "defaultImpactThresholds": {
