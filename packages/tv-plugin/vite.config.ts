@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
-// @ts-expect-error This will throw an error until we move modules in tsconfig.json to esm
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const definedEnvVars = {

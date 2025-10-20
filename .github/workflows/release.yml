@@ -100,7 +100,7 @@ jobs:
         working-directory: stash-tv
         run: |
           VERSION=$(jq -r '.version' package.json)
-          RELEASE_NOTES_FILE=".release-notes/$VERSION.md"
+          RELEASE_NOTES_FILE=".release-notes/$VERSION/release.md"
           if [[ -f "$RELEASE_NOTES_FILE" && ! "$VERSION" == 0.0.0* ]]; then
               gh release create "v$VERSION" --title "$VERSION" --notes-file "$RELEASE_NOTES_FILE"
           else

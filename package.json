@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "yarn --cwd packages/stash-ui build-if-needed && yarn --cwd packages/tv-ui dev",
     "build": "yarn --cwd packages/stash-ui build && yarn --cwd packages/tv-ui build && yarn --cwd packages/tv-plugin build",
@@ -25,5 +26,8 @@
   "homepage": "https://github.com/secondfolder/stash-tv#readme",
   "dependencies": {
     "light-release": "^2.9.1"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.10"
   }
 }
