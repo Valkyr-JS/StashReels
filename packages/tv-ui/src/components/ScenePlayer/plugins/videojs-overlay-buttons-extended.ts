@@ -11,11 +11,14 @@ export async function getOriginalPlugin() {
     const originalRegisterPlugin = videojs.registerPlugin
     let pluginName
     let plugin
+    // @ts-expect-error - We have to hook into the internals for video.js in order to capture the plugin being registered
     videojs.registerPlugin = (pluginNameToBeRegistered, pluginToBeRegistered) => {
         pluginName = pluginNameToBeRegistered
         plugin = pluginToBeRegistered
     }
+    // @ts-expect-error - There's no types for this 3rd party module
     await import('videojs-overlay-buttons');
+    // @ts-expect-error - Restore the original registerPlugin function
     videojs.registerPlugin = originalRegisterPlugin
     if (!pluginName || !plugin) {
         throw new Error(`Failed to load original videojs-overlay-buttons plugin`);

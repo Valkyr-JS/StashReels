@@ -1,4 +1,4 @@
-import videoJsNamespace from "video.js";
+import videoJsNamespace, { VideoJsPlayer } from "video.js";
 
 /** 
  * Hack to allow removal of plugins.
@@ -44,7 +44,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                 return {
                     setShowButton: () => {}
                 }
-            }) as any
+            }) as unknown as VideoJsPlayer["vrMenu"];
         }
         
         if (!('skipButtons' in plugins)) {
@@ -53,7 +53,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                     setForwardHandler: () => {},
                     setBackwardHandler: () => {}
                 }
-            }) as any
+            }) as unknown as VideoJsPlayer["skipButtons"];
         }
         
         if (!('trackActivity' in plugins)) {
@@ -62,7 +62,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                     reset: () => {},
                     setEnabled: () => {}
                 }
-            }) as any
+            }) as unknown as VideoJsPlayer["trackActivity"];
         }
         
         if (!('vttThumbnails' in plugins)) {
@@ -70,7 +70,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                 return {
                     src: () => {},
                 }
-            }) as any
+            }) as unknown as VideoJsPlayer["vttThumbnails"];
         }
         
         if (!('markers' in plugins)) {
@@ -81,7 +81,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                     addRangeMarkers: () => {},
                     clearMarkers: () => {},
                 }
-            }) as any
+            }) as unknown as VideoJsPlayer["markers"]
         }
     });
 }

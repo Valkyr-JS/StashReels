@@ -227,7 +227,7 @@ const ScenePlayer = forwardRef<
                     /* Prevent bug in markers plugin where it tries to operate on the player element after it's been disposed */
                     videojsPlayer.markers = () => ({
                         clearMarkers: () => {}
-                    })
+                    } as ReturnType<VideoJsPlayer["markers"]>)
                 })
             }
         }

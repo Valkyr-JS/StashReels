@@ -105,5 +105,6 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
-  "exclude": ["node_modules", "packages/stash-ui/stash"]
+  // Exclude storybook files until we've taken the time to update them for the Stash TV refactor
+  "exclude": ["node_modules", "packages/stash-ui/stash", "**/*.stories.tsx"]
 }

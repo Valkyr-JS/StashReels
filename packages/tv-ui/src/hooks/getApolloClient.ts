@@ -5,7 +5,8 @@ import { Modifiers } from "@apollo/client/cache";
 
 export function getApolloClient() {
     const originalClient = getClient()
-    const originalCacheConfig: NonNullable<ConstructorParameters<typeof InMemoryCache>[0]> = originalClient.cache.config ?? {}
+    // The "config" property on the cache is not officially documented or typed but it exists in practice.
+    const originalCacheConfig = 'config' in originalClient.cache ? originalClient.cache.config as NonNullable<ConstructorParameters<typeof InMemoryCache>[0]> : {}
     const newCache = new InMemoryCache({
         ...originalCacheConfig,
         typePolicies: {
