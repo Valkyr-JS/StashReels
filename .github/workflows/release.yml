@@ -60,17 +60,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add plugins/stash-tv
-          git commit -m "ci: release stash-tv $(jq -r '.version' package.json)"
+          git commit -m "ci: release stash-tv $(jq -r '.version' ../stash-tv/package.json)"
           git push
 
-      - name: Commit and push change notes to stash-tv
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
         working-directory: stash-tv
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .release-notes CHANGELOG.md package.json packages/tv-plugin/source.yml
-          git commit -m "ci: release $(jq -r '.version' package.json)"
-          git push
+          VERSION=$(jq -r '.version' package.json)
+          RELEASE_NOTES_FILE=".release-notes/$VERSION.md"
+          if [[ -f "$RELEASE_NOTES_FILE" && ! "$VERSION" == 0.0.0* ]]; then
+            gh release create "$VERSION" --title "$VERSION" --notes-file "$RELEASE_NOTES_FILE"
+          else
+            echo "No release notes file found for $VERSION or version is 0.0.0*; skipping release creation."
+          fi
 
       - name: Print publish info
         working-directory: stash-tv
