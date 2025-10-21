@@ -16,7 +16,7 @@ export type StashTvConfigState = {
 /** Config saved in Stash that is not not managed by Stash TV */
 type StashGeneralConfigState = {
   stashDefaultScenesFilter: GQL.SavedFilterDataFragment | undefined,
-  savedSceneFiltersNameAndIds: GQL.SavedFilterDataFragment[],
+  availableSavedSceneFilters: GQL.GetStashConfigForTvQuery["availableSavedSceneFilters"],
 }
 
 type StashConfig = {
@@ -30,7 +30,7 @@ type StashConfig = {
 export const useStashConfigStore = create<StashConfig>((set, get) => ({
   general: {
     stashDefaultScenesFilter: undefined,
-    savedSceneFiltersNameAndIds: [],
+    availableSavedSceneFilters: [],
   },
   tv: {
     defaultFilterId: undefined,
@@ -45,7 +45,7 @@ export const useStashConfigStore = create<StashConfig>((set, get) => ({
       general: {
         ...general,
         stashDefaultScenesFilter: config.configuration.ui.defaultFilters?.scenes,
-        savedSceneFiltersNameAndIds: config.findSavedFilters.map(filter => ({...filter, mode: GQL.FilterMode.Scenes})),
+        availableSavedSceneFilters: config.availableSavedSceneFilters,
       },
       tv: {
           ...tv,

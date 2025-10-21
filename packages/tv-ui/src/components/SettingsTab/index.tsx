@@ -30,12 +30,11 @@ export default function SettingsTab() {
   const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   const {
-    sceneFiltersNameAndIds,
-    defaultStashTvFilterId,
     sceneFiltersLoading,
-    currentSceneFilterId,
+    sceneFiltersError,
+    currentSceneFilter,
     setCurrentSceneFilterById,
-    currentStashFilter
+    availableSavedSceneFilters,
   } = useSceneFilters()
 
   const { 
@@ -90,25 +89,19 @@ export default function SettingsTab() {
 
   // 1. Select a scene filter
   const filters = useMemo(
-    () => sceneFiltersNameAndIds
+    () => availableSavedSceneFilters
       .map(filter => ({
         value: filter.id,
-        label: filter.name + (filter.id === defaultStashTvFilterId ? " (default)" : "")
+        label: filter.name + (filter.isStashTvDefaultFilter ? " (default)" : ""),
+        isStashTvDefaultFilter: filter.isStashTvDefaultFilter,
       }))
       .sort((a, b) => a.label.localeCompare(b.label)),
-    [sceneFiltersNameAndIds, defaultStashTvFilterId]
+    [availableSavedSceneFilters]
   )
-  const selectedFilter = useMemo(() => filters.find(filter => filter.value === currentSceneFilterId), [currentSceneFilterId, filters]);
-
-  const scenelessFilterError = noScenesAvailable ? (
-    <div className="error">
-      <h2>Filter contains no scenes!</h2>
-      <p>
-        No scenes were found in the currently selected filter. Please choose
-        a different one.
-      </p>
-    </div>
-  ) : null;
+  const selectedFilter = useMemo(
+    () => filters.find(filter => filter.value === currentSceneFilter?.savedFilter?.id),
+    [currentSceneFilter, filters]
+  );
 
   // 2. Set current filter as default
 
@@ -172,7 +165,7 @@ export default function SettingsTab() {
   
   return <SideDrawer
     title={<span ref={titleRef}>Settings</span>}
-    closeDisabled={noScenesAvailable || scenesLoading}
+    closeDisabled={noScenesAvailable || scenesLoading || Boolean(sceneFiltersError)}
     className="SettingsTab"
   >
     <div className="item">
@@ -196,10 +189,26 @@ export default function SettingsTab() {
       </small>
 
       {fetchingDataWarning}
-      {scenelessFilterError}
+      {sceneFiltersError ? (
+        <div className="error">
+          <h2>An error occurred loading scene filters.</h2>
+          <p>
+            Try reloading the page.
+          </p>
+        </div>
+      ) : null}
+      {noScenesAvailable && (
+        <div className="error">
+          <h2>Filter contains no scenes!</h2>
+          <p>
+            No scenes were found in the currently selected filter. Please choose
+            a different one.
+          </p>
+        </div>
+      )}
     </div>
 
-    {selectedFilter && selectedFilter.value !== defaultStashTvFilterId && <div className="item">
+    {selectedFilter && !selectedFilter.isStashTvDefaultFilter && <div className="item">
       <button
         onClick={() => {
           updateStashTvConfig(
@@ -221,7 +230,7 @@ export default function SettingsTab() {
     </div>}
 
     <div className="item checkbox-item">
-      {currentStashFilter?.find_filter?.sort?.startsWith("random_") ? (
+      {currentSceneFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
         <span>Filter sort order is random</span>
       ) : <>
         <label>
