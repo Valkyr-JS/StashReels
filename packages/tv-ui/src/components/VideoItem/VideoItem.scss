@@ -244,7 +244,6 @@
     background-color: rgba(black, 0.7);
 
     display: grid;
-    transition: opacity ease-in-out;
     
     a {
       color: inherit;
@@ -305,6 +304,28 @@
     
     .video-wrapper {
       height: 100%;
+    }
+  }
+  
+  .scene-info, .toggleable-ui, .toggleable-ui-button {
+    opacity: 0;
+    visibility: hidden;
+    transition: 
+      opacity 0.15s ease-in-out,
+      visibility 0s linear 0.15s; /* delay visibility change until after opacity fades */
+    
+    &.toggleable-ui-button {
+      opacity: 0.35;
+      visibility: unset;
+    }
+      
+    /* When visible */
+    &.active {
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity 0.15s ease-in-out,
+        visibility 0s linear 0s; /* immediate visibility */
     }
   }
 }

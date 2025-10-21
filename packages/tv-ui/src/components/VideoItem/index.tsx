@@ -18,10 +18,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Transition } from "react-transition-group";
 import "./VideoItem.scss";
 import { sortPerformers } from "../../helpers";
-import { TRANSITION_DURATION } from "../../constants";
 import ScenePlayer from "../ScenePlayer";
 import { type VideoJsPlayer } from "video.js";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
@@ -211,30 +209,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
   }
 
-  /* ----------------------------- Toggle buttons ----------------------------- */
-
-  const uiButtonDrawerRef = useRef(null);
-  const uiButtonRef = useRef(null);
-  const toggleableUiStyles: React.CSSProperties = {
-    transitionDuration: TRANSITION_DURATION / 1000 + "s",
-  };
-
-  const toggleableUiTransitionStyles = {
-    entering: { opacity: 1 },
-    entered: { opacity: 1 },
-    exiting: { opacity: 0 },
-    exited: { opacity: 0 },
-    unmounted: {},
-  };
-
-  const toggleUiButtonTransitionStyles = {
-    entering: { opacity: 1 },
-    entered: { opacity: 1 },
-    exiting: { opacity: 0.35 },
-    exited: { opacity: 0.35 },
-    unmounted: {},
-  };
-
   /* ------------------------------ On end event ------------------------------ */
 
   const itemRef = useRef<HTMLDivElement>(null);
@@ -376,139 +350,99 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
             }
           }}
         />}
-        <Transition
-          in={sceneInfoOpen}
-          nodeRef={sceneInfoPanelRef}
-          timeout={TRANSITION_DURATION}
-          mountOnEnter
-          unmountOnExit
-        >
-          {(state) => (
-            <SceneInfoPanel
-              {...props.scene}
-              ref={sceneInfoPanelRef}
-              scene={props.scene}
-              style={{
-                ...toggleableUiStyles,
-                ...toggleableUiTransitionStyles[state],
-              }}
-            />
-          )}
-        </Transition>
+        <SceneInfoPanel
+          {...props.scene}
+          ref={sceneInfoPanelRef}
+          scene={props.scene}
+          className={cx({active: sceneInfoOpen})}
+        />
         <div
-          className={cx('controls', {'active': uiVisible})}
+          className="controls"
         >
-          <Transition
-            in={uiVisible}
-            nodeRef={uiButtonDrawerRef}
-            timeout={TRANSITION_DURATION}
-            unmountOnExit
+          <div
+            className={cx("toggleable-ui", {'active': uiVisible})}
+            data-testid="VideoItem--toggleableUi"
           >
-            {(state) => (
-              <div
-                className="toggleable-ui"
-                data-testid="VideoItem--toggleableUi"
-                ref={uiButtonDrawerRef}
-                style={{
-                  ...toggleableUiStyles,
-                  ...toggleableUiTransitionStyles[state],
-                }}
-              >
-                <UiButton
-                  className="mute"
-                  active={!audioMuted}
-                  activeIcon={faVolume}
-                  activeText="Mute"
-                  data-testid="VideoItem--muteButton"
-                  inactiveIcon={VolumeMuteOutlineIcon}
-                  inactiveText="Unmute"
-                  onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
-                />
+            <UiButton
+              className="mute"
+              active={!audioMuted}
+              activeIcon={faVolume}
+              activeText="Mute"
+              data-testid="VideoItem--muteButton"
+              inactiveIcon={VolumeMuteOutlineIcon}
+              inactiveText="Unmute"
+              onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
+            />
 
-                {subtitlesButton}
+            {subtitlesButton}
 
-                {'exitFullscreen' in document && <UiButton
-                  className="fullscreen"
-                  active={fullscreen}
-                  activeIcon={faExpand}
-                  activeText="Close fullscreen"
-                  data-testid="VideoItem--fullscreenButton"
-                  inactiveIcon={ExpandOutlineIcon}
-                  inactiveText="Open fullscreen"
-                  onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
-                />}
+            {'exitFullscreen' in document && <UiButton
+              className="fullscreen"
+              active={fullscreen}
+              activeIcon={faExpand}
+              activeText="Close fullscreen"
+              data-testid="VideoItem--fullscreenButton"
+              inactiveIcon={ExpandOutlineIcon}
+              inactiveText="Open fullscreen"
+              onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
+            />}
 
-                <UiButton
-                  className="letterboxing"
-                  active={!letterboxing}
-                  activeIcon={CoverOutlineIcon}
-                  activeText="Constrain to screen"
-                  data-testid="VideoItem--letterboxButton"
-                  inactiveIcon={ContainIcon}
-                  inactiveText="Fill screen"
-                  onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
-                />
+            <UiButton
+              className="letterboxing"
+              active={!letterboxing}
+              activeIcon={CoverOutlineIcon}
+              activeText="Constrain to screen"
+              data-testid="VideoItem--letterboxButton"
+              inactiveIcon={ContainIcon}
+              inactiveText="Fill screen"
+              onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
+            />
 
-                <UiButton
-                  className="force-landscape"
-                  active={!forceLandscape}
-                  activeIcon={PortraitOutlineIcon}
-                  activeText="Landscape"
-                  data-testid="VideoItem--forceLandscapeButton"
-                  inactiveIcon={LandscapeIcon}
-                  inactiveText="Portrait"
-                  onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
-                />
+            <UiButton
+              className="force-landscape"
+              active={!forceLandscape}
+              activeIcon={PortraitOutlineIcon}
+              activeText="Landscape"
+              data-testid="VideoItem--forceLandscapeButton"
+              inactiveIcon={LandscapeIcon}
+              inactiveText="Portrait"
+              onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
+            />
 
-                <UiButton
-                  className="loop"
-                  active={looping}
-                  activeIcon={faRepeat}
-                  activeText="Stop looping scene"
-                  data-testid="VideoItem--loopButton"
-                  inactiveIcon={LoopOutlineIcon}
-                  inactiveText="Loop scene"
-                  onClick={() => setAppSetting("looping", (prev) => !prev)}
-                />
+            <UiButton
+              className="loop"
+              active={looping}
+              activeIcon={faRepeat}
+              activeText="Stop looping scene"
+              data-testid="VideoItem--loopButton"
+              inactiveIcon={LoopOutlineIcon}
+              inactiveText="Loop scene"
+              onClick={() => setAppSetting("looping", (prev) => !prev)}
+            />
 
-                {sceneInfoButton}
+            {sceneInfoButton}
 
-                <UiButton
-                  className="settings"
-                  active={showSettings}
-                  activeIcon={faGear}
-                  activeText="Close settings"
-                  data-testid="VideoItem--settingsButton"
-                  inactiveIcon={CogOutlineIcon}
-                  inactiveText="Show settings"
-                  onClick={() => setAppSetting("showSettings", (prev) => !prev)}
-                />
-              </div>
-            )}
-          </Transition>
-          <Transition
-            in={uiVisible}
-            nodeRef={uiButtonRef}
-            timeout={TRANSITION_DURATION}
-          >
-            {(state) => (
-              <UiButton
-                active={uiVisible}
-                activeIcon={faEllipsisVertical}
-                activeText="Hide UI"
-                className="toggleable-ui-button"
-                data-testid="VideoItem--showUiButton"
-                inactiveIcon={VerticalEllipsisOutlineIcon}
-                inactiveText="Show UI"
-                onClick={() => setAppSetting("uiVisible", (prev) => !prev)}
-                ref={uiButtonRef}
-                style={{
-                  ...toggleableUiStyles,
-                  ...toggleUiButtonTransitionStyles[state],
-                }}
-              />
-            )}
-          </Transition>
+            <UiButton
+              className="settings"
+              active={showSettings}
+              activeIcon={faGear}
+              activeText="Close settings"
+              data-testid="VideoItem--settingsButton"
+              inactiveIcon={CogOutlineIcon}
+              inactiveText="Show settings"
+              onClick={() => setAppSetting("showSettings", (prev) => !prev)}
+            />
+          </div>
+          <UiButton
+            active={uiVisible}
+            activeIcon={faEllipsisVertical}
+            activeText="Hide UI"
+            className={cx("toggleable-ui-button", {'active': uiVisible})}
+            data-testid="VideoItem--showUiButton"
+            inactiveIcon={VerticalEllipsisOutlineIcon}
+            inactiveText="Show UI"
+            onClick={() => setAppSetting("uiVisible", (prev) => !prev)}
+          />
         </div>
       </CrtEffect>
     </div>
@@ -561,8 +495,9 @@ const UiButton = forwardRef<HTMLButtonElement, UiButtonProps>(
 /* -------------------------------------------------------------------------- */
 
 interface SceneInfoPanelProps extends GQL.TvSceneDataFragment {
-  style: React.CSSProperties;
+  style?: React.CSSProperties;
   scene: GQL.TvSceneDataFragment;
+  className?: string;
 }
 
 const SceneInfoPanel = forwardRef(
@@ -620,7 +555,7 @@ const SceneInfoPanel = forwardRef(
 
     return (
       <div
-        className="scene-info"
+        className={cx("scene-info", props.className)}
         data-testid="VideoItem--sceneInfo"
         style={props.style}
         ref={ref}

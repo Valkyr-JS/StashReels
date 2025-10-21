@@ -333,7 +333,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   // This is a fairly ugly solution for that but it works.
   const [itemsToRenderFrozen, setItemsToRenderFrozen] = useState(false);
   const itemsToRenderFrozenRef = useRef(false);
-  const previousIsForceLandscapeRef = useRef<boolean>(undefined);
+  const previousIsForceLandscapeRef = useRef<boolean | undefined>(undefined);
   if (previousIsForceLandscapeRef.current !== isForceLandscape) {
     const previousIsForceLandscape = previousIsForceLandscapeRef.current;
     previousIsForceLandscapeRef.current = isForceLandscape;

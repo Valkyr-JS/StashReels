@@ -22,6 +22,3 @@ export const PLUGIN_CONFIG_PROPERTY = {
 } as const;
 
 export const PLUGIN_NAMESPACE = "stash-tv" as const;
-
-/** The time it takes in milliseconds for a transition to complete. */
-export const TRANSITION_DURATION = 150 as const;
