@@ -80,8 +80,9 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const [currentIndex, _setCurrentIndex] = useReducer(
     (currentState: number, newState: React.SetStateAction<number>) => {
       newState = typeof newState === 'function' ? newState(currentState) : newState;
-      return clamp(0, newState, scenes.length - 1);
-    }, 0
+      return clamp(0, newState, scenes.length ? scenes.length - 1 : 0);
+    },
+    0
   );
   
   /**
@@ -200,7 +201,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown, {capture: true});
     };
-  }, [isForceLandscape, setCurrentIndex, scenes.length]);
+  }, [isForceLandscape, setCurrentIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -325,7 +326,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         mutationObserverRef.current.disconnect();
       }
     };
-  }, []);
+  }, [setCurrentIndex]);
   
   
   // Freeze the list of items to render while changing orientation and switching virtualizers
