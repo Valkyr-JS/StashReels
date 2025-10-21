@@ -104,13 +104,13 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         currentIndexRef.current = clamp(
           0,
           typeof newIndex === 'function' ? newIndex(currentIndexRef.current) : newIndex,
-          scenes.length - 1
+          scenes.length ? scenes.length - 1 : 0
         );
 
         return throttledSetCurrentIndex(currentIndexRef.current);
       })
     },
-    [rowVirtualizer]
+    [rowVirtualizer, scenes.length]
   );
 
   const scrollSnappingReenableTimeoutRef = useRef<NodeJS.Timeout | undefined>();
