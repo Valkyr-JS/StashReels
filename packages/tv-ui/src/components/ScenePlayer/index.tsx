@@ -2,12 +2,13 @@ import ScenePlayerOriginal from "stash-ui/dist/src/components/ScenePlayer/SceneP
 import "stash-ui/dist/src/components/ScenePlayer/styles.css"
 import "./ScenePlayer.scss";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
+import { useUID } from 'react-uid';
 import { default as cx } from "classnames";
 import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
 import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
 import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-overlay-buttons-extended";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { getSceneIdForVideoJsPlayer } from "../../helpers";
+import { getPlayerIdForVideoJsPlayer } from "../../helpers";
 import { useAppStateStore } from "../../store/appStateStore";
 
 registerVideojsOverlayButtonsExtendedPlugin();
@@ -28,14 +29,14 @@ videojs.hook('setup', (player) => {
 });
 
 videojs.hook('setup', function(player) {
-    let sceneId
+    let playerId
     try {
-        sceneId = getSceneIdForVideoJsPlayer(player.el());
+        playerId = getPlayerIdForVideoJsPlayer(player.el());
     } catch (error) {
         console.error(error)
         return;
     }
-    videoJsSetupCallbacks[sceneId]?.(player)
+    videoJsSetupCallbacks[playerId]?.(player)
 })
 
 videojs.hook('beforesetup', function(videoEl, options) {
@@ -91,14 +92,14 @@ videojs.hook('beforesetup', function(videoEl, options) {
 
 // Merge in any option overrides set by this component
 videojs.hook('beforesetup', function(videoEl, options) {
-    let sceneId
+    let playerId
     try {
-        sceneId = getSceneIdForVideoJsPlayer(videoEl);
+        playerId = getPlayerIdForVideoJsPlayer(videoEl);
     } catch (error) {
         console.error(error)
         return {};
     }
-    return videoJsOptionsOverride[sceneId] || {}
+    return videoJsOptionsOverride[playerId] || {}
 })
 
 allowPluginRemoval(videojs);
@@ -154,6 +155,8 @@ const ScenePlayer = forwardRef<
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);
     const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
     
+    // Replace with React's useId when we upgrade to React 18
+    const playerId = useUID();
     
     // Stash's ScenePlayer component determines if a stream is direct or not based on the URL path. Since it wouldn't
     // normally play a preview path it doesn't detect this at direct and that breaks how seeking for preview videos.
@@ -187,7 +190,7 @@ const ScenePlayer = forwardRef<
         };
     }
     
-    videoJsSetupCallbacks[otherProps.scene.id] = (player) => {
+    videoJsSetupCallbacks[playerId] = (player) => {
         if (loop !== undefined) {
             // Ideally we wouldn't need this. See comment for "loop" in videoJsOptionsOverride
             setTimeout(() => !player.isDisposed() && player.loop(loop), 100);
@@ -196,7 +199,7 @@ const ScenePlayer = forwardRef<
         onVideojsPlayerReady?.(player);
     }
 
-    videoJsOptionsOverride[otherProps.scene.id] = {
+    videoJsOptionsOverride[playerId] = {
         muted,
         loop: loop, // Unfortunately this doesn't seem to work since the stash ScenePlayer component seems immediately set
         // the loop value itself after initialization so we have to set it the player ready callback
@@ -315,6 +318,7 @@ const ScenePlayer = forwardRef<
             className={cx(['ScenePlayer', className, {'hide-controls': hideControls, 'hide-progress-bar': hideProgressBar}])}
             ref={containerRef}
             data-scene-id={otherProps.scene?.id}
+            data-player-id={playerId}
         >
             <ScenePlayerOriginal
                 {...otherProps}

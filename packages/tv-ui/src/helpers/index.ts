@@ -68,3 +68,14 @@ export function getSceneIdForVideoJsPlayer(videoElm: Element): string {
   throw new Error("Could not find sceneId for Video.js player");
 }
     
+export function getPlayerIdForVideoJsPlayer(videoElm: Element): string {
+  let node: Element | null = videoElm;
+  while (node !== null) {
+    if (node instanceof HTMLElement && 'playerId' in node.dataset && node.dataset.playerId) {
+      return node.dataset.playerId;
+    }
+    node = node.parentElement;
+  }
+  throw new Error("Could not find playerId for Video.js player");
+}
+    
