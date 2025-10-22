@@ -102,6 +102,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       event.stopPropagation();
     });
   }
+  
+  useEffect(() => {
+    const player = videojsPlayerRef.current
+    if (!debugMode || !isCurrentVideo || !player || player.isDisposed()) return;
+
+    // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
+    window.tvCurrentPlayer = player;
+  }, [isCurrentVideo])
 
   /* ------------------------------- Play/pause ------------------------------- */
 
@@ -315,7 +323,6 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           loop={looping}
           initialTimestamp={0}
           sendSetTimestamp={() => {}}
-          onComplete={() => {}}
           onNext={() => {}}
           onPrevious={() => {}}
           refVideo={videoRef}

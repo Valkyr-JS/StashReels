@@ -107,9 +107,11 @@ allowPluginRemoval(videojs);
 
 ScenePlayerOriginal.displayName = "ScenePlayerOriginal";
 
-export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOriginal>, 'scene'> & {
+export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOriginal>, 'scene' | 'onComplete'> & {
     className?: string;
     onTimeUpdate?: (event: Event) => void;
+    // We define onEnded instead of using wrapped ScenePlayer's onComplete prop so we can make it optional as well as
+    // use a name that's more inline with standard HTMLVideoElement event name
     onEnded?: (event: Event) => void;
     hideControls?: boolean;
     hideProgressBar?: boolean;
@@ -218,6 +220,39 @@ const ScenePlayer = forwardRef<
         };
     }
     
+    // The wrapped ScenePlayer component has a buggy implementation of onComplete handling that results in all "ended"
+    // handlers being removed periodically. So we disable it and reimplement making sure we only remove the onComplete
+    // listener when cleaning up.
+    function disableBuggyOnEndHandling(player: VideoJsPlayer) {
+        const originalOn = player.on;
+        player.on = function(...args) {
+            const [event, listener] = args;
+            if (event === 'ended' && listener === stubOnComplete) {
+                return;
+            }
+            // @ts-expect-error - on has multiple overloads
+            return originalOn.apply(this, args);
+        };
+        const originalOff = player.off;
+        player.off = function(...args) {
+            const [event, listener] = args;
+            if (event === 'ended' && !listener) {
+                return;
+            }
+            // @ts-expect-error - off has multiple overloads
+            return originalOff.apply(this, args);
+        };
+    }
+    function stubOnComplete() {}
+    useEffect(() => {
+        const player = videojsPlayerRef.current
+        if (!onEnded || !player || player.isDisposed()) return;
+
+        player.on("ended", onEnded);
+
+        return () => player.off("ended", onEnded);
+    }, [onEnded]);
+
     // Code to be run when wrapped ScenePlayer's Video.js player has been created
     videoJsSetupCallbacks[playerId] = (player) => {
         if (loop !== undefined) {
@@ -225,6 +260,7 @@ const ScenePlayer = forwardRef<
             setTimeout(() => !player.isDisposed() && player.loop(loop), 100);
         }
         addWrapperToRevertPreviewUrlChange(player);
+        disableBuggyOnEndHandling(player);
         onVideojsPlayerReady?.(player);
         videojsPlayerRef.current = player;
         setVideojsPlayer(player);
@@ -251,17 +287,19 @@ const ScenePlayer = forwardRef<
             ...optionsToMerge?.plugins
         },
     }
-    
+
     // Pass muted prop to Video.js player
     useEffect(() => {
-        if (muted === undefined) return;
-        videojsPlayerRef.current?.muted(muted);
+        const player = videojsPlayerRef.current
+        if (muted === undefined || !player || player.isDisposed()) return;
+        player.muted(muted);
     }, [muted]);
     
     // Pass loop prop to Video.js player
     useEffect(() => {
-        if (loop === undefined) return;
-        videojsPlayerRef.current?.loop(loop);
+        const player = videojsPlayerRef.current
+        if (loop === undefined || !player || player.isDisposed()) return;
+        player.loop(loop);
     }, [loop]);
     
     // Fix bug in wrapped ScenePlayer that some times results in an error being thrown on unmount
@@ -279,12 +317,10 @@ const ScenePlayer = forwardRef<
             }
         }
     }, [])
-    
-    
+
     useEffect(() => {
         if (videojsPlayer) {
             (videojsPlayer as any)._scene = otherProps.scene
-            
         }
     }, [videojsPlayer, otherProps.scene]);
 
@@ -325,15 +361,6 @@ const ScenePlayer = forwardRef<
             videoElm.removeEventListener('timeupdate', onTimeUpdate);
         }
     }, [videoElm, onTimeUpdate]);
-
-    // Attach the onEnded event handler to the video element
-    useEffect(() => {
-        if (!videoElm || !onEnded) return;
-        videoElm.addEventListener('ended', onEnded);
-        return () => {
-            videoElm.removeEventListener('ended', onEnded);
-        }
-    }, [videoElm, onEnded]);
     
     const lastTouchEndEventRef = useRef<Event | null>(null);
 
@@ -378,6 +405,7 @@ const ScenePlayer = forwardRef<
                 // ScenePlayer only needs a subset of SceneDataFragment so to reduce network request
                 // times we only give it the necessary fields
                 scene={otherProps.scene as unknown as GQL.SceneDataFragment}
+                onComplete={stubOnComplete}
             />
         </div>
     )

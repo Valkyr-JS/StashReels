@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import "./VideoScroller.scss";
 import VideoItem from "../VideoItem";
 import cx from "classnames";
@@ -152,8 +152,8 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     window.addEventListener('scroll', scrollHandler);
     return () => window.removeEventListener('scroll', scrollHandler);
   }, []);
-  const scrollToIndex = useMemo(
-    () => (index: React.SetStateAction<number>, options?: { behavior?: ScrollBehavior }) => {
+  const scrollToIndex = useCallback(
+    (index: React.SetStateAction<number>, options?: { behavior?: ScrollBehavior }) => {
       index = typeof index === 'function' ? index(currentIndexRef.current) : index;
       // We don't use TanStack Virtual's `scrollToIndex()` here since it won't scroll to the position for an item that 
       // isn't rendered yet + it seems to be a bit buggy around smooth scrolling since it scrolls then immediately
