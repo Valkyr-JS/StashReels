@@ -36,6 +36,7 @@ import InfoOutlineIcon from '../../assets/info-outline.svg?react';
 import CogOutlineIcon from '../../assets/cog-outline.svg?react';
 import VerticalEllipsisOutlineIcon from '../../assets/vertical-ellipsis-outline.svg?react';
 import { MediaItem } from "../../hooks/useMediaItems";
+import hashObject from 'object-hash';
 
 export interface VideoItemProps {
   mediaItem: MediaItem;
@@ -113,6 +114,19 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
     window.tvCurrentPlayer = player;
   }, [isCurrentVideo])
+  
+  // If duration changes (such as when scenePreviewOnly is toggled) we manually update the player since the
+  // progress bar doesn't seem to update otherwise
+  const firstDurationChangeRef = useRef(true);
+  useEffect(() => {
+    const player = videojsPlayerRef.current
+    if (!player || player.isDisposed()) return;
+    if (firstDurationChangeRef.current) {
+      firstDurationChangeRef.current = false;
+      return
+    }
+    player.duration(scene.files?.[0]?.duration); // Force update of duration
+  }, [scene.files?.[0]?.duration])
   
   useEffect(() => {
     const player = videojsPlayerRef.current
@@ -333,8 +347,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         {debugMode && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={scene.paths.screenshot || ""} />
         {!loadingDeferred && <ScenePlayer
-          // We force ScenePlayer to remount when scenePreviewOnly is toggled since duration seemed messed up otherwise
-          key={JSON.stringify([scene.id, scenePreviewOnly])}
+          // Force remount when scene streams change to ensure videojs reloads the source
+          key={JSON.stringify([scene.id, hashObject(scene.sceneStreams)])}
           scene={scene}
           hideScrubberOverride={true}
           muted={audioMuted}
@@ -360,7 +374,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                   handleClick: seekForwards
                 }
               },
-              ...(props.mediaItem.entityType === "marker" ? {
+              ...(props.mediaItem.entityType === "marker" && !scenePreviewOnly ? {
                 offset: {
                   start: props.mediaItem.entity.seconds,
                   end: props.mediaItem.entity.seconds + props.mediaItem.entity.duration,

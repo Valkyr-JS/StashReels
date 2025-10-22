@@ -112,28 +112,44 @@ export function useMediaItems({previewOnly}: {previewOnly?: boolean} = {}) {
   // would involve a lot of complexity to maintain since it would break many existing assumptions.
   // Instead we take the sightly hacky but much simpler approach of modifying the scene data itself
   // so that ScenePlayer thinks it's just a normal scene but the only available stream is the preview.
-  function makeScenePreviewOnly(scene: Scene): Scene {
-    if (!scene.paths.preview) {
-      console.warn(`Scene ${scene.id} has no preview`)
-      return scene
+  function makeMediaItemPreviewOnly(mediaItem: MediaItem): MediaItem {
+    let previewUrl
+    if (mediaItem.entityType === "scene") {
+      previewUrl = mediaItem.entity.paths.preview
+    } else if (mediaItem.entityType === "marker") {
+      previewUrl = mediaItem.entity.stream
+    } else {
+      mediaItem satisfies never
+      throw new Error("Unsupported media item entity type")
     }
-    return {
+    if (!previewUrl) {
+      console.warn(`Media item ${mediaItem.id} has no preview`)
+      return mediaItem
+    }
+    const scene = 'scene' in mediaItem.entity ? mediaItem.entity.scene : mediaItem.entity
+    let duration
+    if (mediaItem.entityType === "marker") {
+      duration = mediaItem.entity.duration
+    } else {
+      duration = scene.id in previewLengths
+        ? previewLengths[scene.id] 
+        // Estimate the video duration if we don't know it yet
+        : Math.min(9.2, scene.files[0].duration)
+    }
+    const updatedScene = {
       ...scene,
       sceneStreams: [
         {
-          "url": scene.paths.preview,
+          "url": previewUrl,
           "mime_type": "video/mp4",
           "label": "Direct stream",
-          "__typename": "SceneStreamEndpoint"
+          "__typename": "SceneStreamEndpoint" as const
         }
       ],
       files: [
         {
           ...scene.files[0],
-          duration: scene.id in previewLengths
-            ? previewLengths[scene.id] 
-            // Estimate the video duration if we don't know it yet
-            : Math.min(9.2, scene.files[0].duration),
+          duration,
         },
         ...scene.files.slice(1)
       ],
@@ -141,14 +157,30 @@ export function useMediaItems({previewOnly}: {previewOnly?: boolean} = {}) {
       captions: null,
       scene_markers: [],
     }
+    
+    if (mediaItem.entityType === "scene") {
+      return {
+        ...mediaItem,
+        entity: updatedScene
+      }
+    } else if (mediaItem.entityType === "marker") {
+      return {
+        ...mediaItem,
+        entity: {
+          ...mediaItem.entity,
+          scene: updatedScene
+        }
+      }
+    } else {
+      mediaItem satisfies never
+      return mediaItem
+    }
   }
 
   return {
     mediaItems: mediaItems
       .map(
-        mediaItem => previewOnly && mediaItem.entityType === "scene" 
-          ? {...mediaItem, entity: makeScenePreviewOnly(mediaItem.entity)} 
-          : mediaItem
+        mediaItem => previewOnly ? makeMediaItemPreviewOnly(mediaItem) : mediaItem
       ),
     loadMoreMediaItems: () => {
       const nextPage = mediaItems.length ? Math.ceil(mediaItems.length / mediaItemsPerPage) + 1 : 1
