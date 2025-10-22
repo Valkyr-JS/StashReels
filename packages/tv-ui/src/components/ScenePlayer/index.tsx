@@ -1,7 +1,7 @@
 import ScenePlayerOriginal from "stash-ui/dist/src/components/ScenePlayer/ScenePlayer"
 import "stash-ui/dist/src/components/ScenePlayer/styles.css"
 import "./ScenePlayer.scss";
-import React, { ForwardedRef, forwardRef, useEffect, useRef, useState } from "react";
+import React, { ForwardedRef, forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { useUID } from 'react-uid';
 import { default as cx } from "classnames";
 import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
@@ -10,6 +10,7 @@ import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-o
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { getPlayerIdForVideoJsPlayer } from "../../helpers";
 import { useAppStateStore } from "../../store/appStateStore";
+import 'videojs-offset'
 
 registerVideojsOverlayButtonsExtendedPlugin();
 
@@ -19,13 +20,6 @@ const videoJsSetupCallbacks: Record<string, (player: VideoJsPlayer) => void> = {
 videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
     player.focus = () => {}
-
-    // For some reason videojs doesn't always get the correct video duration so this is a workaround
-    const originalDuration = player.duration;
-    player.duration = () => {
-        const scene: any = '_scene' in player && player._scene;
-        return scene?.files[0]?.duration || originalDuration();
-    }
 });
 
 videojs.hook('setup', function(player) {
@@ -107,7 +101,7 @@ allowPluginRemoval(videojs);
 
 ScenePlayerOriginal.displayName = "ScenePlayerOriginal";
 
-export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOriginal>, 'scene' | 'onComplete'> & {
+export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOriginal>, 'scene' | 'onComplete' | 'initialTimestamp'> & {
     className?: string;
     onTimeUpdate?: (event: Event) => void;
     // We define onEnded instead of using wrapped ScenePlayer's onComplete prop so we can make it optional as well as
@@ -127,6 +121,8 @@ export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOrigi
     refVideo?: ForwardedRef<HTMLVideoElement>
     onPlay?: HTMLVideoElement["onplay"],
     onPause?: HTMLVideoElement["onpause"],
+    // Redefine to make optional
+    initialTimestamp?: number;
 }
 const ScenePlayer = forwardRef<
     HTMLDivElement,
@@ -148,6 +144,7 @@ const ScenePlayer = forwardRef<
     refVideo,
     onPlay,
     onPause,
+    initialTimestamp,
     ...otherProps
 }: ScenePlayerProps, ref) => {
     // We don't use `ref` directly on our root element since `ref` since we also need access to the root element in this
@@ -362,6 +359,21 @@ const ScenePlayer = forwardRef<
         }
     }, [videoElm, onTimeUpdate]);
     
+    const scene = useMemo(() => {
+        let scene = JSON.parse(JSON.stringify(otherProps.scene));
+        
+        // Wrapped ScenePlayer will start playback from resume_time even if initialTimestamp is set when it's set to 0. 
+        // By making resume_time at least as long as duration we short circuit some of it's logic and cause it to 
+        // initialTimestamp.
+        if (initialTimestamp !== undefined) {
+            scene.resume_time = otherProps.scene.files?.[0]?.duration;
+        }
+        
+        // Wrapped ScenePlayer only needs a subset of SceneDataFragment so to reduce network request
+        // times we only give it the necessary fields
+        return scene as GQL.SceneDataFragment
+    }, [otherProps.scene, initialTimestamp]);
+    
     const lastTouchEndEventRef = useRef<Event | null>(null);
 
     // Attach the onClick event handler to the video element, converting tap event to click events. There might be a 
@@ -401,10 +413,9 @@ const ScenePlayer = forwardRef<
         >
             <ScenePlayerOriginal
                 {...otherProps}
+                initialTimestamp={initialTimestamp || 0}
                 permitLoop={true}
-                // ScenePlayer only needs a subset of SceneDataFragment so to reduce network request
-                // times we only give it the necessary fields
-                scene={otherProps.scene as unknown as GQL.SceneDataFragment}
+                scene={scene}
                 onComplete={stubOnComplete}
             />
         </div>

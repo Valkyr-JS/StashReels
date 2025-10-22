@@ -4,7 +4,7 @@
 
 # Stash TV
 
-Stash TV allows you to view your scenes by swiping though them similar to TikTok. It's based on [Stash
+Stash TV allows you to view your scenes and markers by swiping though them similar to TikTok. It's based on [Stash
 Reels](https://github.com/Valkyr-JS/StashReels) with some performance improvements and additional features.
 
 <p align="center">
@@ -12,7 +12,7 @@ Reels](https://github.com/Valkyr-JS/StashReels) with some performance improvemen
 </p>
 
 **Features:**
-- Filter scenes using your scene filters saved in Stash.
+- Filter scenes or markers using your saved filters in Stash.
 - Tap to jump forwards or back in the video.
 - Scrub though the video with a video thumbnail.
 - Video tags shown on the video progress bar.
@@ -122,8 +122,8 @@ of stash's frontend code such as react components, Stash API client and typescri
 ourselves or try to manually keep a copy of those in sync.
 
 We use the same Apollo client as the stash frontend with a small wrapper around it to make a few tweaks and some additions to the GraphQL
-schema so that we can optimise what data we fetch from the API. At first we load 20 scenes but as the user approaches the
-bottom of the list of loaded scenes we load some more. The code for loading scenes is abstracted out into `packages/tv-ui/src/hooks/useScenes.ts`.
+schema so that we can optimise what data we fetch from the API. At first we load 20 scenes/makers but as the user approaches the
+bottom of the list of loaded media we load some more. The code for loading media is abstracted out into `packages/tv-ui/src/hooks/useMediaItems.ts`.
 
 The storybook code is from the original Stash Reels fork and is currently broken as it hasn't yet been updated to
 working with the major code refactoring in Stash TV.
@@ -131,7 +131,7 @@ working with the major code refactoring in Stash TV.
 Most of the app's state lives in a Zustand store in `packages/tv-ui/src/store/appStateStore.ts` so that it can be
 accessed anywhere in the codebase without needing to do lots of prop drilling.
 `packages/tv-ui/src/store/stashConfigStore.ts` houses config that lives in stash such as the users saved filters
-(although this has ended up being a little clunky and maybe refactored into a hook like `useScenes()` at some point in
+(although this has ended up being a little clunky and maybe refactored into a hook like `useMediaItems()` at some point in
 the future).
 
 Stash's ScenePlayer component is in some ways tightly coupled to Stash's codebase so

@@ -399,7 +399,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
               currentIndex={currentIndex}
               index={i}
               key={mediaItem.id}
-              scene={mediaItem.entityType === "scene" ? mediaItem.entity : mediaItem.entity.scene}
+              mediaItem={mediaItem}
               style={style}
               currentlyScrolling={rowVirtualizer.isScrolling}
             />

@@ -14,7 +14,6 @@ import React, {
   forwardRef,
   Fragment,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -36,9 +35,10 @@ import LoopOutlineIcon from '../../assets/loop-outline.svg?react';
 import InfoOutlineIcon from '../../assets/info-outline.svg?react';
 import CogOutlineIcon from '../../assets/cog-outline.svg?react';
 import VerticalEllipsisOutlineIcon from '../../assets/vertical-ellipsis-outline.svg?react';
+import { MediaItem } from "../../hooks/useMediaItems";
 
 export interface VideoItemProps {
-  scene: GQL.TvSceneDataFragment;
+  mediaItem: MediaItem;
   changeItemHandler: ((newIndex: number | ((currentIndex: number) => number)) => void);
   currentIndex: number;
   index: number;
@@ -63,10 +63,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     autoPlay: globalAutoPlay,
     set: setAppSetting,
   } = useAppStateStore();
+  
+  const scene = props.mediaItem.entityType === "scene" ? props.mediaItem.entity : props.mediaItem.entity.scene;
+  
   useEffect(() => {
-    debugMode && console.log(`Mounted VideoItem index=${props.index} sceneId=${props.scene.id}`);
+    debugMode && console.log(`Mounted VideoItem index=${props.index} sceneId=${scene.id}`);
     return () => {
-      debugMode && console.log(`Unmounted VideoItem index=${props.index} sceneId=${props.scene.id}`)
+      debugMode && console.log(`Unmounted VideoItem index=${props.index} sceneId=${scene.id}`)
     };
   }, []);
   const { tv: { subtitleLanguage } } = useStashConfigStore();
@@ -110,6 +113,20 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
     window.tvCurrentPlayer = player;
   }, [isCurrentVideo])
+  
+  useEffect(() => {
+    const player = videojsPlayerRef.current
+    if (!looping || props.mediaItem.entityType !== "marker" || !player || player.isDisposed()) return;
+    // videojs-offset doesn't seem to respect loop so we have to manually restart video after it's ended
+    // when loop is true
+    const handleEnded = () => {
+      player.one('loadstart', () => {
+        player.play();
+      });
+    }
+    player.on('ended', handleEnded);
+    return () => { player.off('ended', handleEnded) };
+  }, [looping])
 
   /* ------------------------------- Play/pause ------------------------------- */
 
@@ -149,7 +166,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }, [forceLandscape, isCurrentVideo]);
 
   function getSkipTime() {
-    const duration = props.scene.files?.[0].duration;
+    const duration = scene.files?.[0].duration;
     if (!duration) {
         return null
     }
@@ -232,10 +249,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   // Only render the button if there is available data
   const sceneInfoDataAvailable =
-    props.scene.performers.length > 0 ||
-    !!props.scene.studio ||
-    !!props.scene.title ||
-    !!props.scene.date;
+    scene.performers.length > 0 ||
+    !!scene.studio ||
+    !!scene.title ||
+    !!scene.date;
 
   const sceneInfoButton = sceneInfoDataAvailable ? (
     <UiButton
@@ -257,11 +274,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
    * language. Fails accessibility if missing, but there's no point rendering
    * an empty track. */
   const captionSources =
-    props.scene.captions && subtitleLanguage
-      ? props.scene.captions
+    scene.captions && subtitleLanguage
+      ? scene.captions
           .map((cap, i) => {
             if (cap.language_code === subtitleLanguage) {
-              const src = props.scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
+              const src = scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
               return (
                 <track
                   default={subtitleLanguage === cap.language_code}
@@ -304,31 +321,33 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       className={cx("VideoItem", {inViewport: isCurrentVideo, 'cover': !letterboxing}, props.className)}
       data-testid="VideoItem--container"
       data-index={props.index}
-      data-scene-id={props.scene.id}
+      data-scene-id={scene.id}
       ref={itemRef}
       style={props.style}
     >
       <CrtEffect enabled={crtEffect}>
         {debugMode && <div className="debugStats">
-          {props.index} - {props.scene.id} {loadingDeferred ? "(Loading deferred)" : ""}
+          {props.index} - {scene.id} {loadingDeferred ? "(Loading deferred)" : ""}
+          {" "}{props.mediaItem.entityType === "marker" ? `(Marker: ${props.mediaItem.entity.primary_tag.name})` : ""}
         </div>}
         {debugMode && <div className="loadingDeferredDebugBackground" />}
-        <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
+        <img className="loadingDeferredPreview" src={scene.paths.screenshot || ""} />
         {!loadingDeferred && <ScenePlayer
-          key={JSON.stringify([props.scene.id, scenePreviewOnly])}
-          scene={props.scene}
+          // We force ScenePlayer to remount when scenePreviewOnly is toggled since duration seemed messed up otherwise
+          key={JSON.stringify([scene.id, scenePreviewOnly])}
+          scene={scene}
           hideScrubberOverride={true}
           muted={audioMuted}
           autoplay={autoplay}
           loop={looping}
-          initialTimestamp={0}
+          initialTimestamp={props.mediaItem.entityType === "marker" ? 0 : undefined}
           sendSetTimestamp={() => {}}
           onNext={() => {}}
           onPrevious={() => {}}
           refVideo={videoRef}
           onEnded={handleOnEnded}
           onVideojsPlayerReady={handleVideojsPlayerReady}
-          trackActivity={!scenePreviewOnly}
+          trackActivity={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
           scrubberThumbnail={!scenePreviewOnly}
           markers={!scenePreviewOnly}
           optionsToMerge={{
@@ -340,14 +359,23 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
                 seekRight: {
                   handleClick: seekForwards
                 }
-              }
+              },
+              ...(props.mediaItem.entityType === "marker" ? {
+                offset: {
+                  start: props.mediaItem.entity.seconds,
+                  end: props.mediaItem.entity.seconds + props.mediaItem.entity.duration,
+                  // This moves the play head to the start of the marker clip but does not resume play even if loop is
+                  // true so we handle that ourselves in an onEnded handler
+                  restart_beginning: true 
+                }
+              } : {})
             }
           }}
         />}
         <SceneInfoPanel
-          {...props.scene}
+          {...scene}
           ref={sceneInfoPanelRef}
-          scene={props.scene}
+          scene={scene}
           className={cx({active: sceneInfoOpen})}
         />
         <div
@@ -558,7 +586,7 @@ const SceneInfoPanel = forwardRef(
         }}
       >
         {studio}
-        <a href={sceneUrl || ""}>{title}</a>
+        <a href={sceneUrl || ""} target="_blank">{title}</a>
         {performers}
         {date}
       </div>

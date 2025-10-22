@@ -34,6 +34,7 @@ export default function SettingsTab() {
     mediaItemFiltersError,
     currentMediaItemFilter,
     setCurrentMediaItemFilterById,
+    clearCurrentMediaItemFilter,
     availableSavedFilters,
   } = useMediaItemFilters()
 
@@ -49,6 +50,12 @@ export default function SettingsTab() {
   const { mediaItems, mediaItemsLoading } = useMediaItems()
 
   const noMediaItemsAvailable = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
+  
+  const [mediaFilterType, setMediaFilterType] = React.useState<"scene" | "marker">("scene");
+  useEffect(() => {
+    if (!currentMediaItemFilter) return;
+    setMediaFilterType(currentMediaItemFilter.entityType);
+  }, [currentMediaItemFilter]);
 
 
   /* --------------------------- Fetching data alert -------------------------- */
@@ -87,22 +94,29 @@ export default function SettingsTab() {
     },
   });
 
-  // 1. Select a scene filter
+  // 1. Select a media filter
+  const filterTypes = [
+    {
+      label: "Scenes",
+      value: "scene",
+    },
+    {
+      label: "Markers",
+      value: "marker",
+    },
+  ] as const;
   const filters = useMemo(
     () => availableSavedFilters
-      .filter(filter => filter.entityType === "scene")
+      .filter(filter => filter.entityType === mediaFilterType)
       .map(filter => ({
         value: filter.id,
         label: filter.name + (filter.isStashTvDefaultFilter ? " (default)" : ""),
         isStashTvDefaultFilter: filter.isStashTvDefaultFilter,
       }))
       .sort((a, b) => a.label.localeCompare(b.label)),
-    [availableSavedFilters]
+    [availableSavedFilters, mediaFilterType]
   )
-  const selectedFilter = useMemo(
-    () => filters.find(filter => filter.value === currentMediaItemFilter?.savedFilter?.id),
-    [currentMediaItemFilter, filters]
-  );
+  const selectedFilter = filters.find(filter => filter.value === currentMediaItemFilter?.savedFilter?.id)
 
   // 2. Set current filter as default
 
@@ -171,10 +185,26 @@ export default function SettingsTab() {
   >
     <div className="item">
       <label>
+        <h3>Select a filter type</h3>
+        <Select
+          value={filterTypes.find(ft => ft.value === mediaFilterType)}
+          onChange={(newValue) => {
+            if (!newValue) return;
+            setMediaFilterType(newValue.value);
+            if (newValue.value !== currentMediaItemFilter?.entityType) clearCurrentMediaItemFilter();
+          }}
+          options={filterTypes}
+          placeholder={"Select filter type"}
+          theme={reactSelectTheme}
+        />
+      </label>
+    </div>
+    <div className="item">
+      <label>
         <h3>Select a filter</h3>
         {!mediaItemFiltersLoading ? (
           <Select
-            defaultValue={selectedFilter}
+            value={selectedFilter ?? null}
             onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
             options={filters}
             placeholder={`${filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}

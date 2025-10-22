@@ -6,6 +6,21 @@ import { useAppStateStore } from "../store/appStateStore";
 
 export const mediaItemsPerPage = 20
 
+export type MediaItem = {
+  id: string;
+} & (
+  {
+    entityType: "scene";
+    entity: GQL.FindScenesForTvQuery["findScenes"]["scenes"][number];
+  } |
+  {
+    entityType: "marker";
+    entity: GQL.FindSceneMarkersForTvQuery["findSceneMarkers"]["scene_markers"][number] & {
+      duration: number;
+    }
+  }
+)
+
 type Scene = GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]
 
 export function useMediaItems({previewOnly}: {previewOnly?: boolean} = {}) {
@@ -13,7 +28,7 @@ export function useMediaItems({previewOnly}: {previewOnly?: boolean} = {}) {
   const { debugMode } = useAppStateStore()
 
   let response
-  let mediaItems
+  let mediaItems: MediaItem[]
   if (!currentMediaItemFilter || currentMediaItemFilter.entityType === "scene") {
     response = GQL.useFindScenesForTvQuery({
       variables: {
@@ -47,7 +62,14 @@ export function useMediaItems({previewOnly}: {previewOnly?: boolean} = {}) {
     mediaItems = response.data?.findSceneMarkers.scene_markers.map(marker => ({
       id: `marker:${marker.id}`,
       entityType: "marker" as const,
-      entity: marker,
+      entity: {
+        ...marker,
+        get duration() {
+          const defaultMarkerLength = 20;
+          const endTime = marker.end_seconds ?? Math.min(marker.seconds + defaultMarkerLength, marker.scene.files[0].duration);
+          return endTime - marker.seconds;
+        }
+      }
     })) || []
   } else {
     console.info("currentMediaItemFilter:", currentMediaItemFilter)

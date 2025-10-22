@@ -147,7 +147,6 @@ export function useMediaItemFilters() {
     savedFilter: SavedMediaItemFilter
   ): SearchableMediaItemFilter {
     function getGeneralFilter() {
-      console.log("savedFilter:", savedFilter)
       const filter = new ListFilterModel(savedFilter.mode)
       filter.configureFromSavedFilter(savedFilter);
       const updatedFilter = { ...filter.makeFindFilter() };
@@ -234,6 +233,7 @@ export function useMediaItemFilters() {
     mediaItemFiltersLoading,
     mediaItemFiltersError,
     currentMediaItemFilter: currentSearchableFilter,
+    clearCurrentMediaItemFilter: () => setCurrentSavedFilter(undefined),
     setCurrentMediaItemFilterById,
     availableSavedFilters
   }

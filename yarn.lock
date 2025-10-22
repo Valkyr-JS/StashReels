@@ -6496,6 +6496,14 @@ videojs-mobile-ui@^0.8.0:
   dependencies:
     global "^4.4.0"
 
+videojs-offset@^2.1.3:
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/videojs-offset/-/videojs-offset-2.1.3.tgz#bc7a57a3eb89d7dc4610e6727bb0d101caacfdff"
+  integrity sha512-xzP/e04kk3LakIa4BxtjpQ/pC6F/3CvJybFcoUxisziyKK2qAh/mV3bzk/5YJu56Ik32j/ZdnvexQy0V2uJsjg==
+  dependencies:
+    global "^4.3.2"
+    video.js "^6 || ^7"
+
 "videojs-overlay-buttons@npm:videojs-overlay-buttons-multiple-players-fix@^1.3.2":
   version "1.3.2"
   resolved "https://registry.npmjs.org/videojs-overlay-buttons-multiple-players-fix/-/videojs-overlay-buttons-multiple-players-fix-1.3.2.tgz"
