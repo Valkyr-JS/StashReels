@@ -1,7 +1,7 @@
 import ScenePlayerOriginal from "stash-ui/dist/src/components/ScenePlayer/ScenePlayer"
 import "stash-ui/dist/src/components/ScenePlayer/styles.css"
 import "./ScenePlayer.scss";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
+import React, { ForwardedRef, forwardRef, useEffect, useRef, useState } from "react";
 import { useUID } from 'react-uid';
 import { default as cx } from "classnames";
 import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
@@ -122,9 +122,12 @@ export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOrigi
     trackActivity?: boolean;
     scrubberThumbnail?: boolean;
     markers?: boolean;
+    refVideo?: ForwardedRef<HTMLVideoElement>
+    onPlay?: HTMLVideoElement["onplay"],
+    onPause?: HTMLVideoElement["onpause"],
 }
 const ScenePlayer = forwardRef<
-    HTMLVideoElement,
+    HTMLDivElement,
     ScenePlayerProps
 >(({ 
     className, 
@@ -140,9 +143,32 @@ const ScenePlayer = forwardRef<
     trackActivity = true,
     scrubberThumbnail = true,
     markers = true,
+    refVideo,
+    onPlay,
+    onPause,
     ...otherProps
 }: ScenePlayerProps, ref) => {
+    // We don't use `ref` directly on our root element since `ref` since we also need access to the root element in this
+    // file and if we use `ref` it might be a function which once set we don't have access to it's contents. Therefore
+    // we use containerRef as an intermediary.
     const containerRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        const rootElm = containerRef.current
+        if (!rootElm) {
+            console.warn("ScenePlayer: Could not get root elm");
+            return;
+        }
+        
+        // Set the video element to the ref provided by the parent component
+        if (ref) {
+            if (typeof ref === 'function') {
+                ref(rootElm);
+            } else {
+                ref.current = rootElm;
+            }
+        }
+    }, []);
+
     const { debugMode } = useAppStateStore();
     useEffect(() => {
         debugMode && console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);
@@ -158,11 +184,13 @@ const ScenePlayer = forwardRef<
     // Replace with React's useId when we upgrade to React 18
     const playerId = useUID();
     
-    // Stash's ScenePlayer component determines if a stream is direct or not based on the URL path. Since it wouldn't
-    // normally play a preview path it doesn't detect this at direct and that breaks how seeking for preview videos.
-    // To fix this we temporarily change the preview URL to end with /stream so that ScenePlayer treats it
-    // as a direct stream when loading streams. Then we add a wrapper to the Video.js instance to revert any preview
-    // urls back to remove the "/stream" suffix before Video.js uses them.
+    // While a scene wouldn't normally contain a stream for the preview video if the provided for whatever reason then
+    // it will be treated as not a direct stream by the wrapped ScenePlayer component. This causes playback issues
+    // especially around seeking. The check to determine if a stream is direct or not is hardcoded to recognise certain
+    // urls. We can't change this so as a workaround we temporarily change the preview URL to end with /stream which
+    // ScenePlayer treats as a direct stream at the point where it processes the streams to load. Then we add a wrapper 
+    // to the Video.js instance's sourceSelector function to revert any preview urls back to remove the "/stream" suffix 
+    // before Video.js actually uses them.
     otherProps.scene = {
         ...otherProps.scene,
         sceneStreams: otherProps.scene.sceneStreams
@@ -190,6 +218,7 @@ const ScenePlayer = forwardRef<
         };
     }
     
+    // Code to be run when wrapped ScenePlayer's Video.js player has been created
     videoJsSetupCallbacks[playerId] = (player) => {
         if (loop !== undefined) {
             // Ideally we wouldn't need this. See comment for "loop" in videoJsOptionsOverride
@@ -197,8 +226,19 @@ const ScenePlayer = forwardRef<
         }
         addWrapperToRevertPreviewUrlChange(player);
         onVideojsPlayerReady?.(player);
+        videojsPlayerRef.current = player;
+        setVideojsPlayer(player);
+        
+        const videoElm = player.el()?.querySelector('video')
+        if (!videoElm) {
+            console.warn("ScenePlayer: No video element found in container");
+            return;
+        }
+
+        setVideoElm(videoElm);
     }
 
+    // Options to inject into wrapped ScenePlayer's Video.js instance when it's being created
     videoJsOptionsOverride[playerId] = {
         muted,
         loop: loop, // Unfortunately this doesn't seem to work since the stash ScenePlayer component seems immediately set
@@ -212,22 +252,26 @@ const ScenePlayer = forwardRef<
         },
     }
     
+    // Pass muted prop to Video.js player
     useEffect(() => {
         if (muted === undefined) return;
         videojsPlayerRef.current?.muted(muted);
     }, [muted]);
     
+    // Pass loop prop to Video.js player
     useEffect(() => {
         if (loop === undefined) return;
         videojsPlayerRef.current?.loop(loop);
     }, [loop]);
     
+    // Fix bug in wrapped ScenePlayer that some times results in an error being thrown on unmount
     useEffect(() => {
         return () => {
             const videojsPlayer = videojsPlayerRef.current
             if (videojsPlayer) {
                 videojsPlayer.on("dispose", () => {
-                    /* Prevent bug in markers plugin where it tries to operate on the player element after it's been disposed */
+                    // Prevent bug in markers plugin where it tries to operate on the player element after it's been
+                    // disposed
                     videojsPlayer.markers = () => ({
                         clearMarkers: () => {}
                     } as ReturnType<VideoJsPlayer["markers"]>)
@@ -244,31 +288,36 @@ const ScenePlayer = forwardRef<
         }
     }, [videojsPlayer, otherProps.scene]);
 
+    // Set the `refVideo` prop to the video element
     useEffect(() => {
-        const videoElm = containerRef.current?.querySelector('video')
-        if (!videoElm) {
-            console.warn("ScenePlayer: No video element found in container");
-            return;
-        }
-        
-        // Set the video element to the ref provided by the parent component
-        if (ref) {
-            if (typeof ref === 'function') {
-                ref(videoElm);
-            } else if (ref && 'current' in ref) {
-                ref.current = videoElm;
+        if (refVideo) {
+            if (typeof refVideo === 'function') {
+                refVideo(videoElm);
+            } else {
+                refVideo.current = videoElm;
             }
         }
+    }, [videoElm, refVideo]);
 
-        setVideoElm(videoElm);
-        
-        const player = videojs.getPlayer(videoElm);
-        if (player) {
-            videojsPlayerRef.current = player;
-            setVideojsPlayer(player);
+    // Attach the onPlay event handler to the video element
+    useEffect(() => {
+        if (!videoElm || !onPlay) return;
+        videoElm.addEventListener('play', onPlay);
+        return () => {
+            videoElm.removeEventListener('play', onPlay);
         }
-    }, []);
+    }, [videoElm, onPlay]);
 
+    // Attach the onPause event handler to the video element
+    useEffect(() => {
+        if (!videoElm || !onPause) return;
+        videoElm.addEventListener('pause', onPause);
+        return () => {
+            videoElm.removeEventListener('pause', onPause);
+        }
+    }, [videoElm, onPause]);
+
+    // Attach the onTimeUpdate event handler to the video element
     useEffect(() => {
         if (!videoElm || !onTimeUpdate) return;
         videoElm.addEventListener('timeupdate', onTimeUpdate);
@@ -277,6 +326,7 @@ const ScenePlayer = forwardRef<
         }
     }, [videoElm, onTimeUpdate]);
 
+    // Attach the onEnded event handler to the video element
     useEffect(() => {
         if (!videoElm || !onEnded) return;
         videoElm.addEventListener('ended', onEnded);
@@ -287,6 +337,8 @@ const ScenePlayer = forwardRef<
     
     const lastTouchEndEventRef = useRef<Event | null>(null);
 
+    // Attach the onClick event handler to the video element, converting tap event to click events. There might be a 
+    // cleaner way of doing this. If not we should document why taps don't trigger clicks.
     useEffect(() => {
         if (!videojsPlayer || !onClick) return;
         videojsPlayer.el().addEventListener('touchend', (event) => {lastTouchEndEventRef.current = event}, {capture: true});

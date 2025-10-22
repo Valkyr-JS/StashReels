@@ -71,19 +71,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }, []);
   const { tv: { subtitleLanguage } } = useStashConfigStore();
   const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
-  const [paused, setPaused] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const setVideoRef = useMemo(() => {
-    return (el: HTMLVideoElement | null) => {
-      videoRef.current = el;
-      if (!el) return;
-      if (el.paused !== paused) {
-        setPaused(el.paused);
-      }
-      el.addEventListener("playing", () => setPaused(false));
-      el.addEventListener("pause", () => setPaused(true));
-    }
-  }, []);
   
   const [loadingDeferred, setLoadingDeferred] = useState(props.currentlyScrolling);
   useEffect(() => {
@@ -124,8 +112,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     // In theory we shouldn't need the conditional on props of videojsPlayer but it seems like sometimes we do
     if (props.index === props.currentIndex) {
       if (!autoplay) return;
-      setPaused(false);
-      videojsPlayer?.play()?.catch(() => setPaused(true));
+      videojsPlayer?.play();
     } else {
       videojsPlayer?.pause();
     }
@@ -315,7 +302,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     >
       <CrtEffect enabled={crtEffect}>
         {debugMode && <div className="debugStats">
-          {props.index} - {props.scene.id} {paused ? "Paused" : "Playing"} {loadingDeferred ? "(Loading deferred)" : ""}
+          {props.index} - {props.scene.id} {loadingDeferred ? "(Loading deferred)" : ""}
         </div>}
         {debugMode && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={props.scene.paths.screenshot || ""} />
@@ -331,7 +318,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           onComplete={() => {}}
           onNext={() => {}}
           onPrevious={() => {}}
-          ref={setVideoRef}
+          refVideo={videoRef}
           onEnded={handleOnEnded}
           onVideojsPlayerReady={handleVideojsPlayerReady}
           trackActivity={!scenePreviewOnly}
