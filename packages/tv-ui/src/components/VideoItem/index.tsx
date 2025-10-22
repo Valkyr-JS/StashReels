@@ -37,6 +37,7 @@ import CogOutlineIcon from '../../assets/cog-outline.svg?react';
 import VerticalEllipsisOutlineIcon from '../../assets/vertical-ellipsis-outline.svg?react';
 import { MediaItem } from "../../hooks/useMediaItems";
 import hashObject from 'object-hash';
+import { createPortal } from "react-dom";
 
 export interface VideoItemProps {
   mediaItem: MediaItem;
@@ -329,6 +330,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }, [showSubtitles]);
 
   /* -------------------------------- Component ------------------------------- */
+  
+  const videoJsControlBarElm = videojsPlayerRef.current?.getChild('ControlBar')?.el();
 
   return (
     <div
@@ -386,6 +389,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
             }
           }}
         />}
+        {props.mediaItem.entityType === "marker" && videoJsControlBarElm && createPortal(
+          <>
+            <div className="vjs-control">{props.mediaItem.entity.title || props.mediaItem.entity.primary_tag.name}</div>
+            <div className="vjs-custom-control-spacer vjs-spacer">&nbsp;</div>
+          </>,
+          videoJsControlBarElm
+        )}
         <SceneInfoPanel
           {...scene}
           ref={sceneInfoPanelRef}
