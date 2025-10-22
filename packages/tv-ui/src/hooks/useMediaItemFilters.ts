@@ -11,55 +11,65 @@ import { create } from "zustand";
 /** In Stash a filter has a different format when it's saved vs when it's used in a search. The stash codebase doesn't
  * seem to do a great job of naming these different formats to make that clear. When a filter is saved it usually just
  * referred to as a saved filter but when it's used in a search it's referred to as a by the type of entity being
- * searched, like a scene filter.
+ * searched, like a media item filter.
  * 
- * To make this clearer we use "saved filter" to refer to a filter in its saved format (or "saved scene filter" for 
- * specifically a scene filter) and "searchable filter" to refer to a filter in its searchable format (or "searchable 
- * scene filter" for specifically a scene filter).
+ * To make this clearer we use "saved filter" to refer to a filter in its saved format (or "saved media item filter" for 
+ * specifically a media item filter) and "searchable filter" to refer to a filter in its searchable format (or "searchable 
+ * media item filter" for specifically a media item filter).
  * 
  * The rest of the Stash TV codebase pretty much only deals with the searchable format so we just hide this distinction
- * and only present the searchable format outside of this file which we simply refer to as a "filter" (or "scene filter"
- * for specifically a scene filter).
+ * and only present the searchable format outside of this file which we simply refer to as a "filter" (or "media item filter"
+ * for specifically a media item filter).
  */
 
-type SavedSceneFilter = GQL.SavedFilter
+type SavedMediaItemFilter = GQL.SavedFilter
 
-export type SearchableSceneFilter = {
-  savedFilter?: SavedSceneFilter,
+export type SearchableMediaItemFilter = {
+  savedFilter?: SavedMediaItemFilter,
   generalFilter: GQL.FindScenesForTvQueryVariables["filter"],
-  sceneFilter: GQL.FindScenesForTvQueryVariables["scene_filter"],
   isStashTvDefaultFilter: boolean,
-}
+} & (
+  {
+    entityFilter: GQL.FindScenesForTvQueryVariables["scene_filter"]
+    entityType: "scene"
+  } |
+  {
+    entityFilter: GQL.FindSceneMarkersForTvQueryVariables["scene_marker_filter"]
+    entityType: "marker"
+  }
+)
+
+type EntityType = SearchableMediaItemFilter["entityType"]
 
 const useGlobalFilterState = create<{
-  currentSavedFilter: SavedSceneFilter | undefined,
-  setCurrentSavedFilter: (filter: SavedSceneFilter | undefined) => void,
+  currentSavedFilter: SavedMediaItemFilter | undefined,
+  setCurrentSavedFilter: (filter: SavedMediaItemFilter | undefined) => void,
   loading: boolean,
   setLoading: (loading: boolean) => void,
   error: unknown,
   setError: (error: unknown) => void,
 }>((set, get) => ({
   currentSavedFilter: undefined,
-  setCurrentSavedFilter: (filter: SavedSceneFilter | undefined) => set({ currentSavedFilter: filter }),
+  setCurrentSavedFilter: (filter: SavedMediaItemFilter | undefined) => set({ currentSavedFilter: filter }),
   loading: true,
   setLoading: (loading: boolean) => set({ loading }),
   error: undefined,
   setError: (error: unknown) => set({ error }),
 }))
 
-export function useSceneFilters() {
+export function useMediaItemFilters() {
   const {
     currentSavedFilter,
     setCurrentSavedFilter,
-    loading: sceneFiltersLoading,
-    setLoading: setSceneFiltersLoading,
-    error: sceneFiltersError,
-    setError: setSceneFiltersError,
+    loading: mediaItemFiltersLoading,
+    setLoading: setMediaItemFiltersLoading,
+    error: mediaItemFiltersError,
+    setError: setMediaItemFiltersError,
   } = useGlobalFilterState()
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
 
   const {
-    general: { stashDefaultScenesFilter, availableSavedSceneFilters },
+    general: { stashDefaultScenesFilter, availableSavedSceneFilters, availableSavedMarkerFilters },
     tv: { defaultFilterId: stashTvDefaultFilterId },
     loading: stashConfigLoading,
   } = useStashConfigStore();
@@ -82,10 +92,10 @@ export function useSceneFilters() {
   useEffect(() => {
     if (stashConfigLoading || currentSavedFilter) return;
     // Place most of the logic into a separate function so we can use async/await
-    async function setCurrentSceneFilterOnInitialLoad() {
+    async function setCurrentMediaItemFilterOnInitialLoad() {
       try {
         if (stashTvDefaultFilterId) {
-          await setCurrentSceneFilterById(stashTvDefaultFilterId)
+          await setCurrentMediaItemFilterById(stashTvDefaultFilterId)
         } else if (stashDefaultScenesFilter)  {
           // No default filter ID set for Stash TV specifically so we use the default Stash filter
           setCurrentSavedFilter({
@@ -103,23 +113,23 @@ export function useSceneFilters() {
           })
         }
       } catch (error) {
-        setSceneFiltersError(error);
+        setMediaItemFiltersError(error);
       }
-      setSceneFiltersLoading(false);
+      setMediaItemFiltersLoading(false);
     }
-    setCurrentSceneFilterOnInitialLoad()
+    setCurrentMediaItemFilterOnInitialLoad()
   }, [stashConfigLoading, stashTvDefaultFilterId, stashDefaultScenesFilter]);
 
-  async function setCurrentSceneFilterById(id: string) {
-    const sceneFiltersStashResponse = await fetchSavedFilterFromStash(apolloClient, id);
+  async function setCurrentMediaItemFilterById(id: string) {
+    const mediaItemFiltersStashResponse = await fetchSavedFilterFromStash(apolloClient, id);
 
-    if (!sceneFiltersStashResponse) {
+    if (!mediaItemFiltersStashResponse) {
       // Stash has no record of a filter with this ID
       return undefined;
     }
     
     setCurrentSavedFilter({
-      ...sceneFiltersStashResponse,
+      ...mediaItemFiltersStashResponse,
       filter: '', // See the comment above about the `filter` prop
     });
   }
@@ -134,10 +144,11 @@ export function useSceneFilters() {
   }
   
   function convertSavedToSearchableFilter(
-    savedFilter: SavedSceneFilter
-  ): SearchableSceneFilter {
+    savedFilter: SavedMediaItemFilter
+  ): SearchableMediaItemFilter {
     function getGeneralFilter() {
-      const filter = new ListFilterModel(GQL.FilterMode.Scenes)
+      console.log("savedFilter:", savedFilter)
+      const filter = new ListFilterModel(savedFilter.mode)
       filter.configureFromSavedFilter(savedFilter);
       const updatedFilter = { ...filter.makeFindFilter() };
 
@@ -150,7 +161,7 @@ export function useSceneFilters() {
     }
     
     function getSceneFilter() {
-      const filter = new ListFilterModel(GQL.FilterMode.Scenes)
+      const filter = new ListFilterModel(savedFilter.mode)
       filter.configureFromSavedFilter(savedFilter);
 
       const sceneFilter = filter.makeFilter();
@@ -166,29 +177,64 @@ export function useSceneFilters() {
       return sceneFilter;
     }
     
-    return {
+    function getMarkerFilter() {
+      const filter = new ListFilterModel(savedFilter.mode)
+      filter.configureFromSavedFilter(savedFilter);
+
+      return filter.makeFilter();
+    }
+    
+    const sharedProps = {
       savedFilter,
       generalFilter: getGeneralFilter(),
-      sceneFilter: getSceneFilter(),
       get isStashTvDefaultFilter() {
         return savedFilter.id === useStashConfigStore.getState().tv.defaultFilterId;
       }
     }
+    
+    if (savedFilter.mode === GQL.FilterMode.Scenes) {
+      return {
+        ...sharedProps,
+        entityFilter: getSceneFilter(),
+        entityType: "scene",
+      }
+    } else if (savedFilter.mode === GQL.FilterMode.SceneMarkers) {
+      return {
+        ...sharedProps,
+        entityFilter: getMarkerFilter(),
+        entityType: "marker",
+      }
+    } else {
+      throw new Error(`Unsupported saved filter mode: ${savedFilter.mode}`);
+    }
   }
-  
-  const availableSavedSceneFiltersWithDefault = useMemo(
-    () => availableSavedSceneFilters.map(filter => ({
-      ...filter,
-      isStashTvDefaultFilter: filter.id === stashTvDefaultFilterId,
-    })),
+
+  const availableSavedFilters = useMemo(
+    () => {
+      const savedFilters = []
+      const savedFiltersByType: [EntityType, {id: string, name: string}[]][] = [
+        ["scene", availableSavedSceneFilters],
+        ["marker", availableSavedMarkerFilters],
+      ]
+      for (const [entityType, savedFiltersOfType] of savedFiltersByType) {
+        for (const savedFilter of savedFiltersOfType) {
+          savedFilters.push({
+            ...savedFilter,
+            isStashTvDefaultFilter: savedFilter.id === stashTvDefaultFilterId,
+            entityType
+          })
+        }
+      }
+      return savedFilters;
+    },
     [availableSavedSceneFilters, stashTvDefaultFilterId]
   );
   
   return {
-    sceneFiltersLoading,
-    sceneFiltersError,
-    currentSceneFilter: currentSearchableFilter,
-    setCurrentSceneFilterById,
-    availableSavedSceneFilters: availableSavedSceneFiltersWithDefault,
+    mediaItemFiltersLoading,
+    mediaItemFiltersError,
+    currentMediaItemFilter: currentSearchableFilter,
+    setCurrentMediaItemFilterById,
+    availableSavedFilters
   }
 }

@@ -11,9 +11,9 @@ import "./SettingsTab.scss";
 import { useStashConfigStore } from "../../store/stashConfigStore";
 import { useAppStateStore } from "../../store/appStateStore";
 import SideDrawer from "../SideDrawer";
-import { useScenes } from "../../hooks/useScenes";
+import { useMediaItems } from "../../hooks/useMediaItems";
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
-import { useSceneFilters } from "../../hooks/useSceneFilters";
+import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
 
 type ReactSelectOnChange = (
   newValue: SingleValue<{
@@ -30,12 +30,12 @@ export default function SettingsTab() {
   const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   const {
-    sceneFiltersLoading,
-    sceneFiltersError,
-    currentSceneFilter,
-    setCurrentSceneFilterById,
-    availableSavedSceneFilters,
-  } = useSceneFilters()
+    mediaItemFiltersLoading,
+    mediaItemFiltersError,
+    currentMediaItemFilter,
+    setCurrentMediaItemFilterById,
+    availableSavedFilters,
+  } = useMediaItemFilters()
 
   const { 
     isRandomised,
@@ -46,14 +46,14 @@ export default function SettingsTab() {
     autoPlay,
     set: setAppSetting
   } = useAppStateStore();
-  const { scenes, scenesLoading } = useScenes()
-    
-  const noScenesAvailable = !sceneFiltersLoading && !scenesLoading && scenes.length === 0
-  
+  const { mediaItems, mediaItemsLoading } = useMediaItems()
+
+  const noMediaItemsAvailable = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
+
 
   /* --------------------------- Fetching data alert -------------------------- */
 
-  const fetchingDataWarning = scenesLoading ? (
+  const fetchingDataWarning = mediaItemsLoading ? (
     <div className='warning'>
       <h2>
         <FontAwesomeIcon icon={faSpinner} pulse />
@@ -89,18 +89,19 @@ export default function SettingsTab() {
 
   // 1. Select a scene filter
   const filters = useMemo(
-    () => availableSavedSceneFilters
+    () => availableSavedFilters
+      .filter(filter => filter.entityType === "scene")
       .map(filter => ({
         value: filter.id,
         label: filter.name + (filter.isStashTvDefaultFilter ? " (default)" : ""),
         isStashTvDefaultFilter: filter.isStashTvDefaultFilter,
       }))
       .sort((a, b) => a.label.localeCompare(b.label)),
-    [availableSavedSceneFilters]
+    [availableSavedFilters]
   )
   const selectedFilter = useMemo(
-    () => filters.find(filter => filter.value === currentSceneFilter?.savedFilter?.id),
-    [currentSceneFilter, filters]
+    () => filters.find(filter => filter.value === currentMediaItemFilter?.savedFilter?.id),
+    [currentMediaItemFilter, filters]
   );
 
   // 2. Set current filter as default
@@ -165,16 +166,16 @@ export default function SettingsTab() {
   
   return <SideDrawer
     title={<span ref={titleRef}>Settings</span>}
-    closeDisabled={noScenesAvailable || scenesLoading || Boolean(sceneFiltersError)}
+    closeDisabled={noMediaItemsAvailable || mediaItemsLoading || Boolean(mediaItemFiltersError)}
     className="SettingsTab"
   >
     <div className="item">
       <label>
         <h3>Select a filter</h3>
-        {!sceneFiltersLoading ? (
+        {!mediaItemFiltersLoading ? (
           <Select
             defaultValue={selectedFilter}
-            onChange={(newValue) => newValue && setCurrentSceneFilterById(newValue.value)}
+            onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
             options={filters}
             placeholder={`${filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
             theme={reactSelectTheme}
@@ -189,7 +190,7 @@ export default function SettingsTab() {
       </small>
 
       {fetchingDataWarning}
-      {sceneFiltersError ? (
+      {mediaItemFiltersError ? (
         <div className="error">
           <h2>An error occurred loading scene filters.</h2>
           <p>
@@ -197,7 +198,7 @@ export default function SettingsTab() {
           </p>
         </div>
       ) : null}
-      {noScenesAvailable && (
+      {noMediaItemsAvailable && (
         <div className="error">
           <h2>Filter contains no scenes!</h2>
           <p>
@@ -230,7 +231,7 @@ export default function SettingsTab() {
     </div>}
 
     <div className="item checkbox-item">
-      {currentSceneFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
+      {currentMediaItemFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
         <span>Filter sort order is random</span>
       ) : <>
         <label>

@@ -5,8 +5,8 @@ import { useAppStateStore } from "../../store/appStateStore";
 import SettingsTab from "../../components/SettingsTab";
 import Loading from "../../components/Loading";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { useScenes } from "../../hooks/useScenes";
-import { useSceneFilters } from "../../hooks/useSceneFilters";
+import { useMediaItems } from "../../hooks/useMediaItems";
+import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
 
 export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesForTvQuery>[0]
 
@@ -16,11 +16,11 @@ interface FeedPageProps {
 
 const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   const { showSettings, fullscreen, set: setAppSetting } = useAppStateStore();
-  const { sceneFiltersLoading } = useSceneFilters()
-  const { scenes, scenesLoading } = useScenes()
-  
-  const loadedButNoScenes = !sceneFiltersLoading && !scenesLoading && scenes.length === 0
-  
+  const { mediaItemFiltersLoading } = useMediaItemFilters()
+  const { mediaItems, mediaItemsLoading } = useMediaItems()
+
+  const loadedButNoScenes = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
+
   // Show settings tab if we've finished loading scenes but have no scenes to show
   if (loadedButNoScenes && !showSettings) {
     setAppSetting("showSettings", true);
@@ -44,9 +44,9 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
 
   return (
   <main data-testid="FeedPage" className={className}>
-      {(sceneFiltersLoading || scenesLoading) && <Loading heading="Fetching scenes..." />}
-      {scenes.length > 0 && <VideoScroller />}
-      {loadedButNoScenes && <div>No Scenes Found</div>}
+      {(mediaItemFiltersLoading || mediaItemsLoading) && <Loading heading="Fetching media..." />}
+      {mediaItems.length > 0 && <VideoScroller />}
+      {loadedButNoScenes && <div>No Media Found</div>}
       <SettingsTab />
     </main>
   );

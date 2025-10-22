@@ -17,6 +17,7 @@ export type StashTvConfigState = {
 type StashGeneralConfigState = {
   stashDefaultScenesFilter: GQL.SavedFilterDataFragment | undefined,
   availableSavedSceneFilters: GQL.GetStashConfigForTvQuery["availableSavedSceneFilters"],
+  availableSavedMarkerFilters: GQL.GetStashConfigForTvQuery["availableSavedMarkerFilters"],
 }
 
 type StashConfig = {
@@ -31,6 +32,7 @@ export const useStashConfigStore = create<StashConfig>((set, get) => ({
   general: {
     stashDefaultScenesFilter: undefined,
     availableSavedSceneFilters: [],
+    availableSavedMarkerFilters: [],
   },
   tv: {
     defaultFilterId: undefined,
@@ -46,6 +48,7 @@ export const useStashConfigStore = create<StashConfig>((set, get) => ({
         ...general,
         stashDefaultScenesFilter: config.configuration.ui.defaultFilters?.scenes,
         availableSavedSceneFilters: config.availableSavedSceneFilters,
+        availableSavedMarkerFilters: config.availableSavedMarkerFilters,
       },
       tv: {
           ...tv,

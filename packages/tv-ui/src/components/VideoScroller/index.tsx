@@ -6,7 +6,7 @@ import { useAppStateStore } from "../../store/appStateStore";
 import { useVirtualizer, useWindowVirtualizer, windowScroll, elementScroll } from "@tanstack/react-virtual";
 import throttle from 'throttleit';
 import { clamp } from "../../helpers";
-import { useScenes } from "../../hooks/useScenes";
+import { useMediaItems } from "../../hooks/useMediaItems";
 import { useWindowSize } from "../../hooks/useWindowSize";
 
 interface VideoScrollerProps {}
@@ -23,8 +23,8 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
 
   /* ------------------------ Handle loading new videos ----------------------- */
 
-  
-  const { scenes, loadMoreScenes } = useScenes({previewOnly: scenePreviewOnly});
+
+  const { mediaItems, loadMoreMediaItems } = useMediaItems({previewOnly: scenePreviewOnly});
 
   const estimateSizeTesterElement = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -38,7 +38,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
 
 
   const sharedOptions = {
-    count: scenes.length,
+    count: mediaItems.length,
     estimateSize: () => {
       if (!estimateSizeTesterElement.current) {
         const el = document.createElement('div');
@@ -80,7 +80,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const [currentIndex, _setCurrentIndex] = useReducer(
     (currentState: number, newState: React.SetStateAction<number>) => {
       newState = typeof newState === 'function' ? newState(currentState) : newState;
-      return clamp(0, newState, scenes.length ? scenes.length - 1 : 0);
+      return clamp(0, newState, mediaItems.length ? mediaItems.length - 1 : 0);
     },
     0
   );
@@ -105,13 +105,13 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         currentIndexRef.current = clamp(
           0,
           typeof newIndex === 'function' ? newIndex(currentIndexRef.current) : newIndex,
-          scenes.length ? scenes.length - 1 : 0
+          mediaItems.length ? mediaItems.length - 1 : 0
         );
 
         return throttledSetCurrentIndex(currentIndexRef.current);
       })
     },
-    [rowVirtualizer, scenes.length]
+    [rowVirtualizer, mediaItems.length]
   );
 
   const scrollSnappingReenableTimeoutRef = useRef<NodeJS.Timeout | undefined>();
@@ -171,10 +171,10 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   
   useEffect(() => {
     debugMode && console.log("currentIndex changed to", currentIndex);
-    if (currentIndex >= scenes.length - 5) {
-      loadMoreScenes();
+    if (currentIndex >= mediaItems.length - 5) {
+      loadMoreMediaItems();
     }
-  }, [currentIndex]); 
+  }, [currentIndex, mediaItems.length]); 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -371,10 +371,10 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     >
       {debugMode && <div className="debugStats">
         {rowVirtualizer.isScrolling ? "Scrolling" : "Not Scrolling"}
-        {" "}({scenes.length} scenes)
+        {" "}({mediaItems.length} media loaded)
         {onlyShowMatchingOrientation && ` limiting to ${orientation} orientation`}
       </div>}
-      {scenes.map((scene, i) => {
+      {mediaItems.map((mediaItem, i) => {
         const style = {
           position: 'absolute',
           top: 0,
@@ -398,13 +398,13 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
               }}
               currentIndex={currentIndex}
               index={i}
-              key={scene.id}
-              scene={scene}
+              key={mediaItem.id}
+              scene={mediaItem.entityType === "scene" ? mediaItem.entity : mediaItem.entity.scene}
               style={style}
               currentlyScrolling={rowVirtualizer.isScrolling}
             />
           );
-        } else return <div key={scene.id} className="dummy-video-item" style={style} />;
+        } else return <div key={mediaItem.id} className="dummy-video-item" style={style} />;
       })}
     </div>
   );

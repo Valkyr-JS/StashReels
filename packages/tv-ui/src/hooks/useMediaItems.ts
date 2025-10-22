@@ -1,34 +1,64 @@
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { useSceneFilters } from './useSceneFilters';
+import { useMediaItemFilters } from './useMediaItemFilters';
 import { useEffect, useState } from "react";
 import { getSceneIdForVideoJsPlayer } from "../helpers";
 import { useAppStateStore } from "../store/appStateStore";
 
-export const scenesPerPage = 20
+export const mediaItemsPerPage = 20
 
 type Scene = GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]
 
-export function useScenes({previewOnly}: {previewOnly?: boolean} = {}) {
-  const { currentSceneFilter } = useSceneFilters()
+export function useMediaItems({previewOnly}: {previewOnly?: boolean} = {}) {
+  const { currentMediaItemFilter } = useMediaItemFilters()
   const { debugMode } = useAppStateStore()
 
-  const {
-    data,
-    fetchMore,
-    error: scenesError,
-    loading: scenesLoading,
-  } = GQL.useFindScenesForTvQuery({
-    variables: {
-      filter: {
-        ...currentSceneFilter?.generalFilter,
-        // We manage pagination ourselves and so override whatever the saved filter had
-        page: 1,
-        per_page: scenesPerPage,
+  let response
+  let mediaItems
+  if (!currentMediaItemFilter || currentMediaItemFilter.entityType === "scene") {
+    response = GQL.useFindScenesForTvQuery({
+      variables: {
+        filter: {
+          ...currentMediaItemFilter?.generalFilter,
+          // We manage pagination ourselves and so override whatever the saved filter had
+          page: 1,
+          per_page: mediaItemsPerPage,
+        },
+        scene_filter: currentMediaItemFilter?.entityFilter
       },
-      scene_filter: currentSceneFilter?.sceneFilter
-    },
-    skip: !currentSceneFilter,
-  })
+      skip: !currentMediaItemFilter,
+    })
+    mediaItems = response.data?.findScenes.scenes.map(scene => ({
+      id: `scene:${scene.id}`,
+      entityType: "scene" as const,
+      entity: scene,
+    })) || []
+  } else if (currentMediaItemFilter.entityType === "marker") {
+    response = GQL.useFindSceneMarkersForTvQuery({
+      variables: {
+        filter: {
+          ...currentMediaItemFilter.generalFilter,
+          // We manage pagination ourselves and so override whatever the saved filter had
+          page: 1,
+          per_page: mediaItemsPerPage,
+        },
+        scene_marker_filter: currentMediaItemFilter.entityFilter
+      },
+    })
+    mediaItems = response.data?.findSceneMarkers.scene_markers.map(marker => ({
+      id: `marker:${marker.id}`,
+      entityType: "marker" as const,
+      entity: marker,
+    })) || []
+  } else {
+    console.info("currentMediaItemFilter:", currentMediaItemFilter)
+    throw new Error("Unsupported media item filter entity type")
+  }
+  
+  const {
+    fetchMore,
+    error: mediaItemsError,
+    loading: mediaItemsLoading,
+  } = response
   
   // Stash doesn't provide the lengths of preview videos so we track that ourselves by saving the video's duration as 
   // soon as its metadata loads
@@ -90,31 +120,38 @@ export function useScenes({previewOnly}: {previewOnly?: boolean} = {}) {
       scene_markers: [],
     }
   }
-  
-  const scenes = data?.findScenes?.scenes
-    .map(
-      previewOnly ? makeScenePreviewOnly : (s) => s
-    )
-    ?? []
-  
+
   return {
-    scenes,
-    loadMoreScenes: () => {
-      const nextPage = data?.findScenes?.scenes.length ? Math.ceil(data.findScenes.scenes.length / scenesPerPage) + 1 : 1
-      debugMode && console.log("Fetch next scenes page:", nextPage)
+    mediaItems: mediaItems
+      .map(
+        mediaItem => previewOnly && mediaItem.entityType === "scene" 
+          ? {...mediaItem, entity: makeScenePreviewOnly(mediaItem.entity)} 
+          : mediaItem
+      ),
+    loadMoreMediaItems: () => {
+      const nextPage = mediaItems.length ? Math.ceil(mediaItems.length / mediaItemsPerPage) + 1 : 1
+      debugMode && console.log("Fetch next media page:", nextPage)
+      let entityFilterKey: string
+      if (currentMediaItemFilter?.entityType === "scene") {
+        entityFilterKey = "scene_filter"
+      } else if (currentMediaItemFilter?.entityType === "marker") {
+        entityFilterKey = "scene_marker_filter"
+      } else {
+        throw new Error("Unsupported media filter entity type")
+      }
       fetchMore({
         variables: {
           filter: {
-            ...currentSceneFilter?.generalFilter,
+            ...currentMediaItemFilter?.generalFilter,
             // We manage pagination ourselves and so override whatever the saved filter had
             page: nextPage,
-            per_page: scenesPerPage,
+            per_page: mediaItemsPerPage,
           },
-          scene_filter: currentSceneFilter?.sceneFilter
+          [entityFilterKey]: currentMediaItemFilter?.entityFilter
         } 
       })
     },
-    scenesError,
-    scenesLoading
+    mediaItemsError,
+    mediaItemsLoading
   }
 }
