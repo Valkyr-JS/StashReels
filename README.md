@@ -56,7 +56,7 @@ secondfolder-stable
 
 ## Using Stash TV
 
-Click the new **TV** link in the nav bar at the top of Stash (this link can be disabled in the plugin settings if desired).
+Click the new **TV** link in the nav bar at the top of Stash (this button can be disabled in the plugin settings if desired).
 
 ### User interface
 
@@ -115,24 +115,27 @@ generated automatically from the commit history.
 ### Technical info
 The codebase is split into 3 packages.
 - `packages/tv-ui` is where the actual app code for the plugin lives.
-- `packages/tv-plugin` is responsible for taking that web app and building it into a Stash plugin with any config that Stash requires to understand that the output is a stash plugin. 
+- `packages/tv-plugin` is responsible for taking that web app and bundling it into a form that Stash recognises as a
+  plugin. It also includes any UI that is injected directly in Stash's existing UI.
 - `packages/stash-ui` includes a copy of the actual
-Stash app codebase and some code to extract and build just the frontend code from that. This is so we can reuse various parts
-of stash's frontend code such as react components, Stash API client and typescript types without needing to rewrite all that
-ourselves or try to manually keep a copy of those in sync.
+Stash app codebase along with some code to extract and the frontend code from that. This is so we can reuse various parts
+of Stash's frontend code such as react components, Stash API client and typescript types without needing to rewrite all that
+ourselves or try to manually keep a copies of any useful extracted code in sync.
 
 We use the same Apollo client as the stash frontend with a small wrapper around it to make a few tweaks and some additions to the GraphQL
 schema so that we can optimise what data we fetch from the API. At first we load 20 scenes/makers but as the user approaches the
-bottom of the list of loaded media we load some more. The code for loading media is abstracted out into `packages/tv-ui/src/hooks/useMediaItems.ts`.
+bottom of the list of loaded media we load some more. The code for loading media is abstracted out into a hook
+(`useMediaItems()` in `packages/tv-ui/src/hooks/useMediaItems.ts`).
 
 The storybook code is from the original Stash Reels fork and is currently broken as it hasn't yet been updated to
 working with the major code refactoring in Stash TV.
 
 Most of the app's state lives in a Zustand store in `packages/tv-ui/src/store/appStateStore.ts` so that it can be
 accessed anywhere in the codebase without needing to do lots of prop drilling.
-`packages/tv-ui/src/store/stashConfigStore.ts` houses config that lives in stash such as the users saved filters
-(although this has ended up being a little clunky and maybe refactored into a hook like `useMediaItems()` at some point in
-the future).
+`packages/tv-ui/src/store/stashConfigStore.ts` manages fetching and saving any config that lives in Stash, both general
+Stash settings and config info that we save into Stash's plugin config storage. This include such as the user's default
+Stash TV filter although the code for using and updating this is encapsulated in it's own hook (`useMediaItemFilters()`
+in `packages/tv-ui/src/hooks/useMediaItemFilters.ts`).
 
 Stash's ScenePlayer component is in some ways tightly coupled to Stash's codebase so
 `packages/tv-ui/src/components/ScenePlayer` is a wrapper around it that tries to make it a little more contained and
