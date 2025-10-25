@@ -1,0 +1,26 @@
+video-js:not(.vjs-playing) .vjs-big-play-button {
+    display: block;
+}
+
+.vjs-big-play-centered .vjs-big-play-button {
+    height: 100%;
+    width: 33.3%;
+    margin: 0;
+    transform: translate(-50%, -50%);
+}
+
+.video-js .vjs-big-play-button, .video-js:hover .vjs-big-play-button {
+    font-size: 8em;
+    transition: all 0.2s !important;
+    filter: drop-shadow(0 0 0.4em rgba(0, 0, 0, 1));
+
+    &:hover {
+        font-size: 9em;
+    }
+}
+
+/* The poster will play the video when clicked on but we want only the middle to play so we stop it handling clicks */
+.vjs-poster {
+    pointer-events: none;
+    cursor: initial;
+}

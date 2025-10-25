@@ -27,7 +27,6 @@
     "stash-ui": "1.0.0",
     "throttleit": "^2.1.0",
     "videojs-offset": "^2.1.3",
-    "videojs-overlay-buttons": "npm:videojs-overlay-buttons-multiple-players-fix@^1.3.2",
     "vite": "^7.1.2",
     "vite-plugin-svgr": "^4.5.0",
     "zustand": "^4.4.7"

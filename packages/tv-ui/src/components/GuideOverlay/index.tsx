@@ -19,7 +19,7 @@ const GuideOverlay: React.FC<GuideOverlayProps> = (props) => {
       </div>
       <div className="main row-middle col-middle">
         <FontAwesomeIcon icon={faPlay} />
-        <span>Tap this area play/pause the video.</span>
+        <span>Tap this area or press <kbd>space</kbd> to play/pause the video.</span>
       </div>
       <div className="main row-middle col-right">
         <FontAwesomeIcon icon={faClockRotateLeft} flip="horizontal" />

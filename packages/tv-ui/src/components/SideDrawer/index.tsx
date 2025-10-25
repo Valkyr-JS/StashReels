@@ -2,7 +2,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
 import React, { useEffect, useRef } from "react";
-import { useDrag } from "@use-gesture/react";
 import { useSpring, animated, config } from "@react-spring/web";
 import "./SideDrawer.scss";
 import { useAppStateStore } from "../../store/appStateStore";
@@ -134,75 +133,6 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     })
   }
 
-  const didDragRef = useRef(false);
-  // Setup drag gesture for swiping
-  useDrag((state) => {
-    const {
-      xy: [xCord],
-      offset: [xOffset],
-      direction: [xDirection],
-      velocity: [xVelocity],
-      dragging,
-      cancel,
-      last,
-      canceled,
-      first,
-    } = state
-
-    if (first) {
-      // If we start dragging from a point further than 1 sidebar width away from the sidebar when the sidebar is closed
-      // then ignore the drag
-      if (x.get() === 0 && xCord > (x.get() + sidebarWidth)) {
-        return cancel()
-      }
-    }
-    if (dragging) {
-      didDragRef.current = true;
-      // If we drag more than 2x the sidebar width, we cancel the drag and snap back
-      if (xDirection > 0 && xCord / sidebarWidth > 2) {
-        cancel()
-      } else {
-        api.start({ x: xOffset, immediate: true });
-      }
-    } else if (last) {
-      if (didDragRef.current) {
-        // On desktop a click event fires after a drag which we don't want to 
-        window.addEventListener(
-          "click",
-          (event) =>  didDragRef.current && event.stopPropagation(),
-          { once: true, capture: true }
-        )
-        setTimeout(() => didDragRef.current = false, 50);
-      }
-      // Quick but maybe short swipe to the right
-      if (xVelocity > 0.5 && xDirection > 0) {
-        open({ canceled })
-        // Quick but maybe short swipe to the left
-      } else if (xVelocity > 0.5 && xDirection < 0) {
-        close()
-        // Swipe to the right past halfway point
-      } else if (xOffset > (sidebarWidth * 0.5)) {
-        open({ canceled })
-        // Swipe to the left past halfway point
-      } else {
-        close()
-      }
-    }
-  }, {
-    filterTaps: true,
-    bounds: () => ({ left: 0, right: sidebarWidth }),
-    rubberband: true,
-    from: () => [x.get(), 0],
-    target: window,
-    preventScroll: true,
-  });
-  
-  // A workaround for https://github.com/pmndrs/use-gesture/issues/593
-  useEffect(() => {
-    window.addEventListener("click", (event) => {
-      Object.defineProperty(event, 'detail', { value: 0, writable: true });
-    }, { capture: true });
-  }, [])
 
   const overlayOpacity = x.to((px) => Math.min(sidebarWidth, (px / sidebarWidth)))
   const overlayDisplay = x.to((px) => px > 0 ? 'block' : 'none')

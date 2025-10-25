@@ -13,6 +13,7 @@ import ISO6391 from "iso-639-1";
 import React, {
   forwardRef,
   Fragment,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -39,6 +40,12 @@ import { MediaItem } from "../../hooks/useMediaItems";
 import hashObject from 'object-hash';
 import { createPortal } from "react-dom";
 import { useGetterRef } from "../../hooks/useGetterRef";
+import { useGesture } from "@use-gesture/react";
+import videojs from "video.js";
+import {styledBigPlayButton} from "./video-js-plugins/styled-big-play-button";
+import "./video-js-plugins/styled-big-play-button.css";
+
+videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
 export interface VideoItemProps {
   mediaItem: MediaItem;
@@ -121,7 +128,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
     // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
     window.tvCurrentPlayer = videojsPlayerRef.current;
-  }, [isCurrentVideo])
+  }, [isCurrentVideo, debugMode])
   
   // If duration changes (such as when scenePreviewOnly is toggled) we manually update the player since the
   // progress bar doesn't seem to update otherwise
@@ -160,6 +167,25 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       videojsPlayerRef.current?.pause();
     }
   }, [props.index, props.currentIndex, autoplay]);
+  
+  // Handle clicks and gestures on the video element
+  const handleClick = useCallback((event: MouseEvent) => {
+    const {target: videoElm} = event;
+    if (!videoElm || !(videoElm instanceof HTMLElement)) return;
+    
+    const videoElmWidth = videoElm.clientWidth
+    if (event.clientX < (videoElmWidth / 3)) {
+      seekBackwards()
+    } else if (event.clientX < ((videoElmWidth / 3) * 2)) {
+      if (videojsPlayerRef.current?.paused()) {
+        videojsPlayerRef.current?.play()
+      } else {
+        videojsPlayerRef.current?.pause()
+      }
+    } else {
+      seekForwards()
+    }
+  }, [])
     
   useEffect(() => {
     if (!isCurrentVideo) return;
@@ -370,20 +396,14 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           onPrevious={() => {}}
           refVideo={videoRef}
           onEnded={handleOnEnded}
+          onClick={handleClick}
           onVideojsPlayerReady={handleVideojsPlayerReady}
           trackActivity={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
           scrubberThumbnail={!scenePreviewOnly}
           markers={!scenePreviewOnly}
           optionsToMerge={{
             plugins: {
-              touchOverlay: {
-                seekLeft: {
-                  handleClick: seekBackwards
-                },
-                seekRight: {
-                  handleClick: seekForwards
-                }
-              },
+              styledBigPlayButton: {},
               ...(props.mediaItem.entityType === "marker" && !scenePreviewOnly ? {
                 offset: {
                   start: props.mediaItem.entity.seconds,

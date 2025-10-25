@@ -6,13 +6,10 @@ import { useUID } from 'react-uid';
 import { default as cx } from "classnames";
 import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
 import { allowPluginRemoval } from "./hooks/allow-plugin-removal";
-import { registerVideojsOverlayButtonsExtendedPlugin } from "./plugins/videojs-overlay-buttons-extended";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { getPlayerIdForVideoJsPlayer } from "../../helpers";
 import { useAppStateStore } from "../../store/appStateStore";
 import 'videojs-offset'
-
-registerVideojsOverlayButtonsExtendedPlugin();
 
 const videoJsOptionsOverride: Record<string, VideoJsPlayerOptions> = {}
 const videoJsSetupCallbacks: Record<string, (player: VideoJsPlayer) => void> = {}
@@ -60,27 +57,7 @@ videojs.hook('beforesetup', function(videoEl, options) {
             skipButtons: undefined,
             persistVolume: undefined,
             vrMenu: undefined,
-            touchOverlay: {
-                seekLeft: {},
-                play: {},
-                seekRight: {},
-            },
         },
-        // Override defaults found here:
-        // https://github.com/videojs/video.js/blob/7c3d3f4479ba3dd572ac28082ee6e660e4c4e912/src/js/player.js#L5271
-        // Removes:
-        //   bigPlayButton
-        children: [
-            'mediaLoader',
-            'posterImage',
-            'textTrackDisplay',
-            'loadingSpinner',
-            'liveTracker',
-            'controlBar',
-            'errorDisplay',
-            'textTrackSettings',
-            'resizeManager',
-        ]
     }
 });
 
@@ -374,15 +351,18 @@ const ScenePlayer = forwardRef<
         return scene as GQL.SceneDataFragment
     }, [otherProps.scene, initialTimestamp]);
     
+    
+    // We want tapping to trigger click events on mobile which is normally what would happen but Video.js 
+    // behaves differently:
+    // https://github.com/videojs/video.js/issues/8950#issuecomment-2578709881
+    // So we map tap events to click events ourselves
     const lastTouchEndEventRef = useRef<Event | null>(null);
-
-    // Attach the onClick event handler to the video element, converting tap event to click events. There might be a 
-    // cleaner way of doing this. If not we should document why taps don't trigger clicks.
     useEffect(() => {
         if (!videojsPlayer || !onClick) return;
-        videojsPlayer.el().addEventListener('touchend', (event) => {lastTouchEndEventRef.current = event}, {capture: true});
+        videojsPlayer.emitTapEvents();
+
+        videojsPlayer.el().addEventListener('touchend', (event) => { lastTouchEndEventRef.current = event }, { capture: true });
         const onTapHandler = (event: TouchEvent) => {
-            TouchList
             const touchEvent = lastTouchEndEventRef.current
             const touches = touchEvent && 'changedTouches' in touchEvent && touchEvent.changedTouches instanceof TouchList ? touchEvent.changedTouches : null
             if (!touches || touches.length === 0) {
@@ -396,11 +376,17 @@ const ScenePlayer = forwardRef<
             });
             event.target?.dispatchEvent(equivalentMouseEvent);
         }
-        videojsPlayer.on('click', onClick);
         videojsPlayer.on('tap', onTapHandler);
         return () => {
-            videojsPlayer.off('click', onClick);
             videojsPlayer.off('tap', onTapHandler);
+        }
+    }, [videojsPlayer]);
+
+    useEffect(() => {
+        if (!videojsPlayer || !onClick) return;
+        videojsPlayer.on('click', onClick);
+        return () => {
+            videojsPlayer.off('click', onClick);
         }
     }, [videojsPlayer, onClick]);
 
