@@ -16,6 +16,7 @@ type AppState = {
   onlyShowMatchingOrientation: boolean;
   debugMode: boolean;
   autoPlay: boolean;
+  showGuideOverlay?: boolean;
 }
 
 type AppAction = {
@@ -42,6 +43,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
       onlyShowMatchingOrientation: false,
       debugMode: false,
       autoPlay: true,
+      showGuideOverlay: true,
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
         set((state) => ({
           [propName]: typeof value === "function" ? value(state[propName]) : value

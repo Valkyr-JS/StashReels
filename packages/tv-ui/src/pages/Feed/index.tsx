@@ -7,6 +7,7 @@ import Loading from "../../components/Loading";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useMediaItems } from "../../hooks/useMediaItems";
 import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
+import GuideOverlay from "../../components/GuideOverlay";
 
 export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesForTvQuery>[0]
 
@@ -15,7 +16,7 @@ interface FeedPageProps {
 }
 
 const FeedPage: React.FC<FeedPageProps> = ({className}) => {
-  const { showSettings, fullscreen, set: setAppSetting } = useAppStateStore();
+  const { showSettings, fullscreen, showGuideOverlay, set: setAppSetting } = useAppStateStore();
   const { mediaItemFiltersLoading } = useMediaItemFilters()
   const { mediaItems, mediaItemsLoading } = useMediaItems()
 
@@ -25,6 +26,11 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   if (loadedButNoScenes && !showSettings) {
     setAppSetting("showSettings", true);
   }
+  
+    useEffect(() => {
+      if (!showGuideOverlay) return;
+      setAppSetting("showSettings", false);
+    }, [showGuideOverlay]);
   
   /* ------------------------------- Fullscreen ------------------------------- */
   const initialLoad = useRef(true);
@@ -47,6 +53,7 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
       {(mediaItemFiltersLoading || mediaItemsLoading) && <Loading heading="Fetching media..." />}
       {mediaItems.length > 0 && <VideoScroller />}
       {loadedButNoScenes && <div>No Media Found</div>}
+      {showGuideOverlay && <GuideOverlay onClose={() => setAppSetting("showGuideOverlay", false)} />}
       <SettingsTab />
     </main>
   );

@@ -127,9 +127,7 @@ html.force-landscape {
   that we're in a true landscape orientation so we disable it.
   */
   overscroll-behavior-y: none;
-}
 
-html.force-landscape {
   --x-unit-small: 1svh;
   --y-unit-small: 1svw;
   --x-unit-large: 1lvh;
@@ -161,6 +159,40 @@ html.force-landscape body {
   overflow-x: hidden; /* Prevent SettingsTab from causing horizontal scroll */
   scroll-snap-type: y mandatory;
   position: relative;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  margin: 0 0.1em;
+  font-size: 0.9em;
+  line-height: 1.2;
+  color: #f5f8fa;
+  background-color: #212529;
+  border-radius: 0.3em;
+  box-shadow: inset 0 -0.1em 0.2em rgba(0, 0, 0, 0.2);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Roboto,
+    Helvetica Neue,
+    Arial,
+    Noto Sans,
+    Liberation Sans,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    Segoe UI Symbol,
+    "Noto Color Emoji";
+}
+
+html:has(dialog[open]) {
+  &:not(.force-landscape), 
+  &.force-landscape body {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
 }
 
 

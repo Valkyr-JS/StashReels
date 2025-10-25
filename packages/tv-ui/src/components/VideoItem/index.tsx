@@ -64,6 +64,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     scenePreviewOnly,
     debugMode,
     autoPlay: globalAutoPlay,
+    showGuideOverlay,
     set: setAppSetting,
   } = useAppStateStore();
   
@@ -95,7 +96,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const isCurrentVideo = props.index === props.currentIndex;
   
   // Currently hardcoded but could be made configurable later
-  const autoplay = globalAutoPlay && isCurrentVideo;
+  const autoplay = globalAutoPlay && isCurrentVideo && !showGuideOverlay;
   
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
@@ -181,6 +182,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
   }, [forceLandscape, isCurrentVideo]);
+  
+  useEffect(() => {
+    if (!showGuideOverlay) return;
+    videojsPlayerRef.current?.pause();
+  }, [showGuideOverlay]);
 
   function getSkipTime() {
     const duration = scene.files?.[0].duration;

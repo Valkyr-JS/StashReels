@@ -56,37 +56,9 @@ secondfolder-stable
 
 ## Using Stash TV
 
-Click the new **TV** link in the nav bar at the top of Stash (this button can be disabled in the plugin settings if desired).
+Click the new **TV** link in the nav bar at the top of Stash (this button can be disabled in the plugin settings if
+desired).
 
-### User interface
-
-Tap anywhere on the right or left third of the video to skip forward and back in the current video (you can also use the left and
-right arrow keys).
-Swipe up or down (or use the up and down arrow keys) to go to the next or pervious video.
-
-The following buttons appear on the right-hand side of the screen for each scene:
-
-1. Toggle audio mute/unmute
-2. Toggle subtitles (only appears if subtitles are available)
-3. Toggle fullscreen mode
-4. Toggle letterboxed/fill screen
-5. Toggle view rotation (useful on a phone to quickly enable landscape viewing when laying on side)
-6. Toggle looping the current scene
-7. Toggle scene info (only appears if scene info is available)
-8. Settings
-9. Toggle UI visibility
-
-At the bottom of the screen is the scene scrubber, showing the current scene progress and timecode. This can be tapped to move back/forward in the scene.
-
-### Settings
-
-1. Select a filter - Choose from one of your Stash scene filters in the dropdown. If you don't have any filters, all portrait scenes will be fetched as a default filter.
-2. Set current filter as default - Makes the currently selected filter the default when Stash TV is launched. (Only
-   shown if currently selected filter is not already default)
-3. Randomise filter order. (Only shown if currently selected filter is not already sorted by random.)
-4. Subtitle language - Set your preferred subtitle language. If subtitles are available for a scene in this language,
-   they will be displayed. These can be toggled on or off in the main scene UI.
-5. CRT Effect - A fun little visual filter that simulates an old CRT TV look (you can also press the "c" key to toggle this).
 
 ## Roadmap
 A very rough list of features I'd like to add at some point can be found in the [Stash TV thread in the Stash

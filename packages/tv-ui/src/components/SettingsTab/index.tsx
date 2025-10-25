@@ -351,6 +351,17 @@ export default function SettingsTab() {
       <small>Enable debug mode for additional logging and information.</small>
     </div>
 
+    <div className="item checkbox-item">
+      <label>
+        <button
+          onClick={() => setAppSetting('showGuideOverlay', true)}
+        >
+          Show Guide
+        </button>
+      </label>
+      <small>Open the guide see instructions for using Stash TV.</small>
+    </div>
+
     {debugMode && <div className="item">
       <button
         onClick={() => window.location.reload()}

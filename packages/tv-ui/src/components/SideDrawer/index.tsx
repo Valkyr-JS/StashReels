@@ -19,7 +19,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   const bodyRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const { showSettings, forceLandscape, set: setAppSetting } = useAppStateStore();
+  const { showSettings, forceLandscape, showGuideOverlay, set: setAppSetting } = useAppStateStore();
 
   const [sidebarWidth, setSidebarWidth] = React.useState(window.innerWidth);
   useEffect(() => {
@@ -101,10 +101,10 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     if (showSettings) {
       open({immediate: showSettingsFirstTimeRef.current})
     } else {
-      close();
+      close({immediate: showGuideOverlay});
     }
     showSettingsFirstTimeRef.current = false;
-  }, [showSettings]);
+  }, [showSettings, showGuideOverlay]);
 
   const open = ({ canceled, immediate }: { canceled?: boolean, immediate?: boolean } = { canceled: false, immediate: false }) => {
     api.start({
@@ -121,14 +121,14 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     })
   }
 
-  const close = () => {
+  const close = ({ immediate }: { immediate?: boolean } = { immediate: false }) => {
     if (closeDisabled) {
       open();
       return;
     }
     api.start({
       x: 0,
-      immediate: false,
+      immediate,
       config: { ...config.stiff },
       onRest: () => setAppSetting("showSettings", false)
     })

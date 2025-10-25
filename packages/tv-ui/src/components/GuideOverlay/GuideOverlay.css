@@ -1,0 +1,94 @@
+.GuideOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(var(--y-unit-dynamic) * 100);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr 1fr 1fr min-content;
+  grid-template-areas:
+    "main-top-left    main-top-middle    main-top-right"
+    "main-middle-left main-middle-middle main-middle-right"
+    "main-bottom-left main-bottom-middle main-bottom-right"
+    "footer           footer             footer";
+  .main.row-top.col-left      { grid-area: main-top-left; }
+  .main.row-top.col-middle    { grid-area: main-top-middle; }
+  .main.row-top.col-right     { grid-area: main-top-right; }
+  .main.row-middle.col-left   { grid-area: main-middle-left; }
+  .main.row-middle.col-middle { grid-area: main-middle-middle; }
+  .main.row-middle.col-right  { grid-area: main-middle-right; }
+  .main.row-bottom.col-left   { grid-area: main-bottom-left; }
+  .main.row-bottom.col-middle { grid-area: main-bottom-middle; }
+  .main.row-bottom.col-right  { grid-area: main-bottom-right; }
+  .footer                     { grid-area: footer; }
+  z-index: 3;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  
+  /* Reset styles applied by <dialog /> */
+  color: inherit;
+  border: inherit;
+  padding: inherit;
+
+  > * {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: min(2em, calc(var(--x-unit-dynamic) * 3));
+    text-shadow: 
+      black 0 0 30px, 
+      black 0 0 30px, 
+      black 0 0 30px, 
+      black 0 0 30px;
+
+    .svg-inline--fa {
+      font-size: 5rem;
+      color: #fff;
+    }
+  }
+  
+  --border: 1px solid #fff;
+  
+  .main {
+    &:not(.col-left) {
+      border-left: var(--border);
+    }
+    
+    &.row-middle {
+      justify-content: flex-start;
+    }
+    
+    span {
+      max-width: 15rem;
+    }
+  }
+
+  .footer {
+    border-top: var(--border);
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    gap: 1.5rem 4rem;
+    
+    @media (max-width: 600px) {
+      flex-direction: column;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  }
+  
+}
