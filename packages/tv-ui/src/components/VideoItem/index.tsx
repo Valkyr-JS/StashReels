@@ -174,6 +174,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     if (!videoElm || !(videoElm instanceof HTMLElement)) return;
     
     const videoElmWidth = videoElm.clientWidth
+    if (debugMode) console.log(`Click at X=${event.clientX} (video width: ${videoElmWidth})`, videoElm);
     if (event.clientX < (videoElmWidth / 3)) {
       seekBackwards()
     } else if (event.clientX < ((videoElmWidth / 3) * 2)) {
@@ -185,7 +186,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     } else {
       seekForwards()
     }
-  }, [])
+  }, [debugMode])
     
   useEffect(() => {
     if (!isCurrentVideo) return;

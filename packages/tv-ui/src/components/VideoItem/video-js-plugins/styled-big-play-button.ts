@@ -17,6 +17,10 @@ export const styledBigPlayButton = function(
     button.innerHTML = '';
     button.insertAdjacentElement('beforeend', faPlayIcon.node[0]);
     
+    /* We stop propagation to avoid this also being handled by the click handler on the video player itself */
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
     button.addEventListener('touchend', (event) => {
       event.stopPropagation();
     });

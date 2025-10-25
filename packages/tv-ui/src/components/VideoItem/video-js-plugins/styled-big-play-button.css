@@ -2,6 +2,10 @@ video-js:not(.vjs-playing) .vjs-big-play-button {
     display: block;
 }
 
+html:has(dialog[open]) .video-js .vjs-big-play-button {
+    display: none;
+}
+
 .vjs-big-play-centered .vjs-big-play-button {
     height: 100%;
     width: 33.3%;
