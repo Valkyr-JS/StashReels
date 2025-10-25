@@ -5,7 +5,7 @@
 # Stash TV
 
 Stash TV allows you to view your scenes and markers by swiping though them similar to TikTok. It's based on [Stash
-Reels](https://github.com/Valkyr-JS/StashReels) with some performance improvements and additional features.
+Reels](https://github.com/Valkyr-JS/StashReels) with some [performance improvements and additional features](https://github.com/Valkyr-JS/StashReels/issues/44#issue-3542931298).
 
 <p align="center">
   <img alt="Screenshot of the main stash tv interface." src="https://raw.githubusercontent.com/secondfolder/stash-tv/main/docs/stash-tv-screenshot.png">

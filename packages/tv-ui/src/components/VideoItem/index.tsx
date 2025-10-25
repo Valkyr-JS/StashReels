@@ -38,6 +38,7 @@ import VerticalEllipsisOutlineIcon from '../../assets/vertical-ellipsis-outline.
 import { MediaItem } from "../../hooks/useMediaItems";
 import hashObject from 'object-hash';
 import { createPortal } from "react-dom";
+import { useGetterRef } from "../../hooks/useGetterRef";
 
 export interface VideoItemProps {
   mediaItem: MediaItem;
@@ -75,7 +76,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     };
   }, []);
   const { tv: { subtitleLanguage } } = useStashConfigStore();
-  const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
+  
+  // Don't return player if it's disposed
+  const videojsPlayerRef = useGetterRef<VideoJsPlayer | null>(
+    (player) => player?.isDisposed() ? null : player,
+    null,
+    []
+  );
   const videoRef = useRef<HTMLVideoElement | null>(null);
   
   const [loadingDeferred, setLoadingDeferred] = useState(props.currentlyScrolling);
@@ -109,52 +116,47 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }
   
   useEffect(() => {
-    const player = videojsPlayerRef.current
-    if (!debugMode || !isCurrentVideo || !player || player.isDisposed()) return;
+    if (!debugMode || !isCurrentVideo || !videojsPlayerRef.current) return;
 
     // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
-    window.tvCurrentPlayer = player;
+    window.tvCurrentPlayer = videojsPlayerRef.current;
   }, [isCurrentVideo])
   
   // If duration changes (such as when scenePreviewOnly is toggled) we manually update the player since the
   // progress bar doesn't seem to update otherwise
   const firstDurationChangeRef = useRef(true);
   useEffect(() => {
-    const player = videojsPlayerRef.current
-    if (!player || player.isDisposed()) return;
+    if (!videojsPlayerRef.current) return;
     if (firstDurationChangeRef.current) {
       firstDurationChangeRef.current = false;
       return
     }
-    player.duration(scene.files?.[0]?.duration); // Force update of duration
+    videojsPlayerRef.current?.duration(scene.files?.[0]?.duration); // Force update of duration
   }, [scene.files?.[0]?.duration])
   
   useEffect(() => {
-    const player = videojsPlayerRef.current
-    if (!looping || props.mediaItem.entityType !== "marker" || !player || player.isDisposed()) return;
+    if (!looping || props.mediaItem.entityType !== "marker" || !videojsPlayerRef.current) return;
     // videojs-offset doesn't seem to respect loop so we have to manually restart video after it's ended
     // when loop is true
     const handleEnded = () => {
-      player.one('loadstart', () => {
-        player.play();
+      videojsPlayerRef.current?.one('loadstart', () => {
+        videojsPlayerRef.current?.play();
       });
     }
-    player.on('ended', handleEnded);
-    return () => { player.off('ended', handleEnded) };
+    videojsPlayerRef.current?.on('ended', handleEnded);
+    return () => { videojsPlayerRef.current?.off('ended', handleEnded) };
   }, [looping])
 
   /* ------------------------------- Play/pause ------------------------------- */
 
   useEffect(() => {
     // Play/pause the video based only on viewport
-    const videojsPlayer = videojsPlayerRef.current;
-    if (!videojsPlayer) return;
-    // In theory we shouldn't need the conditional on props of videojsPlayer but it seems like sometimes we do
+    if (!videojsPlayerRef.current) return;
     if (props.index === props.currentIndex) {
       if (!autoplay) return;
-      videojsPlayer?.play();
+      videojsPlayerRef.current?.play();
     } else {
-      videojsPlayer?.pause();
+      videojsPlayerRef.current?.pause();
     }
   }, [props.index, props.currentIndex, autoplay]);
     
@@ -200,18 +202,18 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }
   
   function seekForwards() {
-    const videojsPlayer = videojsPlayerRef.current;
-    if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
-    const duration = videojsPlayer.duration();
+    if (!videojsPlayerRef.current) return null;
+    const duration = videojsPlayerRef.current?.duration();
+    if (duration === undefined) return;
     const skipAmount = getSkipTime()
-    debugMode && console.log("Seeking forwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
+    debugMode && console.log("Seeking forwards", {skipAmount, duration})
     if (skipAmount === null || typeof duration !== 'number') {
         return null
     }
-    const nextSkipAheadTime = videojsPlayer.currentTime() + skipAmount
+    const nextSkipAheadTime = videojsPlayerRef.current?.currentTime() + skipAmount
     if (nextSkipAheadTime < duration) {
-      videojsPlayer.currentTime(nextSkipAheadTime)
-      videojsPlayer.play()
+      videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
+      videojsPlayerRef.current?.play()
       return
     }
     props.changeItemHandler((currentIndex) => currentIndex + 1)
@@ -219,18 +221,17 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }
     
   function seekBackwards() {
-    const videojsPlayer = videojsPlayerRef.current;
-    if (!videojsPlayer || videojsPlayer.isDisposed()) return null;
-    const duration = videojsPlayer.duration();
+    if (!videojsPlayerRef.current) return null;
+    const duration = videojsPlayerRef.current?.duration();
     const skipAmount = getSkipTime()
-    debugMode && console.log("Seeking backwards", {skipAmount, duration, isDisposed: videojsPlayer.isDisposed()})
+    debugMode && console.log("Seeking backwards", {skipAmount, duration})
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
-    const nextSkipBackTime = videojsPlayer.currentTime() - skipAmount
+    const nextSkipBackTime = videojsPlayerRef.current?.currentTime() - skipAmount
     if (nextSkipBackTime >= 0) {
-      videojsPlayer.currentTime(nextSkipBackTime)
-      videojsPlayer.play()
+      videojsPlayerRef.current?.currentTime(nextSkipBackTime)
+      videojsPlayerRef.current?.play()
       return
     }
     props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
