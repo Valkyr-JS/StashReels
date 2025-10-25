@@ -24,3 +24,13 @@ video-js:not(.vjs-playing) .vjs-big-play-button {
     pointer-events: none;
     cursor: initial;
 }
+
+.video-js {
+    /* Stop control bar from hiding after timeout */
+    .vjs-control-bar.d-none {
+      display: flex !important;
+    }
+    &.vjs-has-started.vjs-user-inactive.vjs-playing .vjs-control-bar {
+      opacity: 0.5;
+    }
+}
