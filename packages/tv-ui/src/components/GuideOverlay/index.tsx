@@ -9,29 +9,36 @@ type GuideOverlayProps = {
 
 const GuideOverlay: React.FC<GuideOverlayProps> = (props) => {
   return (
-    <dialog className="GuideOverlay" data-testid="GuideOverlay" open>
-      <div className="main row-top col-left"></div>
-      <div className="main row-top col-middle"></div>
-      <div className="main row-top col-right"></div>
-      <div className="main row-middle col-left">
+    <dialog
+      className="GuideOverlay"
+      data-testid="GuideOverlay"
+      open
+    >
+      <div className="header">
+        <h1>Using Stash TV</h1>
+      </div>
+      <div className="spacer row-top col-left"></div>
+      <div className="spacer row-top col-middle"></div>
+      <div className="spacer row-top col-right"></div>
+      <div className="body row-middle col-left">
         <FontAwesomeIcon icon={faClockRotateLeft} />
-        <span>Tap this area or press the <kbd>←</kbd> key to skip backwards by a little bit.</span>
+        <span>Tap the left side or press the <kbd>←</kbd> key to skip backwards by a little bit.</span>
       </div>
-      <div className="main row-middle col-middle">
+      <div className="body row-middle col-middle">
         <FontAwesomeIcon icon={faPlay} />
-        <span>Tap this area or press <kbd>space</kbd> to play/pause the video.</span>
+        <span>Tap the middle or press <kbd>space</kbd> to play/pause the video.</span>
       </div>
-      <div className="main row-middle col-right">
+      <div className="body row-middle col-right">
         <FontAwesomeIcon icon={faClockRotateLeft} flip="horizontal" />
-        <span>Tap this area or press the <kbd>→</kbd> key to skip forwards by a little bit.</span>
+        <span>Tap the right side or press the <kbd>→</kbd> key to skip forwards by a little bit.</span>
       </div>
-      <div className="main row-bottom col-left"></div>
-      <div className="main row-bottom col-middle"></div>
-      <div className="main row-bottom col-right"></div>
+      <div className="spacer row-bottom col-left"></div>
+      <div className="spacer row-bottom col-middle"></div>
+      <div className="spacer row-bottom col-right"></div>
       <div className="footer">
-        <span>Swipe up and down or press the <kbd>↑</kbd> or <kbd>↓</kbd> scroll between videos. </span>
+        <span>Swipe up or down or press the <kbd>↑</kbd> or <kbd>↓</kbd> keys to scroll between videos. </span>
         <div className="actions">
-          You can show this guide again in Settings.
+          <span className="accessInstructions">You can view this guide again in the Settings.</span>
           <button onClick={props.onClose}>Done</button>
         </div>
       </div>
