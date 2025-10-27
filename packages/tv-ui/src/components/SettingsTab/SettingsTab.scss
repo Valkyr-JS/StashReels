@@ -4,6 +4,39 @@
       margin-bottom: 2em;
     }
   }
+  
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  label {
+    font-size: 1.3rem;
+  }
+
+  .custom-switch {
+    padding-left: initial;
+
+    .custom-control-label {
+      align-items: baseline;
+      display: grid;
+      grid-template-columns: 1fr min-content;
+      gap: 1rem;
+      --baseline-offset: 0.1rem;
+
+      &::before,
+      &::after {
+        position: unset;
+        grid-column: 2;
+        grid-row: 1;
+      }
+      &::before {
+        translate: 0 var(--baseline-offset);
+      }
+      &::after {
+        translate: 2px calc(var(--baseline-offset) - 2px);
+      }
+    }
+  }
 
   .checkbox-item {
     label {

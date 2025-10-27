@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./app/App";
 import "./styles/globals.scss";
+import "stash-ui/dist/theme.css";
 
 import { ApolloProvider } from "@apollo/client";
 import { getApolloClient } from "./hooks/getApolloClient";

@@ -24,12 +24,16 @@
     z-index: 10;
     position: relative;
 
-    display: grid;
-    grid-template-rows:
-      [canvas-top main-top] 1fr [main-bottom footer-top]max-content
-      [footer-bottom canvas-bottom];
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .body,
+  .footer {
     padding: 1.5em;
-    gap: 1.5em;
+  }
+  .body {
+    padding-bottom: 0;
   }
 
   .body {

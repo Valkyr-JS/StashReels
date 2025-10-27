@@ -2,11 +2,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useMemo } from "react";
-import Select, {
-  ActionMeta,
-  SingleValue,
-  ThemeConfig,
-} from "react-select";
 import "./SettingsTab.scss";
 import { useStashConfigStore } from "../../store/stashConfigStore";
 import { useAppStateStore } from "../../store/appStateStore";
@@ -14,17 +9,7 @@ import SideDrawer from "../SideDrawer";
 import { useMediaItems } from "../../hooks/useMediaItems";
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
 import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
-
-type ReactSelectOnChange = (
-  newValue: SingleValue<{
-    value: string;
-    label: string;
-  }>,
-  actionMeta: ActionMeta<{
-    value: string;
-    label: string;
-  }>
-) => any;
+import { Button, Form } from "react-bootstrap";
 
 export default function SettingsTab() {
   const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
@@ -71,28 +56,6 @@ export default function SettingsTab() {
   ) : null;
 
   /* ---------------------------------- Forms --------------------------------- */
-
-  // Theming
-  const reactSelectTheme: ThemeConfig = (theme) => ({
-    ...theme,
-    colors: {
-      ...theme.colors,
-      neutral0: theme.colors.neutral90,
-      neutral5: theme.colors.neutral80,
-      neutral10: theme.colors.neutral70,
-      neutral20: theme.colors.neutral60,
-      neutral30: theme.colors.neutral50,
-      neutral40: theme.colors.neutral40,
-      neutral50: theme.colors.neutral30,
-      neutral60: theme.colors.neutral20,
-      neutral70: theme.colors.neutral10,
-      neutral80: theme.colors.neutral5,
-      neutral90: theme.colors.neutral0,
-      primary: theme.colors.neutral30,
-      primary25: theme.colors.neutral60,
-      primary50: theme.colors.neutral80,
-    },
-  });
 
   // 1. Select a media filter
   const filterTypes = [
@@ -144,16 +107,6 @@ export default function SettingsTab() {
       value: subtitleLanguage,
     }
     : undefined;
-
-  const onChangeSubLanguage: ReactSelectOnChange = (option) => {
-    updateStashTvConfig(
-      apolloClient,
-      {
-        subtitleLanguage: option?.value ?? undefined,
-      }
-    );
-    // Refresh the scene list without changing the current index.
-  };
   
   const titleRef = React.useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -184,36 +137,53 @@ export default function SettingsTab() {
     className="SettingsTab"
   >
     <div className="item">
-      <label>
-        <h3>Select a filter type</h3>
-        <Select
-          value={filterTypes.find(ft => ft.value === mediaFilterType)}
-          onChange={(newValue) => {
+      <Form.Group controlId="filter-type">
+        <Form.Label>Media Type</Form.Label>
+        <Form.Control
+          className="input-control"
+          as="select"
+          value={mediaFilterType ?? ""}
+          onChange={(event) => {
+            const newValue = event.currentTarget.value as typeof filterTypes[number]["value"];
             if (!newValue) return;
-            setMediaFilterType(newValue.value);
-            if (newValue.value !== currentMediaItemFilter?.entityType) clearCurrentMediaItemFilter();
+            setMediaFilterType(newValue);
+            if (newValue !== currentMediaItemFilter?.entityType) clearCurrentMediaItemFilter();
           }}
-          options={filterTypes}
-          placeholder={"Select filter type"}
-          theme={reactSelectTheme}
-        />
-      </label>
+        >
+          <option value="" disabled>Select a filter type</option>
+          {filterTypes.map(({label, value}) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Form.Control>
+      </Form.Group>
     </div>
     <div className="item">
-      <label>
-        <h3>Select a filter</h3>
+      <Form.Group controlId="filter">
+        <Form.Label>{filterTypes.find(type => type.value === mediaFilterType)?.label} Filter</Form.Label>
         {!mediaItemFiltersLoading ? (
-          <Select
-            value={selectedFilter ?? null}
-            onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
-            options={filters}
-            placeholder={`${filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
-            theme={reactSelectTheme}
-          />
+          <Form.Control
+            className="input-control"
+            as="select"
+            value={selectedFilter?.value ?? ""}
+            onChange={(event) => {
+              const newValue = event.currentTarget.value;
+              if (!newValue) return;
+              setCurrentMediaItemFilterById(newValue);
+            }}
+          >
+            <option value="" disabled>{filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.</option>
+            {filters.map(({label, value}) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Form.Control>
         ) : (
           <div>Loading...</div>
         )}
-      </label>
+      </Form.Group>
       <small>
         Choose a scene filter from Stash to use as your Stash TV
         filter
@@ -240,7 +210,7 @@ export default function SettingsTab() {
     </div>
 
     {selectedFilter && !selectedFilter.isStashTvDefaultFilter && <div className="item">
-      <button
+      <Button
         onClick={() => {
           updateStashTvConfig(
             apolloClient,
@@ -251,7 +221,7 @@ export default function SettingsTab() {
         }}
       >
         Set "{selectedFilter?.label}" as the default filter
-      </button>
+      </Button>
       <div>
         <small>
           Set the currently selected scene filter as the default filter
@@ -264,110 +234,114 @@ export default function SettingsTab() {
       {currentMediaItemFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
         <span>Filter sort order is random</span>
       ) : <>
-        <label>
-          <input
+          <Form.Switch
+            id="randomise-filter"
             checked={isRandomised}
-            onChange={event => setAppSetting("isRandomised", event.target.checked)}
-            type="checkbox"
+            label="Randomise filter order"
+            onChange={event => {console.log(event); setAppSetting("isRandomised", event.target.checked)}}
           />
-          <h3>Randomise filter order</h3>
-        </label>
         <small>Randomise the order of scenes in the filter.</small>
       </>}
     </div>
 
     <div className="item">
-      <label>
-        <h3>Subtitle language</h3>
-        <Select
-          defaultValue={defaultSubtitles}
-          onChange={onChangeSubLanguage}
-          options={subtitlesList}
-          theme={reactSelectTheme}
-        />
-      </label>
+      <Form.Group controlId="subtitle-language">
+        <Form.Label>Subtitle Language</Form.Label>
+        <Form.Control
+          className="input-control"
+          as="select"
+          value={defaultSubtitles?.value ?? ""}
+          onChange={(event) => {
+            const newValue = event.currentTarget.value as typeof subtitlesList[number]["value"];
+            if (!newValue) return;
+            updateStashTvConfig(
+              apolloClient,
+              {
+                subtitleLanguage: newValue,
+              }
+            );
+          }}
+        >
+          <option value="" disabled>Select a subtitle language</option>
+          {subtitlesList.map(({label, value}) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Form.Control>
+      </Form.Group>
       <small>
         Select the language to use for subtitles if available.
       </small>
     </div>
 
     <div className="item checkbox-item">
-      <label>
-        <input
-          checked={scenePreviewOnly}
-          onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
-          type="checkbox"
-        />
-        <h3>Scene Preview Only</h3>
-      </label>
+      <Form.Switch
+        id="scene-preview-only"
+        label="Scene Preview Only"
+        checked={scenePreviewOnly}
+        onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
+      />
       <small>Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</small>
     </div>
 
     <div className="item checkbox-item">
-      <label>
-        <input
-          checked={onlyShowMatchingOrientation}
-          onChange={event => setAppSetting("onlyShowMatchingOrientation", event.target.checked)}
-          type="checkbox"
-        />
-        <h3>Only Show Scenes Matching Orientation</h3>
-      </label>
+      <Form.Switch
+        id="only-show-matching-orientation"
+        label="Only Show Scenes Matching Orientation"
+        checked={onlyShowMatchingOrientation}
+        onChange={event => setAppSetting("onlyShowMatchingOrientation", event.target.checked)}
+      />
       <small>Limit scenes to only those in the same orientation as the current window.</small>
     </div>
 
     <div className="item checkbox-item">
-      <label>
-        <input
-          checked={autoPlay}
-          onChange={event => setAppSetting("autoPlay", event.target.checked)}
-          type="checkbox"
-        />
-        <h3>Auto Play</h3>
-      </label>
+      <Form.Switch
+        id="auto-play"
+        label="Auto Play"
+        checked={autoPlay}
+        onChange={event => setAppSetting("autoPlay", event.target.checked)}
+      />
       <small>Automatically play scenes.</small>
     </div>
 
     <div className="item checkbox-item">
-      <label>
-        <input
-          checked={crtEffect}
-          onChange={event => setAppSetting("crtEffect", event.target.checked)}
-          type="checkbox"
-        />
-        <h3>CRT effect</h3>
-      </label>
+      <Form.Switch
+        id="crt-effect"
+        label="CRT Effect"
+        checked={crtEffect}
+        onChange={event => setAppSetting("crtEffect", event.target.checked)}
+      />
       <small>Emulate the visual effects of an old CRT television.</small>
     </div>
 
     <div className="item checkbox-item" style={{display: debugMode ? "block" : "none"}}>
-      <label>
-        <input
-          checked={debugMode}
-          onChange={event => setAppSetting("debugMode", event.target.checked)}
-          type="checkbox"
-        />
-        <h3>Debug mode</h3>
-      </label>
+      <Form.Switch
+        id="debug-mode"
+        label="Debug Mode"
+        checked={debugMode}
+        onChange={event => setAppSetting("debugMode", event.target.checked)}
+      />
       <small>Enable debug mode for additional logging and information.</small>
     </div>
 
     <div className="item checkbox-item">
       <label>
-        <button
+        <Button
           onClick={() => setAppSetting('showGuideOverlay', true)}
         >
           Show Guide
-        </button>
+        </Button>
       </label>
       <small>Open the guide see instructions for using Stash TV.</small>
     </div>
 
     {debugMode && <div className="item">
-      <button
+      <Button
         onClick={() => window.location.reload()}
       >
         Reload Page
-      </button>
+      </Button>
     </div>}
 
     {debugMode && <div className="item">

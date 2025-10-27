@@ -2,6 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import "./GuideOverlay.css";
+import { Button } from "react-bootstrap";
 
 type GuideOverlayProps = {
   onClose: () => void;
@@ -39,7 +40,7 @@ const GuideOverlay: React.FC<GuideOverlayProps> = (props) => {
         <span>Swipe up or down or press the <kbd>↑</kbd> or <kbd>↓</kbd> keys to scroll between videos. </span>
         <div className="actions">
           <span className="accessInstructions">You can view this guide again in the Settings.</span>
-          <button onClick={props.onClose}>Done</button>
+          <Button onClick={props.onClose}>Done</Button>
         </div>
       </div>
     </dialog>
