@@ -3,7 +3,7 @@
   position: fixed;
   top: var(--safe-inset-top);
   width: min(300px, 80%);
-  background-color: black;
+  background-color: var(--body-bg);
   max-height: 100%;
   
   // Extend background out to the top, left and bottom to cover gaps during swipe

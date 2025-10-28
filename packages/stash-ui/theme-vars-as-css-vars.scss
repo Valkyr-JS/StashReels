@@ -1,0 +1,16 @@
+@use "sass:meta";
+@use "./build/theme-variables.scss" as colors;
+$colors: meta.module-variables('colors');
+ 
+:root {
+  @each $name, $value in $colors {
+    // Check if the value is a map
+    @if meta.type-of($value) == 'map' {
+      @each $sub-name, $sub-value in $value {
+        --#{$name}-#{$sub-name}: #{$sub-value};
+      }
+    } @else {
+      --#{$name}: #{$value};
+    }
+  }
+}
