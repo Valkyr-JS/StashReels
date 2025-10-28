@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useMemo } from "react";
+import Select from "react-select";
 import "./SettingsTab.scss";
 import { useStashConfigStore } from "../../store/stashConfigStore";
 import { useAppStateStore } from "../../store/appStateStore";
@@ -10,6 +11,7 @@ import { useMediaItems } from "../../hooks/useMediaItems";
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
 import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
 import { Button, Form } from "react-bootstrap";
+import cx from "classnames";
 
 export default function SettingsTab() {
   const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
@@ -137,53 +139,42 @@ export default function SettingsTab() {
     className="SettingsTab"
   >
     <div className="item">
-      <Form.Group controlId="filter-type">
-        <Form.Label>Media Type</Form.Label>
-        <Form.Control
-          className="input-control"
-          as="select"
-          value={mediaFilterType ?? ""}
-          onChange={(event) => {
-            const newValue = event.currentTarget.value as typeof filterTypes[number]["value"];
-            if (!newValue) return;
-            setMediaFilterType(newValue);
-            if (newValue !== currentMediaItemFilter?.entityType) clearCurrentMediaItemFilter();
-          }}
-        >
-          <option value="" disabled>Select a filter type</option>
-          {filterTypes.map(({label, value}) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </Form.Control>
-      </Form.Group>
+      <label htmlFor="filter-type">
+        Media Type
+      </label>
+      {/* We use the "react-select" class name so that stash styles are applied */}
+      <Select
+        inputId="filter-type"
+        className={cx("react-select")}
+        classNamePrefix="react-select"
+        value={filterTypes.find(ft => ft.value === mediaFilterType)}
+        onChange={(newValue) => {
+          if (!newValue) return;
+          setMediaFilterType(newValue.value);
+          if (newValue.value !== currentMediaItemFilter?.entityType) clearCurrentMediaItemFilter();
+        }}
+        options={filterTypes}
+        placeholder={"Select filter type"}
+      />
     </div>
     <div className="item">
-      <Form.Group controlId="filter">
-        <Form.Label>{filterTypes.find(type => type.value === mediaFilterType)?.label} Filter</Form.Label>
-        {!mediaItemFiltersLoading ? (
-          <Form.Control
-            className="input-control"
-            as="select"
-            value={selectedFilter?.value ?? ""}
-            onChange={(event) => {
-              const newValue = event.currentTarget.value;
-              if (!newValue) return;
-              setCurrentMediaItemFilterById(newValue);
-            }}
-          >
-            <option value="" disabled>{filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.</option>
-            {filters.map(({label, value}) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Form.Control>
-        ) : (
-          <div>Loading...</div>
-        )}
-      </Form.Group>
+      <label htmlFor="filter">
+        {filterTypes.find(type => type.value === mediaFilterType)?.label} Filter
+      </label>
+      {/* We use the "react-select" class name so that stash styles are applied */}
+      {!mediaItemFiltersLoading ? (
+        <Select
+          inputId="filter"
+          className={cx("react-select")}
+          classNamePrefix="react-select"
+          value={selectedFilter ?? null}
+          onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
+          options={filters}
+          placeholder={`${filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
+        />
+      ) : (
+        <div>Loading...</div>
+      )}
       <small>
         Choose a scene filter from Stash to use as your Stash TV
         filter
@@ -245,31 +236,27 @@ export default function SettingsTab() {
     </div>
 
     <div className="item">
-      <Form.Group controlId="subtitle-language">
-        <Form.Label>Subtitle Language</Form.Label>
-        <Form.Control
-          className="input-control"
-          as="select"
-          value={defaultSubtitles?.value ?? ""}
-          onChange={(event) => {
-            const newValue = event.currentTarget.value as typeof subtitlesList[number]["value"];
-            if (!newValue) return;
-            updateStashTvConfig(
-              apolloClient,
-              {
-                subtitleLanguage: newValue,
-              }
-            );
-          }}
-        >
-          <option value="" disabled>Select a subtitle language</option>
-          {subtitlesList.map(({label, value}) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </Form.Control>
-      </Form.Group>
+      <label htmlFor="subtitle-language">
+        Subtitle language
+      </label>
+      {/* We use the "react-select" class name so that stash styles are applied */}
+      <Select
+        inputId="subtitle-language"
+        className={cx("react-select")}
+        classNamePrefix="react-select"
+        value={defaultSubtitles}
+        onChange={(newValue) => {
+          if (!newValue) return;
+          updateStashTvConfig(
+            apolloClient,
+            {
+              subtitleLanguage: newValue.value,
+            }
+          );
+        }}
+        options={subtitlesList}
+        placeholder="Select a subtitle language"
+      />
       <small>
         Select the language to use for subtitles if available.
       </small>

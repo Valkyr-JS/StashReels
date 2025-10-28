@@ -78,6 +78,45 @@ html:has(dialog[open]) {
   }
 }
 
+div.react-select__menu,
+div.dropdown-menu {
+  .react-select__option--is-selected {
+    background-color: var(--theme-colors-primary);
+  }
+}
+.react-select {
+  --default-colour: color-mix(in srgb, var(--text-color) 80%, black);
+  --hover-colour: var(--text-color);
+
+  .react-select__menu {
+    margin-top: 2px;
+    z-index: 10;
+  }
+
+  .react-select__control {
+    min-height: 1lh;
+    
+    .react-select__input-container {
+      margin: 0;
+    }
+
+    .react-select__indicator {
+      color: var(--default-colour);
+      transition: color 150ms;
+      padding: 0.3em 0.5em;
+    }
+    .react-select__indicator-separator {
+      background-color: color-mix(in srgb, var(--text-color) 40%, black);
+      margin: 0;
+    }
+  }
+
+  &:hover {
+    .react-select__indicator {
+      color: var(--hover-colour);
+    }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 /*                                  Utilities                                 */
