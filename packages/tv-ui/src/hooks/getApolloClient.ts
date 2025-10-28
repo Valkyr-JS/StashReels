@@ -41,6 +41,33 @@ export function getApolloClient() {
                                 ],
                             }
                         }
+                    },
+                    findSceneMarkers: {
+                        ...originalCacheConfig.typePolicies?.Query.fields?.findSceneMarkers,
+                        keyArgs: (variables) => hashObject({
+                            ...variables,
+                            filter: {
+                                ...variables?.filter,
+                                page: undefined,
+                                per_page: undefined,    
+                            }
+                        }),
+                        merge(
+                            existing: { scene_markers: {__ref: string}[] } = { scene_markers: [] },
+                            incoming: { scene_markers: {__ref: string}[] }
+                        ) {
+                            return {
+                                ...existing,
+                                ...incoming,
+                                scene_markers: [
+                                    ...existing.scene_markers,
+                                    ...incoming.scene_markers
+                                        .filter(incomingSceneMarker => !existing.scene_markers
+                                            .some(existingSceneMarker => existingSceneMarker.__ref === incomingSceneMarker.__ref)
+                                        ),
+                                ],
+                            }
+                        }
                     }
                 }
             },
