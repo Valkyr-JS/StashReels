@@ -32,11 +32,10 @@
   .footer {
     padding: 1.5em;
   }
-  .body {
-    padding-bottom: 0;
-  }
 
   .body {
+    padding-bottom: 0;
+    flex: 1 1 auto;
     grid-row: main-top / main-bottom;
     overflow-y: auto;
   }
