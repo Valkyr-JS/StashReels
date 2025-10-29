@@ -37,4 +37,9 @@ html:has(dialog[open]) .video-js .vjs-big-play-button {
     &.vjs-has-started.vjs-user-inactive.vjs-playing .vjs-control-bar {
       opacity: 0.5;
     }
+    /* Hide play button of the original video.js big play button that we're extending as it may be displayed briefly
+    before this plugin loads */
+    .vjs-icon-placeholder {
+        display: none;
+    }
 }
