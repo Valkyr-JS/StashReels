@@ -17,14 +17,14 @@ const videoItemHeight = "calc(var(--y-unit-large) * 100)"
 export const itemBufferEitherSide = 1 as const;
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
-  const { forceLandscape: isForceLandscape, scenePreviewOnly, onlyShowMatchingOrientation, debugMode, set: setAppSetting } = useAppStateStore();
+  const { forceLandscape: isForceLandscape, onlyShowMatchingOrientation, debugMode, set: setAppSetting } = useAppStateStore();
   const { orientation } = useWindowSize()
   const rootElmRef = useRef<HTMLDivElement | null>(null);
 
   /* ------------------------ Handle loading new videos ----------------------- */
 
 
-  const { mediaItems, loadMoreMediaItems } = useMediaItems({previewOnly: scenePreviewOnly});
+  const { mediaItems, loadMoreMediaItems } = useMediaItems();
 
   const estimateSizeTesterElement = useRef<HTMLDivElement | null>(null);
   useEffect(() => {

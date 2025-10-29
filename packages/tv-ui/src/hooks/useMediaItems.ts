@@ -3,6 +3,7 @@ import { useMediaItemFilters } from './useMediaItemFilters';
 import { useEffect, useState } from "react";
 import { getSceneIdForVideoJsPlayer } from "../helpers";
 import { useAppStateStore } from "../store/appStateStore";
+import { create } from "zustand";
 
 export const mediaItemsPerPage = 20
 
@@ -21,59 +22,80 @@ export type MediaItem = {
   }
 )
 
-type Scene = GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]
+const useGlobalFilterState = create<{
+  response: ReturnType<typeof GQL.useFindScenesForTvQuery> | ReturnType<typeof GQL.useFindSceneMarkersForTvQuery> | null,
+  mediaItems: MediaItem[],
+}>((set, get) => ({
+  response: null,
+  mediaItems: [],
+}))
 
-export function useMediaItems({previewOnly}: {previewOnly?: boolean} = {}) {
+export function useMediaItems() {
   const { currentMediaItemFilter } = useMediaItemFilters()
-  const { debugMode } = useAppStateStore()
+  const { debugMode, scenePreviewOnly: previewOnly} = useAppStateStore()
+  
+  const [isResponsibleForLoading] = useState(!useGlobalFilterState.getState().response)
 
   let response
   let mediaItems: MediaItem[]
-  if (!currentMediaItemFilter || currentMediaItemFilter.entityType === "scene") {
-    response = GQL.useFindScenesForTvQuery({
-      variables: {
-        filter: {
-          ...currentMediaItemFilter?.generalFilter,
-          // We manage pagination ourselves and so override whatever the saved filter had
-          page: 1,
-          per_page: mediaItemsPerPage,
+  if (isResponsibleForLoading) {
+    if (!currentMediaItemFilter || currentMediaItemFilter.entityType === "scene") {
+      response = GQL.useFindScenesForTvQuery({
+        variables: {
+          filter: {
+            ...currentMediaItemFilter?.generalFilter,
+            // We manage pagination ourselves and so override whatever the saved filter had
+            page: 1,
+            per_page: mediaItemsPerPage,
+          },
+          scene_filter: currentMediaItemFilter?.entityFilter
         },
-        scene_filter: currentMediaItemFilter?.entityFilter
-      },
-      skip: !currentMediaItemFilter,
-    })
-    mediaItems = response.data?.findScenes.scenes.map(scene => ({
-      id: `scene:${scene.id}`,
-      entityType: "scene" as const,
-      entity: scene,
-    })) || []
-  } else if (currentMediaItemFilter.entityType === "marker") {
-    response = GQL.useFindSceneMarkersForTvQuery({
-      variables: {
-        filter: {
-          ...currentMediaItemFilter.generalFilter,
-          // We manage pagination ourselves and so override whatever the saved filter had
-          page: 1,
-          per_page: mediaItemsPerPage,
+        skip: !currentMediaItemFilter,
+      })
+      mediaItems = response.data?.findScenes.scenes.map(scene => ({
+        id: `scene:${scene.id}`,
+        entityType: "scene" as const,
+        entity: scene,
+      })) || []
+    } else if (currentMediaItemFilter.entityType === "marker") {
+      response = GQL.useFindSceneMarkersForTvQuery({
+        variables: {
+          filter: {
+            ...currentMediaItemFilter.generalFilter,
+            // We manage pagination ourselves and so override whatever the saved filter had
+            page: 1,
+            per_page: mediaItemsPerPage,
+          },
+          scene_marker_filter: currentMediaItemFilter.entityFilter
         },
-        scene_marker_filter: currentMediaItemFilter.entityFilter
-      },
-    })
-    mediaItems = response.data?.findSceneMarkers.scene_markers.map(marker => ({
-      id: `marker:${marker.id}`,
-      entityType: "marker" as const,
-      entity: {
-        ...marker,
-        get duration() {
-          const defaultMarkerLength = 20;
-          const endTime = marker.end_seconds ?? Math.min(marker.seconds + defaultMarkerLength, marker.scene.files[0].duration);
-          return endTime - marker.seconds;
+      })
+      mediaItems = response.data?.findSceneMarkers.scene_markers.map(marker => ({
+        id: `marker:${marker.id}`,
+        entityType: "marker" as const,
+        entity: {
+          ...marker,
+          get duration() {
+            const defaultMarkerLength = 20;
+            const endTime = marker.end_seconds ?? Math.min(marker.seconds + defaultMarkerLength, marker.scene.files[0].duration);
+            return endTime - marker.seconds;
+          }
         }
-      }
-    })) || []
+      })) || []
+    } else {
+      console.info("currentMediaItemFilter:", currentMediaItemFilter)
+      throw new Error("Unsupported media item filter entity type")
+    }
+    useGlobalFilterState.setState({ mediaItems, response })
+    useEffect(() => {
+      console.log("currentMediaItemFilter changed, resetting media items", currentMediaItemFilter)
+    }, [currentMediaItemFilter])
   } else {
-    console.info("currentMediaItemFilter:", currentMediaItemFilter)
-    throw new Error("Unsupported media item filter entity type")
+    response = useGlobalFilterState(state => state.response)
+    mediaItems = useGlobalFilterState(state => state.mediaItems)
+  }
+  
+  if (response === null) {
+    throw new Error("Media items response is not initialized");
   }
   
   const {
