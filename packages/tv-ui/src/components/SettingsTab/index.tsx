@@ -12,6 +12,7 @@ import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "
 import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
 import { Button, Form } from "react-bootstrap";
 import cx from "classnames";
+import { useMedia } from "react-use";
 
 export default function SettingsTab() {
   const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
@@ -37,6 +38,8 @@ export default function SettingsTab() {
   const { mediaItems, mediaItemsLoading } = useMediaItems()
 
   const noMediaItemsAvailable = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
+  
+  const hasTouchScreen = useMedia("(pointer: coarse)");
   
   const [mediaFilterType, setMediaFilterType] = React.useState<"scene" | "marker">("scene");
   useEffect(() => {
@@ -143,8 +146,10 @@ export default function SettingsTab() {
         Media Type
       </label>
       {/* We use the "react-select" class name so that stash styles are applied */}
+      {/* disabling isSearchable resolves the issue of keyboard popping up on mobile devices and messing up the layout, particularly for forceLandscape mode */}
       <Select
         inputId="filter-type"
+        isSearchable={!hasTouchScreen}
         className={cx("react-select")}
         classNamePrefix="react-select"
         value={filterTypes.find(ft => ft.value === mediaFilterType)}
@@ -167,6 +172,7 @@ export default function SettingsTab() {
           inputId="filter"
           className={cx("react-select")}
           classNamePrefix="react-select"
+          isSearchable={!hasTouchScreen}
           value={selectedFilter ?? null}
           onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
           options={filters}
@@ -244,6 +250,7 @@ export default function SettingsTab() {
         inputId="subtitle-language"
         className={cx("react-select")}
         classNamePrefix="react-select"
+        isSearchable={!hasTouchScreen}
         value={defaultSubtitles}
         onChange={(newValue) => {
           if (!newValue) return;
