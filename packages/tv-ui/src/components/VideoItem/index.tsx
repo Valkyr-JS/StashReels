@@ -423,7 +423,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           onClick={handleClick}
           onVideojsPlayerReady={handleVideojsPlayerReady}
           trackActivity={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
-          scrubberThumbnail={!scenePreviewOnly}
+          scrubberThumbnail={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
           markers={!scenePreviewOnly}
           optionsToMerge={{
             plugins: {
