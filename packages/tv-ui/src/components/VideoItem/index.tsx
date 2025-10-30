@@ -201,9 +201,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       if (e.key === seekBackwardsKey) {
         seekBackwards()
         e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
       } else if (e.key === seekForwardsKey) {
         seekForwards()
         e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
       }
     }
     // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
@@ -219,7 +221,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }, [showGuideOverlay]);
 
   function getSkipTime() {
-    const duration = scene.files?.[0].duration;
+    const duration = videojsPlayerRef.current?.duration();
     if (!duration) {
         return null
     }
@@ -232,7 +234,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     } else if (duration > 1 * 60) {
         skipPercent = 0.20
     } else {
-        skipPercent = 0.50
+        skipPercent = 0.33
     }
     return duration * skipPercent
   }
@@ -242,35 +244,39 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     const duration = videojsPlayerRef.current?.duration();
     if (duration === undefined) return;
     const skipAmount = getSkipTime()
-    debugMode && console.log("Seeking forwards", {skipAmount, duration})
     if (skipAmount === null || typeof duration !== 'number') {
-        return null
+      return null
     }
     const nextSkipAheadTime = videojsPlayerRef.current?.currentTime() + skipAmount
-    if (nextSkipAheadTime < duration) {
-      videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
-      videojsPlayerRef.current?.play()
+    debugMode && console.log("Seeking forwards", {skipAmount, duration, nextSkipAheadTime})
+    if (nextSkipAheadTime > duration) {
+      props.changeItemHandler((currentIndex) => currentIndex + 1)
       return
     }
-    props.changeItemHandler((currentIndex) => currentIndex + 1)
-    return null
+    videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
+    videojsPlayerRef.current?.play()
   }
     
   function seekBackwards() {
     if (!videojsPlayerRef.current) return null;
     const duration = videojsPlayerRef.current?.duration();
     const skipAmount = getSkipTime()
-    debugMode && console.log("Seeking backwards", {skipAmount, duration})
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
-    const nextSkipBackTime = videojsPlayerRef.current?.currentTime() - skipAmount
-    if (nextSkipBackTime >= 0) {
-      videojsPlayerRef.current?.currentTime(nextSkipBackTime)
-      videojsPlayerRef.current?.play()
-      return
+    let nextSkipBackTime = videojsPlayerRef.current?.currentTime() - skipAmount
+    debugMode && console.log("Seeking backwards", {skipAmount, duration, nextSkipBackTime})
+    if (nextSkipBackTime <= 0) {
+      if (props.index === 0) {
+        // There's no previous video to go back to so just go to the very start of this one
+        nextSkipBackTime = 0
+      } else {
+        props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
+        return
+      }
     }
-    props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
+    videojsPlayerRef.current?.currentTime(nextSkipBackTime)
+    videojsPlayerRef.current?.play()
   }
 
   /* ------------------------------ On end event ------------------------------ */
