@@ -177,7 +177,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   
   // Handle clicks and gestures on the video element
   const handleClick = useCallback((event: MouseEvent) => {
-    const {target: videoElm} = event;
+    const {currentTarget: videoElm} = event;
     if (!videoElm || !(videoElm instanceof HTMLElement)) return;
     
     const videoElmWidth = videoElm.clientWidth
