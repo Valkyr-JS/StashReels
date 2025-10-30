@@ -139,6 +139,16 @@ export function useMediaItemFilters() {
 
   async function setCurrentMediaItemFilterById(id: string) {
     setMediaItemFiltersLoading(true);
+    const {name, entityType} = availableSavedFilters.find(f => f.id === id) || {}
+    if (name && entityType) {
+      // Optimistically set the filter so change is immediately reflected in the UI
+      setCurrentSavedFilter({
+        id,
+        mode: entityType === "scene" ? GQL.FilterMode.Scenes : GQL.FilterMode.SceneMarkers,
+        name: name,
+        filter: '', // See the comment above about the `filter` prop
+      });
+    }
     const mediaItemFiltersStashResponse = await fetchSavedFilterFromStash(apolloClient, id);
 
     if (!mediaItemFiltersStashResponse) {
@@ -247,11 +257,17 @@ export function useMediaItemFilters() {
     },
     [availableSavedSceneFilters, stashTvDefaultFilterId]
   );
+  const [lastLoadedCurrentMediaItemFilter, setLastLoadedCurrentMediaItemFilter] = useState<SearchableMediaItemFilter | undefined>(useGlobalFilterState.getState().currentSearchableFilter)
+  useEffect(() => {
+    if (mediaItemFiltersLoading) return;
+    setLastLoadedCurrentMediaItemFilter(useGlobalFilterState.getState().currentSearchableFilter)
+  }, [useGlobalFilterState.getState().currentSearchableFilter, mediaItemFiltersLoading])
   
   return {
     mediaItemFiltersLoading: mediaItemFiltersLoading || mediaItemFiltersNeverLoaded,
     mediaItemFiltersError,
     currentMediaItemFilter: useGlobalFilterState.getState().currentSearchableFilter,
+    lastLoadedCurrentMediaItemFilter,
     clearCurrentMediaItemFilter: () => setCurrentSavedFilter(undefined),
     setCurrentMediaItemFilterById,
     availableSavedFilters

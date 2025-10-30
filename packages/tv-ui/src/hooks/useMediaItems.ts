@@ -31,7 +31,7 @@ const useGlobalFilterState = create<{
 }))
 
 export function useMediaItems() {
-  const { currentMediaItemFilter } = useMediaItemFilters()
+  const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
   const { debugMode, scenePreviewOnly: previewOnly} = useAppStateStore()
   
   const [isResponsibleForLoading] = useState(!useGlobalFilterState.getState().response)
@@ -39,34 +39,34 @@ export function useMediaItems() {
   let response
   let mediaItems: MediaItem[]
   if (isResponsibleForLoading) {
-    if (!currentMediaItemFilter || currentMediaItemFilter.entityType === "scene") {
+    if (!lastLoadedCurrentMediaItemFilter || lastLoadedCurrentMediaItemFilter.entityType === "scene") {
       response = GQL.useFindScenesForTvQuery({
         variables: {
           filter: {
-            ...currentMediaItemFilter?.generalFilter,
+            ...lastLoadedCurrentMediaItemFilter?.generalFilter,
             // We manage pagination ourselves and so override whatever the saved filter had
             page: 1,
             per_page: mediaItemsPerPage,
           },
-          scene_filter: currentMediaItemFilter?.entityFilter
+          scene_filter: lastLoadedCurrentMediaItemFilter?.entityFilter
         },
-        skip: !currentMediaItemFilter,
+        skip: !lastLoadedCurrentMediaItemFilter,
       })
       mediaItems = response.data?.findScenes.scenes.map(scene => ({
         id: `scene:${scene.id}`,
         entityType: "scene" as const,
         entity: scene,
       })) || []
-    } else if (currentMediaItemFilter.entityType === "marker") {
+    } else if (lastLoadedCurrentMediaItemFilter.entityType === "marker") {
       response = GQL.useFindSceneMarkersForTvQuery({
         variables: {
           filter: {
-            ...currentMediaItemFilter.generalFilter,
+            ...lastLoadedCurrentMediaItemFilter.generalFilter,
             // We manage pagination ourselves and so override whatever the saved filter had
             page: 1,
             per_page: mediaItemsPerPage,
           },
-          scene_marker_filter: currentMediaItemFilter.entityFilter
+          scene_marker_filter: lastLoadedCurrentMediaItemFilter.entityFilter
         },
       })
       mediaItems = response.data?.findSceneMarkers.scene_markers.map(marker => ({
@@ -82,13 +82,13 @@ export function useMediaItems() {
         }
       })) || []
     } else {
-      console.info("currentMediaItemFilter:", currentMediaItemFilter)
+      console.info("lastLoadedCurrentMediaItemFilter:", lastLoadedCurrentMediaItemFilter)
       throw new Error("Unsupported media item filter entity type")
     }
     useGlobalFilterState.setState({ mediaItems, response })
     useEffect(() => {
-      console.log("currentMediaItemFilter changed, resetting media items", currentMediaItemFilter)
-    }, [currentMediaItemFilter])
+      useAppStateStore.getState().debugMode && console.log("lastLoadedCurrentMediaItemFilter changed, resetting media items", lastLoadedCurrentMediaItemFilter)
+    }, [lastLoadedCurrentMediaItemFilter])
   } else {
     response = useGlobalFilterState(state => state.response)
     mediaItems = useGlobalFilterState(state => state.mediaItems)
@@ -208,9 +208,9 @@ export function useMediaItems() {
       const nextPage = mediaItems.length ? Math.ceil(mediaItems.length / mediaItemsPerPage) + 1 : 1
       debugMode && console.log("Fetch next media page:", nextPage)
       let entityFilterKey: string
-      if (currentMediaItemFilter?.entityType === "scene") {
+      if (lastLoadedCurrentMediaItemFilter?.entityType === "scene") {
         entityFilterKey = "scene_filter"
-      } else if (currentMediaItemFilter?.entityType === "marker") {
+      } else if (lastLoadedCurrentMediaItemFilter?.entityType === "marker") {
         entityFilterKey = "scene_marker_filter"
       } else {
         throw new Error("Unsupported media filter entity type")
@@ -218,12 +218,12 @@ export function useMediaItems() {
       fetchMore({
         variables: {
           filter: {
-            ...currentMediaItemFilter?.generalFilter,
+            ...lastLoadedCurrentMediaItemFilter?.generalFilter,
             // We manage pagination ourselves and so override whatever the saved filter had
             page: nextPage,
             per_page: mediaItemsPerPage,
           },
-          [entityFilterKey]: currentMediaItemFilter?.entityFilter
+          [entityFilterKey]: lastLoadedCurrentMediaItemFilter?.entityFilter
         } 
       })
     },

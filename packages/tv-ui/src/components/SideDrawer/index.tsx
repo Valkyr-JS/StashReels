@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
 import React, { useEffect, useRef } from "react";
 import { useSpring, animated, config } from "@react-spring/web";
@@ -9,7 +9,7 @@ import { useAppStateStore } from "../../store/appStateStore";
 type Props = {
   children?: React.ReactNode,
   title?: string | React.ReactNode,
-  closeDisabled?: boolean,
+  closeDisabled?: boolean | "loading",
   className?: string
 }
 
@@ -157,9 +157,15 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     return () => scrollElement.removeEventListener("scroll", handleScroll);
   }, [forceLandscape])
   
-  const closeButton =
-    closeDisabled ? null : (
+  let closeButton = null;
+  if (closeDisabled === "loading") {
+    closeButton = (
+      <FontAwesomeIcon className="action" icon={faSpinner} pulse />
+    );
+  } else if (!closeDisabled) {
+    closeButton = (
       <button
+        className="action"
         data-testid="SideDrawer--closeButton"
         onClick={() => setAppSetting("showSettings", false)}
         type="button"
@@ -168,6 +174,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
         <span className="sr-only">Close settings</span>
       </button>
     );
+  }
 
   /* -------------------------------- Component ------------------------------- */
 

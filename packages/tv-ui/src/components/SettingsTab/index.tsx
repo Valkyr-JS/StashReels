@@ -42,18 +42,6 @@ export default function SettingsTab() {
   const hasTouchScreen = useMedia("(pointer: coarse)");
 
 
-  /* --------------------------- Fetching data alert -------------------------- */
-
-  const fetchingDataWarning = mediaItemsLoading ? (
-    <div className='warning'>
-      <h2>
-        <FontAwesomeIcon icon={faSpinner} pulse />
-        <span>Fetching data from Stash...</span>
-      </h2>
-      <p>Please wait while data is loaded.</p>
-    </div>
-  ) : null;
-
   /* ---------------------------------- Forms --------------------------------- */
 
   const allFilters = useMemo(
@@ -137,7 +125,7 @@ export default function SettingsTab() {
   
   return <SideDrawer
     title={<span ref={titleRef}>Settings</span>}
-    closeDisabled={noMediaItemsAvailable || mediaItemsLoading || Boolean(mediaItemFiltersError)}
+    closeDisabled={(mediaItemFiltersLoading || mediaItemsLoading) ? "loading" : noMediaItemsAvailable || Boolean(mediaItemFiltersError)}
     className="SettingsTab"
   >
     <div className="item">
@@ -145,10 +133,11 @@ export default function SettingsTab() {
         Media Filter
       </label>
       {/* We use the "react-select" class name so that stash styles are applied */}
-      {!mediaItemFiltersLoading ? (
+      {!mediaItemFiltersLoading || allFiltersGrouped.length ? (
         <Select
           inputId="filter"
           className={cx("react-select")}
+          isLoading={mediaItemFiltersLoading || mediaItemsLoading}
           classNamePrefix="react-select"
           isSearchable={!hasTouchScreen}
           value={selectedFilter ?? null}
@@ -179,7 +168,6 @@ export default function SettingsTab() {
         filter
       </small>
 
-      {fetchingDataWarning}
       {mediaItemFiltersError ? (
         <div className="error">
           <h2>An error occurred loading scene filters.</h2>
@@ -199,7 +187,7 @@ export default function SettingsTab() {
       )}
     </div>
 
-    {selectedFilter && !selectedFilter.isStashTvDefaultFilter && <div className="item">
+    {selectedFilter && !selectedFilter.isStashTvDefaultFilter && !noMediaItemsAvailable && <div className="item">
       <Button
         onClick={() => {
           updateStashTvConfig(
