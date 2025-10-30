@@ -13,6 +13,8 @@ interface VideoScrollerProps {}
 
 const videoItemHeight = "calc(var(--y-unit-large) * 100)"
 
+export type ScrollToIndexOptions = { behavior?: ScrollBehavior }
+
 /** The number of items to fetch data for. */
 export const itemBufferEitherSide = 1 as const;
 
@@ -153,7 +155,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     return () => window.removeEventListener('scroll', scrollHandler);
   }, []);
   const scrollToIndex = useCallback(
-    (index: React.SetStateAction<number>, options?: { behavior?: ScrollBehavior }) => {
+    (index: React.SetStateAction<number>, options?: ScrollToIndexOptions) => {
       index = typeof index === 'function' ? index(currentIndexRef.current) : index;
       // We don't use TanStack Virtual's `scrollToIndex()` here since it won't scroll to the position for an item that 
       // isn't rendered yet + it seems to be a bit buggy around smooth scrolling since it scrolls then immediately
@@ -392,8 +394,8 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         ) {
           return (
             <VideoItem
-              changeItemHandler={(newIndex) => {
-                scrollToIndex(newIndex);
+              changeItemHandler={(newIndex, scrollOptions) => {
+                scrollToIndex(newIndex, scrollOptions);
                 setCurrentIndex(newIndex);
               }}
               currentIndex={currentIndex}

@@ -45,12 +45,16 @@ import {styledBigPlayButton} from "./video-js-plugins/styled-big-play-button";
 import "./video-js-plugins/styled-big-play-button.css";
 import escapeStringRegexp from 'escape-string-regexp';
 import { proxyPrefix } from "../../constants";
+import { type ScrollToIndexOptions } from "../VideoScroller";
 
 videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
+// Max length of video for which we disable scroll animation when seeking to next/previous video
+const noAnimateDurationThreshold = 30;
+
 export interface VideoItemProps {
   mediaItem: MediaItem;
-  changeItemHandler: ((newIndex: number | ((currentIndex: number) => number)) => void);
+  changeItemHandler: ((newIndex: number | ((currentIndex: number) => number), scrollOptions?: ScrollToIndexOptions) => void);
   currentIndex: number;
   index: number;
   style?: React.CSSProperties | undefined;
@@ -250,7 +254,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     const nextSkipAheadTime = videojsPlayerRef.current?.currentTime() + skipAmount
     debugMode && console.log("Seeking forwards", {skipAmount, duration, nextSkipAheadTime})
     if (nextSkipAheadTime > duration) {
-      props.changeItemHandler((currentIndex) => currentIndex + 1)
+      props.changeItemHandler(
+        (currentIndex) => currentIndex + 1,
+        { ...(duration < noAnimateDurationThreshold ? { behavior: 'instant' } : {}) }
+      );
       return
     }
     videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
@@ -271,7 +278,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         // There's no previous video to go back to so just go to the very start of this one
         nextSkipBackTime = 0
       } else {
-        props.changeItemHandler((currentIndex) => Math.max(currentIndex - 1, 0));
+        props.changeItemHandler(
+          (currentIndex) => Math.max(currentIndex - 1, 0),
+          { ...(duration < noAnimateDurationThreshold ? { behavior: 'instant' } : {}) }
+        );
         return
       }
     }
@@ -286,7 +296,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   /** Handle the event fired at the end of video playback. */
   const handleOnEnded = () => {
     // If not looping on end, scroll to the next item.
-    if (!looping && isCurrentVideo) props.changeItemHandler((currentIndex) => currentIndex + 1);
+    if (!looping && isCurrentVideo) props.changeItemHandler(
+      (currentIndex) => currentIndex + 1,
+      { ...((videojsPlayerRef.current?.duration() || 0) < noAnimateDurationThreshold ? { behavior: 'instant' } : {}) }
+    );
   };
 
   /* ------------------------------- Scene info ------------------------------- */
