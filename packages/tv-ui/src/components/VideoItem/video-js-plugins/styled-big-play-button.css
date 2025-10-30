@@ -21,6 +21,11 @@ html:has(dialog[open]) .video-js .vjs-big-play-button {
     &:hover {
         font-size: 9em;
     }
+    
+    svg {
+        /* Slightly move the play icon to the right to better center it visually with the loading spinner */
+        translate: 0.1em;
+    }
 }
 
 /* The poster will play the video when clicked on but we want only the middle to play so we stop it handling clicks */
