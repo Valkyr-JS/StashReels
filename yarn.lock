@@ -1009,11 +1009,6 @@
   dependencies:
     webcomponents.js "git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24"
 
-"@std/regexp@npm:@jsr/std__regexp":
-  version "1.0.1"
-  resolved "https://npm.jsr.io/~/11/@jsr/std__regexp/1.0.1.tgz#1FE6A28A32AA5972F1C1018B94823F15D1737807"
-  integrity sha512-AnGeP//DHpPvhCWjI5dR4o013JhCQioD8yMF8drD7PWb0X4kvmO35hbZi+NZhfSolz4Ts2cpPzJY+DUpi2XE9A==
-
 "@storybook/addon-a11y@^8.2.9":
   version "8.6.14"
   resolved "https://registry.npmjs.org/@storybook/addon-a11y/-/addon-a11y-8.6.14.tgz"
@@ -3074,6 +3069,11 @@ escape-string-regexp@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-4.0.0.tgz"
   integrity sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==
+
+escape-string-regexp@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-5.0.0.tgz#4683126b500b61762f2dbebace1806e8be31b1c8"
+  integrity sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==
 
 eslint-scope@5.1.1:
   version "5.1.1"

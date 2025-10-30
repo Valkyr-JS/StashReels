@@ -22,3 +22,5 @@ export const PLUGIN_CONFIG_PROPERTY = {
 } as const;
 
 export const PLUGIN_NAMESPACE = "stash-tv" as const;
+
+export const proxyPrefix = "/stash";

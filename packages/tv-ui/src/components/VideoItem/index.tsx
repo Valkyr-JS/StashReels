@@ -40,10 +40,11 @@ import { MediaItem } from "../../hooks/useMediaItems";
 import hashObject from 'object-hash';
 import { createPortal } from "react-dom";
 import { useGetterRef } from "../../hooks/useGetterRef";
-import { useGesture } from "@use-gesture/react";
 import videojs from "video.js";
 import {styledBigPlayButton} from "./video-js-plugins/styled-big-play-button";
 import "./video-js-plugins/styled-big-play-button.css";
+import escapeStringRegexp from 'escape-string-regexp';
+import { proxyPrefix } from "../../constants";
 
 videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
@@ -128,6 +129,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
     // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
     window.tvCurrentPlayer = videojsPlayerRef.current;
+    // @ts-expect-error
+    window.tvCurrentMediaItem = props.mediaItem;
   }, [isCurrentVideo, debugMode])
   
   // If duration changes (such as when scenePreviewOnly is toggled) we manually update the player since the
@@ -623,7 +626,11 @@ const SceneInfoPanel = forwardRef(
     /* ---------------------------------- Title --------------------------------- */
 
     const title = props.title ? <h5>{props.title}</h5> : null;
-    const sceneUrl = props.paths.stream?.split("/stream")[0]?.replace("/scene", "/scenes")
+    let sceneUrl = props.paths.stream?.split("/stream")[0]?.replace("/scene", "/scenes")
+    if (sceneUrl && import.meta.env.STASH_ADDRESS) {
+      const scenePath = new URL(sceneUrl).pathname.replace(new RegExp(`^${escapeStringRegexp(proxyPrefix)}`), "");
+      sceneUrl = new URL(scenePath, import.meta.env.STASH_ADDRESS).toString()
+    }
 
     /* -------------------------------- Component ------------------------------- */
 

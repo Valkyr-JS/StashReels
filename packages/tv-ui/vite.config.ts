@@ -2,7 +2,8 @@ import { defineConfig, loadEnv, ProxyOptions } from "vite";
 import svgr from 'vite-plugin-svgr';
 import pkg from "../../package.json" with { type: "json" };
 import { ClientRequest, ServerResponse } from "http";
-import { escape } from "@std/regexp/escape";
+import escapeStringRegexp from 'escape-string-regexp';
+import { proxyPrefix } from "./src/constants";
 
 export default defineConfig(({mode}) => {
   // Load env file based on `mode` in the current working directory.
@@ -82,7 +83,7 @@ export default defineConfig(({mode}) => {
           let bodyStr = body.toString();
           const stashHost = stashUrl?.host || "";
           if (bodyStr.includes(stashHost)) {
-            bodyStr = bodyStr.replace(new RegExp(`(?:(http)s(:\/\/))?${escape(stashHost)}`, "g"), `$1$2${req.headers["host"]}/stash`);
+            bodyStr = bodyStr.replace(new RegExp(`(?:(http)s(:\/\/))?${escapeStringRegexp(stashHost)}`, "g"), `$1$2${req.headers["host"]}${proxyPrefix}`);
             // @ts-expect-error - We should see if we can fix this type error
             originalWrite.call(res, bodyStr);
           } else {
