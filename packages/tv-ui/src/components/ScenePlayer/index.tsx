@@ -17,6 +17,34 @@ const videoJsSetupCallbacks: Record<string, (player: VideoJsPlayer) => void> = {
 videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
     player.focus = () => {}
+
+    // There seem's to be a bug with videojs where if multiple videos are loaded at the same time then the duration of 
+    // the one player can be set to that of another.     
+    const originalDurationFunction = player.duration.bind(player);
+    const usingOffsetPlugin = !!player.toJSON().plugins.offset;    
+    function modifiedDurationFunction(): number;
+    function modifiedDurationFunction(newDuration: number): void;
+    function modifiedDurationFunction (newDuration?: number) {
+        // The offset plugin manages duration itself so if it's present we just use the original function
+        if (usingOffsetPlugin) {
+            return newDuration === undefined ? originalDurationFunction() : originalDurationFunction(newDuration);
+        }
+        const scene = '_scene' in player ? player._scene as GQL.TvSceneDataFragment : undefined;
+        const durationFromVideoElm = player.tech({ IWillNotUseThisInPlugins: true }).el()?.duration
+        const durationFromScene = scene?.files[0]?.duration;
+        const duration = !isNaN(durationFromVideoElm) && isFinite(durationFromVideoElm) ? durationFromVideoElm : durationFromScene;
+        // If we haven't been able to determine a duration then fall back to original function
+        if (duration === undefined) {
+            return originalDurationFunction();
+        }
+        // If the caller was trying to set the duration then we also set the player's duration but we use our duration value
+        if (newDuration !== undefined) {
+            return originalDurationFunction(duration);
+        }
+        return duration;
+    }
+
+    player.duration = modifiedDurationFunction;
 });
 
 videojs.hook('setup', function(player) {
