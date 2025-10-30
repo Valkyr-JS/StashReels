@@ -91,10 +91,35 @@ div.dropdown-menu {
   .react-select__menu {
     margin-top: 2px;
     z-index: 10;
+    
+    .react-select__group {
+      padding-bottom: 0;
+      padding-top: 0;
+      margin-bottom: 8px;
+      margin-top: 8px;
+
+      .react-select__group-heading {
+        font-size: 1.1em;
+        text-transform: unset;
+        color: inherit;
+        background-color: var(--textfield-bg);
+        padding-top: 0.4em;
+        padding-bottom: 0.4em;
+        display: flex;
+        gap: 0.5em;
+        align-items: center;
+      }
+    }
   }
 
   .react-select__control {
     min-height: 1lh;
+    
+    .react-select__single-value {
+      display: flex;
+      gap: 0.5em;
+      align-items: center;
+    }
     
     .react-select__input-container {
       margin: 0;

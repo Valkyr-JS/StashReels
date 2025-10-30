@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faCirclePlay, faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useMemo } from "react";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import "./SettingsTab.scss";
 import { useStashConfigStore } from "../../store/stashConfigStore";
 import { useAppStateStore } from "../../store/appStateStore";
@@ -22,7 +22,6 @@ export default function SettingsTab() {
     mediaItemFiltersError,
     currentMediaItemFilter,
     setCurrentMediaItemFilterById,
-    clearCurrentMediaItemFilter,
     availableSavedFilters,
   } = useMediaItemFilters()
 
@@ -41,12 +40,6 @@ export default function SettingsTab() {
   const noMediaItemsAvailable = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
   
   const hasTouchScreen = useMedia("(pointer: coarse)");
-  
-  const [mediaFilterType, setMediaFilterType] = React.useState<"scene" | "marker">("scene");
-  useEffect(() => {
-    if (!currentMediaItemFilter) return;
-    setMediaFilterType(currentMediaItemFilter.entityType);
-  }, [currentMediaItemFilter]);
 
 
   /* --------------------------- Fetching data alert -------------------------- */
@@ -63,29 +56,33 @@ export default function SettingsTab() {
 
   /* ---------------------------------- Forms --------------------------------- */
 
-  // 1. Select a media filter
-  const filterTypes = [
-    {
-      label: "Scenes",
-      value: "scene",
-    },
-    {
-      label: "Markers",
-      value: "marker",
-    },
-  ] as const;
-  const filters = useMemo(
+  const allFilters = useMemo(
     () => availableSavedFilters
-      .filter(filter => filter.entityType === mediaFilterType)
       .map(filter => ({
         value: filter.id,
         label: filter.name + (filter.isStashTvDefaultFilter ? " (default)" : ""),
         isStashTvDefaultFilter: filter.isStashTvDefaultFilter,
+        filterType: filter.entityType
       }))
       .sort((a, b) => a.label.localeCompare(b.label)),
-    [availableSavedFilters, mediaFilterType]
+    [availableSavedFilters]
   )
-  const selectedFilter = filters.find(filter => filter.value === currentMediaItemFilter?.savedFilter?.id)
+  const allFiltersGrouped = useMemo(
+    () => [
+        {
+          label: "Scene Filters",
+          filterType: "scene",
+          options: allFilters.filter(filter => filter.filterType === "scene")
+        },
+        {
+          label: "Marker Filters",
+          filterType: "marker",
+          options: allFilters.filter(filter => filter.filterType === "marker")
+        },
+      ] as const,
+    [allFilters]
+  )
+  const selectedFilter = allFilters.find(filter => filter.value === currentMediaItemFilter?.savedFilter?.id)
 
   // 2. Set current filter as default
 
@@ -144,29 +141,8 @@ export default function SettingsTab() {
     className="SettingsTab"
   >
     <div className="item">
-      <label htmlFor="filter-type">
-        Media Type
-      </label>
-      {/* We use the "react-select" class name so that stash styles are applied */}
-      {/* disabling isSearchable resolves the issue of keyboard popping up on mobile devices and messing up the layout, particularly for forceLandscape mode */}
-      <Select
-        inputId="filter-type"
-        isSearchable={!hasTouchScreen}
-        className={cx("react-select")}
-        classNamePrefix="react-select"
-        value={filterTypes.find(ft => ft.value === mediaFilterType)}
-        onChange={(newValue) => {
-          if (!newValue) return;
-          setMediaFilterType(newValue.value);
-          if (newValue.value !== currentMediaItemFilter?.entityType) clearCurrentMediaItemFilter();
-        }}
-        options={filterTypes}
-        placeholder={"Select filter type"}
-      />
-    </div>
-    <div className="item">
       <label htmlFor="filter">
-        {filterTypes.find(type => type.value === mediaFilterType)?.label} Filter
+        Media Filter
       </label>
       {/* We use the "react-select" class name so that stash styles are applied */}
       {!mediaItemFiltersLoading ? (
@@ -177,8 +153,23 @@ export default function SettingsTab() {
           isSearchable={!hasTouchScreen}
           value={selectedFilter ?? null}
           onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
-          options={filters}
-          placeholder={`${filters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
+          options={allFiltersGrouped}
+          placeholder={`${allFilters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
+          components={{
+            GroupHeading: (props) => (
+              <components.GroupHeading {...props}>
+                <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
+                {props.data.label}
+                
+              </components.GroupHeading>
+            ),
+            SingleValue: (props) => (
+              <components.SingleValue {...props}>
+                <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
+                {props.data.label}
+              </components.SingleValue>
+            ),
+          }}
         />
       ) : (
         <div>Loading...</div>
