@@ -74,6 +74,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     uiVisible,
     crtEffect,
     scenePreviewOnly,
+    showDevOptions,
     debugMode,
     autoPlay: globalAutoPlay,
     showGuideOverlay,
@@ -129,13 +130,13 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   }
   
   useEffect(() => {
-    if (!debugMode || !isCurrentVideo || !videojsPlayerRef.current) return;
+    if (!showDevOptions || !isCurrentVideo || !videojsPlayerRef.current) return;
 
     // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
     window.tvCurrentPlayer = videojsPlayerRef.current;
     // @ts-expect-error
     window.tvCurrentMediaItem = props.mediaItem;
-  }, [isCurrentVideo, debugMode])
+  }, [isCurrentVideo, showDevOptions])
   
   // If duration changes (such as when scenePreviewOnly is toggled) we manually update the player since the
   // progress bar doesn't seem to update otherwise

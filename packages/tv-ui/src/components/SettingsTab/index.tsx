@@ -31,6 +31,7 @@ export default function SettingsTab() {
     crtEffect,
     scenePreviewOnly,
     onlyShowMatchingOrientation,
+    showDevOptions,
     debugMode,
     autoPlay,
     set: setAppSetting
@@ -116,19 +117,20 @@ export default function SettingsTab() {
   const titleRef = React.useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!titleRef.current) return;
-    let enableDebugModeTimer: NodeJS.Timeout | undefined;
-    const handlePointerDown = () => {
-      enableDebugModeTimer = setTimeout(() => {
-        setAppSetting("debugMode", true);
-      }, 5000);
-    };
+    let clearClickCountTimer: NodeJS.Timeout | undefined;
+    let clickCount = 0
     const handlePointerUp = () => {
-      clearTimeout(enableDebugModeTimer);
+      clickCount += 1;
+      if (clickCount > 4) {
+        setAppSetting("showDevOptions", true);
+      }
+      clearTimeout(clearClickCountTimer);
+      clearClickCountTimer = setTimeout(() => {
+        clickCount = 0;
+      }, 1000);
     };
-    titleRef.current.addEventListener("pointerdown", handlePointerDown)
     titleRef.current.addEventListener("pointerup", handlePointerUp)
     return () => {
-      titleRef.current?.removeEventListener("pointerdown", handlePointerDown)
       titleRef.current?.removeEventListener("pointerup", handlePointerUp)
     }
       
@@ -309,16 +311,6 @@ export default function SettingsTab() {
       <small>Emulate the visual effects of an old CRT television.</small>
     </div>
 
-    <div className="item checkbox-item" style={{display: debugMode ? "block" : "none"}}>
-      <Form.Switch
-        id="debug-mode"
-        label="Debug Mode"
-        checked={debugMode}
-        onChange={event => setAppSetting("debugMode", event.target.checked)}
-      />
-      <small>Enable debug mode for additional logging and information.</small>
-    </div>
-
     <div className="item checkbox-item">
       <label>
         <Button
@@ -329,17 +321,39 @@ export default function SettingsTab() {
       </label>
       <small>Open the guide see instructions for using Stash TV.</small>
     </div>
+  
+    {showDevOptions && <>
+      <div className="item checkbox-item">
+        <Form.Switch
+          id="show-dev-options"
+          label="Hide Developer Options"
+          checked={showDevOptions}
+          onChange={event => setAppSetting("showDevOptions", false)}
+        />
+        <small>Hide developer options.</small>
+      </div>
+      
+      <div className="item checkbox-item">
+        <Form.Switch
+          id="debug-mode"
+          label="Debug Mode"
+          checked={debugMode}
+          onChange={event => setAppSetting("debugMode", event.target.checked)}
+        />
+        <small>Enable debug mode for additional logging and information.</small>
+      </div>
 
-    {debugMode && <div className="item">
-      <Button
-        onClick={() => window.location.reload()}
-      >
-        Reload Page
-      </Button>
-    </div>}
+      <div className="item">
+        <Button
+          onClick={() => window.location.reload()}
+        >
+          Reload Page
+        </Button>
+      </div>
 
-    {debugMode && <div className="item">
-      {import.meta.env.VITE_STASH_TV_VERSION}
-    </div>}
+      <div className="item">
+        {import.meta.env.VITE_STASH_TV_VERSION}
+      </div>
+    </>}
   </SideDrawer>;
 };

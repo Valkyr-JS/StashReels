@@ -14,6 +14,7 @@ type AppState = {
   crtEffect: boolean;
   scenePreviewOnly: boolean;
   onlyShowMatchingOrientation: boolean;
+  showDevOptions: boolean;
   debugMode: boolean;
   autoPlay: boolean;
   showGuideOverlay?: boolean;
@@ -41,6 +42,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
       crtEffect: false,
       scenePreviewOnly: false,
       onlyShowMatchingOrientation: false,
+      showDevOptions: false,
       debugMode: false,
       autoPlay: true,
       showGuideOverlay: true,
