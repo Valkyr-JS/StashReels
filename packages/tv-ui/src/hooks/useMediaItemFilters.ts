@@ -188,28 +188,36 @@ export function useMediaItemFilters() {
       return updatedFilter;
     }
     
+    function addSceneFiltersMods(sceneFilter: GQL.FindScenesForTvQueryVariables["scene_filter"]) {
+      if (limitOrientation) {
+        sceneFilter = sceneFilter || {};
+        sceneFilter.orientation = {
+          "value": [
+            limitOrientation.toUpperCase() as GQL.OrientationEnum,
+            "SQUARE" as GQL.OrientationEnum
+          ]
+        };
+      }
+      return sceneFilter;
+    }
+    
     function getSceneFilter() {
       const filter = new ListFilterModel(savedFilter.mode)
       filter.configureFromSavedFilter(savedFilter);
 
-      const sceneFilter = filter.makeFilter();
-      if (limitOrientation) {
-        sceneFilter.orientation = {
-          "value": [
-            limitOrientation.toUpperCase(),
-            "SQUARE"
-          ]
-        };
-      }
-      
-      return sceneFilter;
+      return addSceneFiltersMods(
+        filter.makeFilter()
+      )
     }
     
     function getMarkerFilter() {
       const filter = new ListFilterModel(savedFilter.mode)
       filter.configureFromSavedFilter(savedFilter);
 
-      return filter.makeFilter();
+      const markerFilter: GQL.FindSceneMarkersForTvQueryVariables["scene_marker_filter"] = filter.makeFilter();
+      markerFilter.scene_filter = addSceneFiltersMods(markerFilter.scene_filter);
+      
+      return markerFilter;
     }
     
     const sharedProps = {
