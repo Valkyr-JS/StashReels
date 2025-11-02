@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import "./Feed.scss";
 import VideoScroller from "../../components/VideoScroller";
 import { useAppStateStore } from "../../store/appStateStore";
-import SettingsTab from "../../components/SettingsTab";
+import SettingsTab from "../../components/settings/SettingsTab";
 import Loading from "../../components/Loading";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useMediaItems } from "../../hooks/useMediaItems";

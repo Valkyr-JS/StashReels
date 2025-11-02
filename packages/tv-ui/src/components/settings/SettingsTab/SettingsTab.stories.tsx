@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { setCssVHDecorator } from "../../../../../.storybook/decorators";
+import { setCssVHDecorator } from "../../../../../../.storybook/decorators";
 import SettingsTab from ".";
 import { fn } from "@storybook/test";
 

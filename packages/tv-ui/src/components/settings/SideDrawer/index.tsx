@@ -4,7 +4,7 @@ import { default as cx } from "classnames";
 import React, { useEffect, useRef } from "react";
 import { useSpring, animated, config } from "@react-spring/web";
 import "./SideDrawer.scss";
-import { useAppStateStore } from "../../store/appStateStore";
+import { useAppStateStore } from "../../../store/appStateStore";
 
 type Props = {
   children?: React.ReactNode,

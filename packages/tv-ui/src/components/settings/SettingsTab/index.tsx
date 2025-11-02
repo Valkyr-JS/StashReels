@@ -2,17 +2,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCirclePlay, faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
 import React, { useEffect, useMemo } from "react";
-import Select, { components } from "react-select";
+import Select from "../Select";
+import { components } from "react-select";
 import "./SettingsTab.scss";
-import { useStashConfigStore } from "../../store/stashConfigStore";
-import { useAppStateStore } from "../../store/appStateStore";
+import { useStashConfigStore } from "../../../store/stashConfigStore";
+import { useAppStateStore } from "../../../store/appStateStore";
 import SideDrawer from "../SideDrawer";
-import { useMediaItems } from "../../hooks/useMediaItems";
+import { useMediaItems } from "../../../hooks/useMediaItems";
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
-import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
+import { useMediaItemFilters } from "../../../hooks/useMediaItemFilters";
 import { Button, Form } from "react-bootstrap";
-import cx from "classnames";
-import { useMedia } from "react-use";
 
 export default function SettingsTab() {
   const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
@@ -38,8 +37,6 @@ export default function SettingsTab() {
   const { mediaItems, mediaItemsLoading } = useMediaItems()
 
   const noMediaItemsAvailable = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
-  
-  const hasTouchScreen = useMedia("(pointer: coarse)");
 
 
   /* ---------------------------------- Forms --------------------------------- */
@@ -132,14 +129,10 @@ export default function SettingsTab() {
       <label htmlFor="filter">
         Media Filter
       </label>
-      {/* We use the "react-select" class name so that stash styles are applied */}
       {!mediaItemFiltersLoading || allFiltersGrouped.length ? (
         <Select
           inputId="filter"
-          className={cx("react-select")}
           isLoading={mediaItemFiltersLoading || mediaItemsLoading}
-          classNamePrefix="react-select"
-          isSearchable={!hasTouchScreen}
           value={selectedFilter ?? null}
           onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
           options={allFiltersGrouped}
@@ -226,12 +219,8 @@ export default function SettingsTab() {
       <label htmlFor="subtitle-language">
         Subtitle language
       </label>
-      {/* We use the "react-select" class name so that stash styles are applied */}
       <Select
         inputId="subtitle-language"
-        className={cx("react-select")}
-        classNamePrefix="react-select"
-        isSearchable={!hasTouchScreen}
         value={defaultSubtitles}
         onChange={(newValue) => {
           if (!newValue) return;
