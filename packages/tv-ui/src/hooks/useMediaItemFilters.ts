@@ -1,12 +1,13 @@
 
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useStashConfigStore } from "../store/stashConfigStore";
 import { ListFilterModel } from "stash-ui/dist/src/models/list-filter/filter";
 import { useAppStateStore } from "../store/appStateStore";
 import { useWindowSize } from "./useWindowSize";
 import { create } from "zustand";
+import { useConditionalMemo } from "./useMemoConditional";
 
 /** In Stash a filter has a different format when it's saved vs when it's used in a search. The stash codebase doesn't
  * seem to do a great job of naming these different formats to make that clear. When a filter is saved it usually just
@@ -42,46 +43,31 @@ export type SearchableMediaItemFilter = {
 type EntityType = SearchableMediaItemFilter["entityType"]
 
 const useGlobalFilterState = create<{
-  currentSavedFilter: SavedMediaItemFilter | undefined,
-  setCurrentSavedFilter: (filter: SavedMediaItemFilter | undefined) => void,
-  currentSearchableFilter: SearchableMediaItemFilter | undefined,
-  loading: boolean,
-  setLoading: (loading: boolean) => void,
   neverLoaded: boolean,
-  setNeverLoaded: (neverLoaded: boolean) => void,
   loadingResponsibilityClaimed: boolean,
+  currentSavedFilter: SavedMediaItemFilter | undefined,
+  loading: boolean,
   error: unknown,
-  setError: (error: unknown) => void,
-}>((set, get) => ({
-  currentSavedFilter: undefined,
-  setCurrentSavedFilter: (filter: SavedMediaItemFilter | undefined) => set({ currentSavedFilter: filter }),
-  currentSearchableFilter: undefined,
-  loading: false,
-  setLoading: (loading: boolean) => set({ loading }),
+  randomSeed?: number,
+}>(() => ({
   neverLoaded: true,
-  setNeverLoaded: (neverLoaded: boolean) => set({ neverLoaded }),
   loadingResponsibilityClaimed: false,
+  currentSavedFilter: undefined,
+  loading: false,
   error: undefined,
-  setError: (error: unknown) => set({ error }),
+  randomSeed: getRandomSeed(),
 }))
 
 export function useMediaItemFilters() {
   const {
+    neverLoaded,
     currentSavedFilter,
-    setCurrentSavedFilter,
     loading: mediaItemFiltersLoading,
-    setLoading: setMediaItemFiltersLoading,
-    neverLoaded: mediaItemFiltersNeverLoaded,
-    setNeverLoaded: setMediaItemFiltersNeverLoaded,
     error: mediaItemFiltersError,
-    setError: setMediaItemFiltersError,
+    randomSeed,
   } = useGlobalFilterState()
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   
-  const [isResponsibleForLoading] = useState(!useGlobalFilterState.getState().loadingResponsibilityClaimed)
-  if (isResponsibleForLoading && !useGlobalFilterState.getState().loadingResponsibilityClaimed) {
-    useGlobalFilterState.setState({loadingResponsibilityClaimed: true})
-  }
 
   const {
     general: { stashDefaultScenesFilter, availableSavedSceneFilters, availableSavedMarkerFilters },
@@ -95,58 +81,66 @@ export function useMediaItemFilters() {
   if (onlyShowMatchingOrientation && orientation !== "square") {
     limitOrientation = orientation
   }
-  
-  useEffect(() => {
-    if (!isResponsibleForLoading) return;
-    useGlobalFilterState.setState({
-      currentSearchableFilter: currentSavedFilter ? convertSavedToSearchableFilter(currentSavedFilter) : undefined,
-    })
-  }, [currentSavedFilter, isRandomised, onlyShowMatchingOrientation && orientation])
+
+  const currentSearchableFilter = useMemo(
+    () => currentSavedFilter ? convertSavedToSearchableFilter(currentSavedFilter) : undefined,
+    [currentSavedFilter, isRandomised && randomSeed, limitOrientation]
+  )
+  const lastLoadedCurrentMediaItemFilter = useConditionalMemo(
+    () => currentSearchableFilter,
+    [currentSearchableFilter],
+    !mediaItemFiltersLoading
+  )
   
   // Load default filter on initial load.
   useEffect(() => {
-    if (stashConfigLoading || currentSavedFilter || !isResponsibleForLoading) return;
+    if (useGlobalFilterState.getState().loadingResponsibilityClaimed || stashConfigLoading) return;
+    useGlobalFilterState.setState({ loadingResponsibilityClaimed: true, loading: true });
     // Place most of the logic into a separate function so we can use async/await
     async function setCurrentMediaItemFilterOnInitialLoad() {
-      setMediaItemFiltersLoading(true);
-      setMediaItemFiltersNeverLoaded(false);
       try {
         if (stashTvDefaultFilterId) {
           await setCurrentMediaItemFilterById(stashTvDefaultFilterId)
         } else if (stashDefaultScenesFilter)  {
           // No default filter ID set for Stash TV specifically so we use the default Stash filter
-          setCurrentSavedFilter({
-            ...stashDefaultScenesFilter,
-            filter: '', // The filter prop is deprecated in favour of find_filter and object_filter, and it's not 
-              // provided when getting a default saved filter so we can safely set an empty string here.
+          useGlobalFilterState.setState({
+            currentSavedFilter: {
+              ...stashDefaultScenesFilter,
+              filter: '', // The filter prop is deprecated in favour of find_filter and object_filter, and it's not 
+                // provided when getting a default saved filter so we can safely set an empty string here.
+            }
           })
         } else {
           // No Stash default filter so we should use an empty filter
-          setCurrentSavedFilter({
-            id: "",
-            mode: GQL.FilterMode.Scenes,
-            name: "",
-            filter: "", // See the comment above about the `filter` prop
+          useGlobalFilterState.setState({
+            currentSavedFilter: {
+              id: "",
+              mode: GQL.FilterMode.Scenes,
+              name: "",
+              filter: "", // See the comment above about the `filter` prop
+            }
           })
         }
       } catch (error) {
-        setMediaItemFiltersError(error);
+        useGlobalFilterState.setState({ error });
       }
-      setMediaItemFiltersLoading(false);
+      useGlobalFilterState.setState({ loading: false });
     }
     setCurrentMediaItemFilterOnInitialLoad()
-  }, [stashConfigLoading, stashTvDefaultFilterId, stashDefaultScenesFilter]);
+  }, [neverLoaded, stashConfigLoading, stashTvDefaultFilterId, stashDefaultScenesFilter]);
 
   async function setCurrentMediaItemFilterById(id: string) {
-    setMediaItemFiltersLoading(true);
+    useGlobalFilterState.setState({ loading: true });
     const {name, entityType} = availableSavedFilters.find(f => f.id === id) || {}
     if (name && entityType) {
       // Optimistically set the filter so change is immediately reflected in the UI
-      setCurrentSavedFilter({
-        id,
-        mode: entityType === "scene" ? GQL.FilterMode.Scenes : GQL.FilterMode.SceneMarkers,
-        name: name,
-        filter: '', // See the comment above about the `filter` prop
+      useGlobalFilterState.setState({
+        currentSavedFilter: {
+          id,
+          mode: entityType === "scene" ? GQL.FilterMode.Scenes : GQL.FilterMode.SceneMarkers,
+          name: name,
+          filter: '', // See the comment above about the `filter` prop
+        }
       });
     }
     const mediaItemFiltersStashResponse = await fetchSavedFilterFromStash(apolloClient, id);
@@ -156,11 +150,14 @@ export function useMediaItemFilters() {
       return undefined;
     }
     
-    setCurrentSavedFilter({
-      ...mediaItemFiltersStashResponse,
-      filter: '', // See the comment above about the `filter` prop
+    useGlobalFilterState.setState({
+      randomSeed: getRandomSeed(),
+      currentSavedFilter: {
+        ...mediaItemFiltersStashResponse,
+        filter: '', // See the comment above about the `filter` prop
+      },
+      loading: false,
     });
-    setMediaItemFiltersLoading(false);
   }
 
   async function fetchSavedFilterFromStash(apolloClient: ApolloClient<NormalizedCacheObject>, filterId: string): Promise<GQL.SavedFilterDataFragment | null> {
@@ -181,8 +178,7 @@ export function useMediaItemFilters() {
       const updatedFilter = { ...filter.makeFindFilter() };
 
       if (updatedFilter.sort?.match(/^random_\d*$/) || isRandomised) {
-        let seed = Math.round(Math.random() * 1000000)
-        updatedFilter.sort = `random_${seed}`
+        updatedFilter.sort = `random_${randomSeed}`
       }
 
       return updatedFilter;
@@ -265,19 +261,19 @@ export function useMediaItemFilters() {
     },
     [availableSavedSceneFilters, stashTvDefaultFilterId]
   );
-  const [lastLoadedCurrentMediaItemFilter, setLastLoadedCurrentMediaItemFilter] = useState<SearchableMediaItemFilter | undefined>(useGlobalFilterState.getState().currentSearchableFilter)
-  useEffect(() => {
-    if (mediaItemFiltersLoading) return;
-    setLastLoadedCurrentMediaItemFilter(useGlobalFilterState.getState().currentSearchableFilter)
-  }, [useGlobalFilterState.getState().currentSearchableFilter, mediaItemFiltersLoading])
   
   return {
-    mediaItemFiltersLoading: mediaItemFiltersLoading || mediaItemFiltersNeverLoaded,
+    mediaItemFiltersLoading: mediaItemFiltersLoading,
+    mediaItemFiltersNeverLoaded: neverLoaded,
     mediaItemFiltersError,
-    currentMediaItemFilter: useGlobalFilterState.getState().currentSearchableFilter,
+    currentMediaItemFilter: currentSearchableFilter,
     lastLoadedCurrentMediaItemFilter,
-    clearCurrentMediaItemFilter: () => setCurrentSavedFilter(undefined),
+    clearCurrentMediaItemFilter: () => useGlobalFilterState.setState({ currentSavedFilter: undefined }),
     setCurrentMediaItemFilterById,
     availableSavedFilters
   }
 }
+
+function getRandomSeed() {
+  return Math.round(Math.random() * 1000000)
+};

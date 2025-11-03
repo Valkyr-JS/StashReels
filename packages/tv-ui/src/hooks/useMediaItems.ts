@@ -1,9 +1,9 @@
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useMediaItemFilters } from './useMediaItemFilters';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSceneIdForVideoJsPlayer } from "../helpers";
 import { useAppStateStore } from "../store/appStateStore";
-import { create } from "zustand";
+import hashObject from 'object-hash';
 
 export const mediaItemsPerPage = 20
 
@@ -22,54 +22,52 @@ export type MediaItem = {
   }
 )
 
-const useGlobalFilterState = create<{
-  response: ReturnType<typeof GQL.useFindScenesForTvQuery> | ReturnType<typeof GQL.useFindSceneMarkersForTvQuery> | null,
-  mediaItems: MediaItem[],
-}>((set, get) => ({
-  response: null,
-  mediaItems: [],
-}))
-
 export function useMediaItems() {
   const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
   const { debugMode, scenePreviewOnly: previewOnly} = useAppStateStore()
   
-  const [isResponsibleForLoading] = useState(!useGlobalFilterState.getState().response)
+  const [ neverLoaded, setNeverLoaded ] = useState(true)
 
   let response
   let mediaItems: MediaItem[]
-  if (isResponsibleForLoading) {
-    if (!lastLoadedCurrentMediaItemFilter || lastLoadedCurrentMediaItemFilter.entityType === "scene") {
-      response = GQL.useFindScenesForTvQuery({
-        variables: {
-          filter: {
-            ...lastLoadedCurrentMediaItemFilter?.generalFilter,
-            // We manage pagination ourselves and so override whatever the saved filter had
-            page: 1,
-            per_page: mediaItemsPerPage,
-          },
-          scene_filter: lastLoadedCurrentMediaItemFilter?.entityFilter
+  if (!lastLoadedCurrentMediaItemFilter || lastLoadedCurrentMediaItemFilter.entityType === "scene") {
+    const scenesResponse = GQL.useFindScenesForTvQuery({
+      variables: {
+        filter: {
+          ...lastLoadedCurrentMediaItemFilter?.generalFilter,
+          // We manage pagination ourselves and so override whatever the saved filter had
+          page: 1,
+          per_page: mediaItemsPerPage,
         },
-        skip: !lastLoadedCurrentMediaItemFilter,
-      })
-      mediaItems = response.data?.findScenes.scenes.map(scene => ({
+        scene_filter: lastLoadedCurrentMediaItemFilter?.entityFilter
+      },
+      skip: !lastLoadedCurrentMediaItemFilter,
+    })
+    mediaItems = useMemo(
+      () => scenesResponse.data?.findScenes.scenes.map(scene => ({
         id: `scene:${scene.id}`,
         entityType: "scene" as const,
         entity: scene,
-      })) || []
-    } else if (lastLoadedCurrentMediaItemFilter.entityType === "marker") {
-      response = GQL.useFindSceneMarkersForTvQuery({
-        variables: {
-          filter: {
-            ...lastLoadedCurrentMediaItemFilter.generalFilter,
-            // We manage pagination ourselves and so override whatever the saved filter had
-            page: 1,
-            per_page: mediaItemsPerPage,
-          },
-          scene_marker_filter: lastLoadedCurrentMediaItemFilter.entityFilter
+      })) || [],
+      [scenesResponse.data?.findScenes.scenes]
+    )
+    response = scenesResponse
+    
+  } else if (lastLoadedCurrentMediaItemFilter.entityType === "marker") {
+    const markersResponse = GQL.useFindSceneMarkersForTvQuery({
+      variables: {
+        filter: {
+          ...lastLoadedCurrentMediaItemFilter.generalFilter,
+          // We manage pagination ourselves and so override whatever the saved filter had
+          page: 1,
+          per_page: mediaItemsPerPage,
         },
-      })
-      mediaItems = response.data?.findSceneMarkers.scene_markers.map(marker => ({
+        scene_marker_filter: lastLoadedCurrentMediaItemFilter.entityFilter
+      },
+    })
+    
+    mediaItems = useMemo(
+      () => markersResponse.data?.findSceneMarkers.scene_markers.map(marker => ({
         id: `marker:${marker.id}`,
         entityType: "marker" as const,
         entity: {
@@ -80,29 +78,28 @@ export function useMediaItems() {
             return endTime - marker.seconds;
           }
         }
-      })) || []
-    } else {
-      console.info("lastLoadedCurrentMediaItemFilter:", lastLoadedCurrentMediaItemFilter)
-      throw new Error("Unsupported media item filter entity type")
-    }
-    useGlobalFilterState.setState({ mediaItems, response })
-    useEffect(() => {
-      useAppStateStore.getState().debugMode && console.log("lastLoadedCurrentMediaItemFilter changed, resetting media items", lastLoadedCurrentMediaItemFilter)
-    }, [lastLoadedCurrentMediaItemFilter])
+      })) || [],
+      [markersResponse.data?.findSceneMarkers.scene_markers]
+    )
+    response = markersResponse
   } else {
-    response = useGlobalFilterState(state => state.response)
-    mediaItems = useGlobalFilterState(state => state.mediaItems)
+    console.info("lastLoadedCurrentMediaItemFilter:", lastLoadedCurrentMediaItemFilter)
+    throw new Error("Unsupported media item filter entity type")
   }
-  
-  if (response === null) {
-    throw new Error("Media items response is not initialized");
-  }
+  useEffect(() => {
+    useAppStateStore.getState().debugMode && console.log("lastLoadedCurrentMediaItemFilter changed, resetting media items", lastLoadedCurrentMediaItemFilter)
+  }, [lastLoadedCurrentMediaItemFilter])
+
   
   const {
     fetchMore,
     error: mediaItemsError,
     loading: mediaItemsLoading,
   } = response
+  
+  useEffect(() => {
+    mediaItems.length && setNeverLoaded(false)
+  }, [mediaItems.length])
   
   // Stash doesn't provide the lengths of preview videos so we track that ourselves by saving the video's duration as 
   // soon as its metadata loads
@@ -200,10 +197,12 @@ export function useMediaItems() {
   }
 
   return {
-    mediaItems: mediaItems
+    mediaItems: useMemo(() => mediaItems
       .map(
         mediaItem => previewOnly ? makeMediaItemPreviewOnly(mediaItem) : mediaItem
       ),
+      [mediaItems, previewOnly, hashObject(previewLengths)]
+    ),
     loadMoreMediaItems: () => {
       const nextPage = mediaItems.length ? Math.ceil(mediaItems.length / mediaItemsPerPage) + 1 : 1
       debugMode && console.log("Fetch next media page:", nextPage)
@@ -228,6 +227,7 @@ export function useMediaItems() {
       })
     },
     mediaItemsError,
-    mediaItemsLoading
+    mediaItemsLoading,
+    mediaItemsNeverLoaded: neverLoaded,
   }
 }

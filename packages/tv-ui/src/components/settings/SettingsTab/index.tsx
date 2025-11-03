@@ -34,7 +34,7 @@ export default function SettingsTab() {
     autoPlay,
     set: setAppSetting
   } = useAppStateStore();
-  const { mediaItems, mediaItemsLoading } = useMediaItems()
+  const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
 
   const noMediaItemsAvailable = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
 
@@ -118,11 +118,20 @@ export default function SettingsTab() {
       
   }, [titleRef])
 
+  const isFirstLoad = mediaItemsNeverLoaded && !mediaItemFiltersError && !mediaItemsError
+  let disableClose: boolean | "because loading" = false;
+  if (!isFirstLoad && (mediaItemFiltersLoading || mediaItemsLoading)) {
+    disableClose = "because loading";
+  } else if (!isFirstLoad && noMediaItemsAvailable) {
+    disableClose = true;
+  } else if (mediaItemsError || mediaItemFiltersError) {
+    disableClose = true;
+  }
+
   /* -------------------------------- Component ------------------------------- */
-  
   return <SideDrawer
     title={<span ref={titleRef}>Settings</span>}
-    closeDisabled={(mediaItemFiltersLoading || mediaItemsLoading) ? "loading" : noMediaItemsAvailable || Boolean(mediaItemFiltersError)}
+    closeDisabled={disableClose}
     className="SettingsTab"
   >
     <div className="item">

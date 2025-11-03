@@ -9,7 +9,7 @@ import { useAppStateStore } from "../../../store/appStateStore";
 type Props = {
   children?: React.ReactNode,
   title?: string | React.ReactNode,
-  closeDisabled?: boolean | "loading",
+  closeDisabled?: boolean | "because loading",
   className?: string
 }
 
@@ -158,7 +158,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   }, [forceLandscape])
   
   let closeButton = null;
-  if (closeDisabled === "loading") {
+  if (closeDisabled === "because loading") {
     closeButton = (
       <FontAwesomeIcon className="action" icon={faSpinner} pulse />
     );

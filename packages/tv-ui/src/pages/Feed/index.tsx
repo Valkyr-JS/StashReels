@@ -17,10 +17,11 @@ interface FeedPageProps {
 
 const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   const { showSettings, fullscreen, showGuideOverlay, set: setAppSetting } = useAppStateStore();
-  const { mediaItemFiltersLoading } = useMediaItemFilters()
-  const { mediaItems, mediaItemsLoading } = useMediaItems()
+  const { mediaItemFiltersLoading, mediaItemFiltersError } = useMediaItemFilters()
+  const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
+  const isFirstLoad = mediaItemsNeverLoaded && !mediaItemFiltersError && !mediaItemsError
 
-  const loadedButNoScenes = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
+  const loadedButNoScenes = !isFirstLoad && mediaItems.length === 0
 
   // Show settings tab if we've finished loading scenes but have no scenes to show
   if (loadedButNoScenes && !showSettings) {
