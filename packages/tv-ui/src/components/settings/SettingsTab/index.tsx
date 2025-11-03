@@ -319,6 +319,19 @@ export default function SettingsTab() {
         />
         <small>Enable debug mode for additional logging and information.</small>
       </div>
+      
+      <div className="item checkbox-item">
+        <Form.Switch
+          id="enable-render-debugging"
+          label="Enable Render Debugging"
+          checked={JSON.parse(localStorage.getItem("enableRenderDebugging") || "false")}
+          onChange={event => {
+            localStorage.setItem("enableRenderDebugging", JSON.stringify(event.target.checked))
+            window.location.reload()
+          }}
+        />
+        <small>Enable render debugging.</small>
+      </div>
 
       <div className="item">
         <Button
