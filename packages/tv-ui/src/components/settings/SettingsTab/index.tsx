@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCirclePlay, faLocationDot } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faCirclePlay, faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
-import React, { useEffect, useMemo } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import Select from "../Select";
 import { components } from "react-select";
 import "./SettingsTab.scss";
@@ -11,7 +11,9 @@ import SideDrawer from "../SideDrawer";
 import { useMediaItems } from "../../../hooks/useMediaItems";
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
 import { useMediaItemFilters } from "../../../hooks/useMediaItemFilters";
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, Accordion } from "react-bootstrap";
+import { AccordionContext } from "react-bootstrap";
+import cx from "classnames";
 
 export default function SettingsTab() {
   const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
@@ -134,216 +136,258 @@ export default function SettingsTab() {
     closeDisabled={disableClose}
     className="SettingsTab"
   >
-    <div className="item">
-      <label htmlFor="filter">
-        Media Filter
-      </label>
-      {!mediaItemFiltersLoading || allFiltersGrouped.length ? (
-        <Select
-          inputId="filter"
-          isLoading={mediaItemFiltersLoading || mediaItemsLoading}
-          value={selectedFilter ?? null}
-          onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
-          options={allFiltersGrouped}
-          placeholder={`${allFilters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
-          components={{
-            GroupHeading: (props) => (
-              <components.GroupHeading {...props}>
-                <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
-                {props.data.label}
-                
-              </components.GroupHeading>
-            ),
-            SingleValue: (props) => (
-              <components.SingleValue {...props}>
-                <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
-                {props.data.label}
-              </components.SingleValue>
-            ),
-          }}
-        />
-      ) : (
-        <div>Loading...</div>
-      )}
-      <small>
-        Choose a scene filter from Stash to use as your Stash TV
-        filter
-      </small>
+    <Accordion defaultActiveKey="0">
+      <AccordionToggle eventKey="0">
+        Media Feed
+      </AccordionToggle>
+      <Accordion.Collapse eventKey="0">
+        <>
+          <div className="item">
+            <label htmlFor="filter">
+              Media Filter
+            </label>
+            {!mediaItemFiltersLoading || allFiltersGrouped.length ? (
+              <Select
+                inputId="filter"
+                isLoading={mediaItemFiltersLoading || mediaItemsLoading}
+                value={selectedFilter ?? null}
+                onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
+                options={allFiltersGrouped}
+                placeholder={`${allFilters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
+                components={{
+                  GroupHeading: (props) => (
+                    <components.GroupHeading {...props}>
+                      <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
+                      {props.data.label}
+                      
+                    </components.GroupHeading>
+                  ),
+                  SingleValue: (props) => (
+                    <components.SingleValue {...props}>
+                      <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
+                      {props.data.label}
+                    </components.SingleValue>
+                  ),
+                }}
+              />
+            ) : (
+              <div>Loading...</div>
+            )}
+            <small>
+              Choose a scene filter from Stash to use as your Stash TV
+              filter
+            </small>
 
-      {mediaItemFiltersError ? (
-        <div className="error">
-          <h2>An error occurred loading scene filters.</h2>
-          <p>
-            Try reloading the page.
-          </p>
-        </div>
-      ) : null}
-      {noMediaItemsAvailable && (
-        <div className="error">
-          <h2>Filter contains no scenes!</h2>
-          <p>
-            No scenes were found in the currently selected filter. Please choose
-            a different one.
-          </p>
-        </div>
-      )}
-    </div>
+            {mediaItemFiltersError ? (
+              <div className="error">
+                <h2>An error occurred loading scene filters.</h2>
+                <p>
+                  Try reloading the page.
+                </p>
+              </div>
+            ) : null}
+            {noMediaItemsAvailable && (
+              <div className="error">
+                <h2>Filter contains no scenes!</h2>
+                <p>
+                  No scenes were found in the currently selected filter. Please choose
+                  a different one.
+                </p>
+              </div>
+            )}
+          </div>
 
-    {selectedFilter && !selectedFilter.isStashTvDefaultFilter && !noMediaItemsAvailable && <div className="item">
-      <Button
-        onClick={() => {
-          updateStashTvConfig(
-            apolloClient,
-            {
-              defaultFilterId: selectedFilter?.value,
-            }
-          );
-        }}
-      >
-        Set "{selectedFilter?.label}" as the default filter
-      </Button>
-      <div>
-        <small>
-          Set the currently selected scene filter as the default filter
-          when opening Stash TV.
-        </small>
-      </div>
-    </div>}
+          {selectedFilter && !selectedFilter.isStashTvDefaultFilter && !noMediaItemsAvailable && <div className="item">
+            <Button
+              onClick={() => {
+                updateStashTvConfig(
+                  apolloClient,
+                  {
+                    defaultFilterId: selectedFilter?.value,
+                  }
+                );
+              }}
+            >
+              Set "{selectedFilter?.label}" as the default filter
+            </Button>
+            <div>
+              <small>
+                Set the currently selected scene filter as the default filter
+                when opening Stash TV.
+              </small>
+            </div>
+          </div>}
 
-    <div className="item checkbox-item">
-      {currentMediaItemFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
-        <span>Filter sort order is random</span>
-      ) : <>
-          <Form.Switch
-            id="randomise-filter"
-            checked={isRandomised}
-            label="Randomise filter order"
-            onChange={event => {console.log(event); setAppSetting("isRandomised", event.target.checked)}}
-          />
-        <small>Randomise the order of scenes in the filter.</small>
+          <div className="item checkbox-item">
+            {currentMediaItemFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
+              <span>Filter sort order is random</span>
+            ) : <>
+                <Form.Switch
+                  id="randomise-filter"
+                  checked={isRandomised}
+                  label="Randomise filter order"
+                  onChange={event => {console.log(event); setAppSetting("isRandomised", event.target.checked)}}
+                />
+              <small>Randomise the order of scenes in the filter.</small>
+            </>}
+          </div>
+
+          <div className="item checkbox-item">
+            <Form.Switch
+              id="only-show-matching-orientation"
+              label="Only Show Scenes Matching Orientation"
+              checked={onlyShowMatchingOrientation}
+              onChange={event => setAppSetting("onlyShowMatchingOrientation", event.target.checked)}
+            />
+            <small>Limit scenes to only those in the same orientation as the current window.</small>
+          </div>
+        </>
+      </Accordion.Collapse>
+      <AccordionToggle eventKey="1">
+        Media Player
+      </AccordionToggle>
+      <Accordion.Collapse eventKey="1">
+        <>
+          <div className="item checkbox-item">
+            <Form.Switch
+              id="auto-play"
+              label="Auto Play"
+              checked={autoPlay}
+              onChange={event => setAppSetting("autoPlay", event.target.checked)}
+            />
+            <small>Automatically play scenes.</small>
+          </div>
+
+          <div className="item checkbox-item">
+            <Form.Switch
+              id="scene-preview-only"
+              label="Scene Preview Only"
+              checked={scenePreviewOnly}
+              onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
+            />
+            <small>Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</small>
+          </div>
+          <div className="item">
+            <label htmlFor="subtitle-language">
+              Subtitle language
+            </label>
+            <Select
+              inputId="subtitle-language"
+              value={defaultSubtitles}
+              onChange={(newValue) => {
+                if (!newValue) return;
+                updateStashTvConfig(
+                  apolloClient,
+                  {
+                    subtitleLanguage: newValue.value,
+                  }
+                );
+              }}
+              options={subtitlesList}
+              placeholder="Select a subtitle language"
+            />
+            <small>
+              Select the language to use for subtitles if available.
+            </small>
+          </div>
+
+          <div className="item checkbox-item">
+            <Form.Switch
+              id="crt-effect"
+              label="CRT Effect"
+              checked={crtEffect}
+              onChange={event => setAppSetting("crtEffect", event.target.checked)}
+            />
+            <small>Emulate the visual effects of an old CRT television.</small>
+          </div>
+        </>
+      </Accordion.Collapse>
+      <AccordionToggle eventKey="2">
+        Help
+      </AccordionToggle>
+      <Accordion.Collapse eventKey="2">
+        <>
+          <div className="item checkbox-item show-guide-overlay">
+            <Button
+              onClick={() => setAppSetting('showGuideOverlay', true)}
+            >
+              Show Guide
+            </Button>
+            <small>Show instructions for using Stash TV.</small>
+          </div>
+        </>
+      </Accordion.Collapse>
+      
+      
+      {showDevOptions && <>
+        <AccordionToggle eventKey="3">
+          Developer Options
+        </AccordionToggle>
+        <Accordion.Collapse eventKey="3">
+          <>
+            <div className="item checkbox-item">
+              <Form.Switch
+                id="show-dev-options"
+                label="Hide Developer Options"
+                checked={showDevOptions}
+                onChange={event => setAppSetting("showDevOptions", false)}
+              />
+              <small>Hide developer options.</small>
+            </div>
+            
+            <div className="item checkbox-item">
+              <Form.Switch
+                id="debug-mode"
+                label="Debug Mode"
+                checked={debugMode}
+                onChange={event => setAppSetting("debugMode", event.target.checked)}
+              />
+              <small>Enable debug mode for additional logging and information.</small>
+            </div>
+      
+            <div className="item checkbox-item">
+              <Form.Switch
+                id="enable-render-debugging"
+                label="Enable Render Debugging"
+                checked={JSON.parse(localStorage.getItem("enableRenderDebugging") || "false")}
+                onChange={event => {
+                  localStorage.setItem("enableRenderDebugging", JSON.stringify(event.target.checked))
+                  window.location.reload()
+                }}
+              />
+              <small>Enable render debugging.</small>
+            </div>
+
+            <div className="item">
+              <Button
+                onClick={() => window.location.reload()}
+              >
+                Reload Page
+              </Button>
+            </div>
+
+            <div className="item">
+              {import.meta.env.VITE_STASH_TV_VERSION}
+            </div>
+          </>
+        </Accordion.Collapse>
       </>}
-    </div>
-
-    <div className="item">
-      <label htmlFor="subtitle-language">
-        Subtitle language
-      </label>
-      <Select
-        inputId="subtitle-language"
-        value={defaultSubtitles}
-        onChange={(newValue) => {
-          if (!newValue) return;
-          updateStashTvConfig(
-            apolloClient,
-            {
-              subtitleLanguage: newValue.value,
-            }
-          );
-        }}
-        options={subtitlesList}
-        placeholder="Select a subtitle language"
-      />
-      <small>
-        Select the language to use for subtitles if available.
-      </small>
-    </div>
-
-    <div className="item checkbox-item">
-      <Form.Switch
-        id="scene-preview-only"
-        label="Scene Preview Only"
-        checked={scenePreviewOnly}
-        onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
-      />
-      <small>Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</small>
-    </div>
-
-    <div className="item checkbox-item">
-      <Form.Switch
-        id="only-show-matching-orientation"
-        label="Only Show Scenes Matching Orientation"
-        checked={onlyShowMatchingOrientation}
-        onChange={event => setAppSetting("onlyShowMatchingOrientation", event.target.checked)}
-      />
-      <small>Limit scenes to only those in the same orientation as the current window.</small>
-    </div>
-
-    <div className="item checkbox-item">
-      <Form.Switch
-        id="auto-play"
-        label="Auto Play"
-        checked={autoPlay}
-        onChange={event => setAppSetting("autoPlay", event.target.checked)}
-      />
-      <small>Automatically play scenes.</small>
-    </div>
-
-    <div className="item checkbox-item">
-      <Form.Switch
-        id="crt-effect"
-        label="CRT Effect"
-        checked={crtEffect}
-        onChange={event => setAppSetting("crtEffect", event.target.checked)}
-      />
-      <small>Emulate the visual effects of an old CRT television.</small>
-    </div>
-
-    <div className="item checkbox-item">
-      <label>
-        <Button
-          onClick={() => setAppSetting('showGuideOverlay', true)}
-        >
-          Show Guide
-        </Button>
-      </label>
-      <small>Open the guide see instructions for using Stash TV.</small>
-    </div>
+    </Accordion>
   
-    {showDevOptions && <>
-      <div className="item checkbox-item">
-        <Form.Switch
-          id="show-dev-options"
-          label="Hide Developer Options"
-          checked={showDevOptions}
-          onChange={event => setAppSetting("showDevOptions", false)}
-        />
-        <small>Hide developer options.</small>
-      </div>
-      
-      <div className="item checkbox-item">
-        <Form.Switch
-          id="debug-mode"
-          label="Debug Mode"
-          checked={debugMode}
-          onChange={event => setAppSetting("debugMode", event.target.checked)}
-        />
-        <small>Enable debug mode for additional logging and information.</small>
-      </div>
-      
-      <div className="item checkbox-item">
-        <Form.Switch
-          id="enable-render-debugging"
-          label="Enable Render Debugging"
-          checked={JSON.parse(localStorage.getItem("enableRenderDebugging") || "false")}
-          onChange={event => {
-            localStorage.setItem("enableRenderDebugging", JSON.stringify(event.target.checked))
-            window.location.reload()
-          }}
-        />
-        <small>Enable render debugging.</small>
-      </div>
-
-      <div className="item">
-        <Button
-          onClick={() => window.location.reload()}
-        >
-          Reload Page
-        </Button>
-      </div>
-
-      <div className="item">
-        {import.meta.env.VITE_STASH_TV_VERSION}
-      </div>
-    </>}
   </SideDrawer>;
 };
+
+const AccordionToggle: Accordion["Toggle"] = (props) => {
+  const {children, className, as, variant, eventKey, ...otherProps} = props;
+  // @ts-expect-error - AccordionContext is imported from a library that used a different React instance but it seems to work fine 
+  const contextEventKey = useContext(AccordionContext);
+  const open = contextEventKey === eventKey;
+  return (
+    <Accordion.Toggle className={cx(className, open ? 'open' : '')} as={Button} variant="link" eventKey={eventKey} {...otherProps}>
+      <h3>
+        <span>{children}</span>
+        <FontAwesomeIcon icon={faChevronLeft} />
+      </h3>
+    </Accordion.Toggle>
+  )
+}
