@@ -30,9 +30,7 @@ videojs.hook('setup', (player) => {
             return newDuration === undefined ? originalDurationFunction() : originalDurationFunction(newDuration);
         }
         const scene = '_scene' in player ? player._scene as GQL.TvSceneDataFragment : undefined;
-        const durationFromVideoElm = player.tech({ IWillNotUseThisInPlugins: true }).el()?.duration
-        const durationFromScene = scene?.files[0]?.duration;
-        const duration = !isNaN(durationFromVideoElm) && isFinite(durationFromVideoElm) ? durationFromVideoElm : durationFromScene;
+        const duration = scene?.files[0]?.duration
         // If we haven't been able to determine a duration then fall back to original function
         if (duration === undefined) {
             return originalDurationFunction();
