@@ -266,6 +266,7 @@ const ScenePlayer = forwardRef<
         onVideojsPlayerReady?.(player);
         videojsPlayerRef.current = player;
         setVideojsPlayer(player);
+        handleInitialTimestamp();
         
         const videoElm = player.el()?.querySelector('video')
         if (!videoElm) {
@@ -274,6 +275,20 @@ const ScenePlayer = forwardRef<
         }
 
         setVideoElm(videoElm);
+    }
+    
+    /* Very annoyingly the wrapped ScenePlayer component will autoplay even if the autoplay prop is set to false, when
+    initialTimestamp is greater than 0. To stop this behaviour we set the initialTimestamp to 0 for the wrapped
+    ScenePlayer and handle starting at the initialTimestamp ourselves once the Video.js player has been created. 
+    
+    Note it would also do this when autoplay is turned on in the Stash settings but we don't load ConfigurationContext
+    so it can't check the settings. If we do decide to load that in the future we'll need to modify the value of that
+    before it gets to the wrapped ScenePlayer so that autoplay is false (assuming we want to preference Stash TV's
+    autoplay setting over Stash's).
+    */
+    function handleInitialTimestamp() {
+        if (!initialTimestamp) return;
+        videojsPlayerRef.current?.currentTime(initialTimestamp);
     }
 
     // Options to inject into wrapped ScenePlayer's Video.js instance when it's being created
@@ -427,7 +442,7 @@ const ScenePlayer = forwardRef<
         >
             <ScenePlayerOriginal
                 {...otherProps}
-                initialTimestamp={initialTimestamp || 0}
+                initialTimestamp={0 /* See comment for handleInitialTimestamp */}
                 permitLoop={true}
                 scene={scene}
                 onComplete={stubOnComplete}
