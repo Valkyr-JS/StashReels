@@ -226,9 +226,10 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     videojsPlayerRef.current?.pause();
   }, [showGuideOverlay]);
 
-  function getSkipTime() {
+  function getSkipTime(direction: 'forwards' | 'backwards') {
     const duration = videojsPlayerRef.current?.duration();
-    if (!duration) {
+    const currentTime = videojsPlayerRef.current?.currentTime();
+    if (!duration || currentTime === undefined) {
         return null
     }
 
@@ -242,14 +243,35 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     } else {
         skipPercent = 0.33
     }
-    return duration * skipPercent
+    
+    let skipTimeAmount = duration * skipPercent
+    const newCurrentTime = currentTime + (direction === 'forwards' ? skipTimeAmount : -skipTimeAmount)
+    // We make the range to look for the next marker a bit larger than the skip amount to avoid
+    // skipping to a point just a moment before the marker because the marker was very slightly outside the
+    // search range.
+    //
+    // We also add a small buffer when searching backwards to avoid the case where we've played a tiny bit so we don't
+    // just jump back to the the same marker again.
+    const markerSearchStartTime = direction === 'forwards' ? currentTime : newCurrentTime - (skipTimeAmount * 0.5)
+    const markerSearchEndTime = direction === 'forwards' ? newCurrentTime + (skipTimeAmount * 0.5) : currentTime - 2
+    // Check for markers in the skip range
+    const markersToSearch = direction === 'forwards' ? scene.scene_markers : scene.scene_markers.slice().reverse()
+    const marker = markersToSearch.find(marker =>
+      marker.seconds >= markerSearchStartTime &&
+      marker.seconds <= markerSearchEndTime
+    );
+    if (marker) {
+      debugMode && console.log(`Skipping to marker ${marker.title ?? marker.primary_tag.name} at ${marker.seconds}s`, {marker, markersToSearch});
+      skipTimeAmount = Math.abs(marker.seconds - currentTime)
+    }
+    return skipTimeAmount
   }
   
   function seekForwards() {
     if (!videojsPlayerRef.current) return null;
     const duration = videojsPlayerRef.current?.duration();
     if (duration === undefined) return;
-    const skipAmount = getSkipTime()
+    const skipAmount = getSkipTime('forwards');
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
@@ -269,7 +291,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   function seekBackwards() {
     if (!videojsPlayerRef.current) return null;
     const duration = videojsPlayerRef.current?.duration();
-    const skipAmount = getSkipTime()
+    const skipAmount = getSkipTime('backwards')
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
