@@ -437,15 +437,12 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       return props.mediaItem.entity;
     } else if (props.mediaItem.entityType === "scene") {
       const scene = props.mediaItem.entity;
-      const startTimeSearchBuffer = 2; // Small buffer to avoid flickering when seeking
-      const searchCurrentTime = currentTime - startTimeSearchBuffer;
       const marker = scene.scene_markers.find(marker => {
-        const markerStartSearchTime = marker.seconds - startTimeSearchBuffer;
-        const nextMarker = scene.scene_markers.find(m => m.seconds - startTimeSearchBuffer > markerStartSearchTime);
-        const nextMarkerStartTime = nextMarker ? nextMarker.seconds - startTimeSearchBuffer : Infinity;
+        const markerStartSearchTime = marker.seconds;
+        const nextMarker = scene.scene_markers.find(m => m.seconds > markerStartSearchTime);
         const makerEndTime = marker.end_seconds ?? marker.seconds + 20; // Default marker length is 20s
-        const makerEndSearchTime = Math.min(makerEndTime, nextMarkerStartTime);
-        return markerStartSearchTime <= searchCurrentTime && makerEndSearchTime > currentTime
+        const makerEndSearchTime = Math.min(makerEndTime, nextMarker?.seconds ?? Infinity);
+        return markerStartSearchTime <= currentTime && makerEndSearchTime > currentTime
       });
       return marker
     } else {
