@@ -409,6 +409,31 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     initialTimestamp = getRandomPointInScene(scene)
   }
 
+  // Track what marker (if any) is currently playing
+  const findCurrentlyPlayingMarker = (currentTime: number) => {
+    if (props.mediaItem.entityType === "marker") {
+      return props.mediaItem.entity;
+    } else if (props.mediaItem.entityType === "scene") {
+      const scene = props.mediaItem.entity;
+      const marker = scene.scene_markers.find(marker =>
+        currentTime >= marker.seconds &&
+        currentTime <= (marker.end_seconds ?? marker.seconds + 20) // Default marker length is 20s
+      );
+      return marker
+    } else {
+      props.mediaItem satisfies never
+    }
+  }
+  const [currentlyPlayingMarker, setCurrentlyPlayingMarker] = useState<GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]["scene_markers"][number] | undefined>(findCurrentlyPlayingMarker(0));
+  const handleOnTimeUpdate = (event: Event) => {
+    if (!(event.target instanceof HTMLVideoElement)) return;
+    const currentTime = event.target.currentTime;
+    const marker = findCurrentlyPlayingMarker(currentTime);
+    if (marker === currentlyPlayingMarker) return
+    debugMode && console.log(`Marker playback update - now playing marker `, marker ? `id=${marker.title ?? marker.primary_tag.name}` : "none", {currentTime, marker});
+    setCurrentlyPlayingMarker(marker)
+  }
+
   /* -------------------------------- Component ------------------------------- */
   
   const videoJsControlBarElm = videojsPlayerRef.current?.getChild('ControlBar')?.el();
@@ -432,6 +457,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         {!loadingDeferred && <ScenePlayer
           // Force remount when scene streams change to ensure videojs reloads the source
           key={JSON.stringify([scene.id, hashObject(scene.sceneStreams)])}
+          onTimeUpdate={handleOnTimeUpdate}
           scene={scene}
           hideScrubberOverride={true}
           muted={audioMuted}
@@ -463,9 +489,9 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
             }
           }}
         />}
-        {props.mediaItem.entityType === "marker" && videoJsControlBarElm && createPortal(
+        {currentlyPlayingMarker && videoJsControlBarElm && createPortal(
           <>
-            <div className="vjs-control">{props.mediaItem.entity.title || props.mediaItem.entity.primary_tag.name}</div>
+            <div className="vjs-control">{currentlyPlayingMarker.title || currentlyPlayingMarker.primary_tag.name}</div>
             <div className="vjs-custom-control-spacer vjs-spacer">&nbsp;</div>
           </>,
           videoJsControlBarElm
