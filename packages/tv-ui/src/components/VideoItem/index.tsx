@@ -15,6 +15,7 @@ import React, {
   Fragment,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -285,6 +286,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       return
     }
     videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
+    setCurrentlyPlayingMarker(findCurrentlyPlayingMarker(nextSkipAheadTime))
     videojsPlayerRef.current?.play()
   }
     
@@ -310,6 +312,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       }
     }
     videojsPlayerRef.current?.currentTime(nextSkipBackTime)
+    setCurrentlyPlayingMarker(findCurrentlyPlayingMarker(nextSkipBackTime))
     videojsPlayerRef.current?.play()
   }
 
@@ -450,9 +453,38 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     }
   }
   const [currentlyPlayingMarker, setCurrentlyPlayingMarker] = useState<GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]["scene_markers"][number] | undefined>(findCurrentlyPlayingMarker(0));
+  const currentlyPlayingMarkerDisplayName = useMemo(
+    () => {
+      if (!currentlyPlayingMarker) return null;
+      const tags = [currentlyPlayingMarker.primary_tag, ...currentlyPlayingMarker.tags]
+        .filter(tag => tag.name !== currentlyPlayingMarker.title);
+      const tagsFormatted = tags.length
+        ? (
+          <span className="tags">
+            {tags.map((tag, index) => {
+              let joiner
+              if (index === tags.length - 2) {
+                joiner = " & "
+              } else if (index < tags.length - 2) {
+                joiner = ", "
+              }
+              return <React.Fragment key={tag.name + index}>
+                <span className="tag" key={index}>{tag.name}</span>
+                {joiner && <span className="joiner">{joiner}</span>}
+              </React.Fragment>
+            })}
+          </span>
+        ) : null
+      const titleFormatted = currentlyPlayingMarker.title ? (
+        <span className="title">{currentlyPlayingMarker.title}</span>
+      ) : null;
+      return titleFormatted ?? tagsFormatted
+    },
+    [currentlyPlayingMarker]
+  );
   const handleOnTimeUpdate = (event: Event) => {
-    if (!(event.target instanceof HTMLVideoElement)) return;
-    const currentTime = event.target.currentTime;
+    const currentTime = videojsPlayerRef.current?.currentTime();
+    if (currentTime === undefined) return;
     const marker = findCurrentlyPlayingMarker(currentTime);
     if (marker === currentlyPlayingMarker) return
     debugMode && console.log(`Marker playback update - now playing marker `, marker ? `id=${marker.title ?? marker.primary_tag.name}` : "none", {currentTime, marker});
@@ -516,7 +548,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         />}
         {currentlyPlayingMarker && videoJsControlBarElm && createPortal(
           <>
-            <div className="vjs-control">{currentlyPlayingMarker.title || currentlyPlayingMarker.primary_tag.name}</div>
+            <div className="vjs-control">{currentlyPlayingMarkerDisplayName}</div>
             <div className="vjs-custom-control-spacer vjs-spacer">&nbsp;</div>
           </>,
           videoJsControlBarElm

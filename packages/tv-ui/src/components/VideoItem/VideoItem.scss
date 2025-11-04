@@ -144,6 +144,11 @@
       transition: opacity 1s;
     }
   }
+  
+  .tags > .joiner {
+    color: var(--text-muted);
+    font-style: italic;
+  }
 
   .tap-icon {
     position: absolute;
