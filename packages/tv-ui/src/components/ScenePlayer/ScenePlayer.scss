@@ -41,15 +41,13 @@
     .vjs-progress-control {
       &:has(.vjs-marker-dot:hover) .vjs-mouse-display {
         // Workaround for weird bug in videojs or marker plugin where the mouse display dot shifts a little bit to
-        // the right when hovering over a marker
+        // the right when hovering over a marker. Seems like it might have to do with the width property of
+        // .vjs-play-progress shrinking slightly as the mouse passes over a marker.
         translate: -4px;
       }
       .vjs-marker-dot {
-        top: unset;
-        transform: translate(-50%, 0);
-        
         &:hover {
-          transform: translate(-50%, 0) scale(1.5);
+          scale: 1.1;
         }
       }
     }
