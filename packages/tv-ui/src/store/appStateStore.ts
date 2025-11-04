@@ -17,6 +17,7 @@ type AppState = {
   showDevOptions: boolean;
   debugMode: boolean;
   autoPlay: boolean;
+  startPosition: 'resume' | 'beginning' | 'random';
   showGuideOverlay?: boolean;
 }
 
@@ -45,6 +46,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
       showDevOptions: false,
       debugMode: false,
       autoPlay: true,
+      startPosition: 'resume',
       showGuideOverlay: true,
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
         set((state) => ({

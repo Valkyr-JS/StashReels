@@ -77,6 +77,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
     showDevOptions,
     debugMode,
     autoPlay: globalAutoPlay,
+    startPosition,
     showGuideOverlay,
     set: setAppSetting,
   } = useAppStateStore();
@@ -385,6 +386,28 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
         ? "showing"
         : "disabled";
   }, [showSubtitles]);
+  
+  function getRandomPointInScene(scene: GQL.TvSceneDataFragment) {
+    if (scene.scene_markers.length) {
+      // Pick a random marker
+      const randomMarker = scene.scene_markers[Math.floor(Math.random() * scene.scene_markers.length)];
+      return randomMarker.seconds;
+    }
+    const duration = scene.files?.[0]?.duration || 0
+    // Avoid start and end 5% of scene
+    const min = duration * 0.05
+    const max = duration * 0.95
+    const randomPoint = Math.random() * (max - min) + min
+    return Math.floor(randomPoint)
+  }
+  
+  
+  let initialTimestamp
+  if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
+    initialTimestamp = 0
+  } else if (startPosition === 'random') {
+    initialTimestamp = getRandomPointInScene(scene)
+  }
 
   /* -------------------------------- Component ------------------------------- */
   
@@ -414,7 +437,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           muted={audioMuted}
           autoplay={autoplay}
           loop={looping}
-          initialTimestamp={props.mediaItem.entityType === "marker" ? 0 : undefined}
+          initialTimestamp={initialTimestamp}
           sendSetTimestamp={() => {}}
           onNext={() => {}}
           onPrevious={() => {}}

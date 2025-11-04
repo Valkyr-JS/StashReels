@@ -34,6 +34,7 @@ export default function SettingsTab() {
     showDevOptions,
     debugMode,
     autoPlay,
+    startPosition,
     set: setAppSetting
   } = useAppStateStore();
   const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
@@ -129,6 +130,12 @@ export default function SettingsTab() {
   } else if (mediaItemsError || mediaItemFiltersError) {
     disableClose = true;
   }
+  
+  const startPositionOptions = [
+    { value: 'resume', label: 'Resume from last position' },
+    { value: 'beginning', label: 'Beginning' },
+    { value: 'random', label: 'Random marker (or position if none)' },
+  ] as const
 
   /* -------------------------------- Component ------------------------------- */
   return <SideDrawer
@@ -146,33 +153,29 @@ export default function SettingsTab() {
             <label htmlFor="filter">
               Media Filter
             </label>
-            {!mediaItemFiltersLoading || allFiltersGrouped.length ? (
-              <Select
-                inputId="filter"
-                isLoading={mediaItemFiltersLoading || mediaItemsLoading}
-                value={selectedFilter ?? null}
-                onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
-                options={allFiltersGrouped}
-                placeholder={`${allFilters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
-                components={{
-                  GroupHeading: (props) => (
-                    <components.GroupHeading {...props}>
-                      <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
-                      {props.data.label}
-                      
-                    </components.GroupHeading>
-                  ),
-                  SingleValue: (props) => (
-                    <components.SingleValue {...props}>
-                      <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
-                      {props.data.label}
-                    </components.SingleValue>
-                  ),
-                }}
-              />
-            ) : (
-              <div>Loading...</div>
-            )}
+            <Select
+              inputId="filter"
+              isLoading={mediaItemFiltersLoading || mediaItemsLoading}
+              value={selectedFilter ?? null}
+              onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
+              options={allFiltersGrouped}
+              placeholder={`${allFilters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
+              components={{
+                GroupHeading: (props) => (
+                  <components.GroupHeading {...props}>
+                    <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
+                    {props.data.label}
+                    
+                  </components.GroupHeading>
+                ),
+                SingleValue: (props) => (
+                  <components.SingleValue {...props}>
+                    <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
+                    {props.data.label}
+                  </components.SingleValue>
+                ),
+              }}
+            />
             <small>
               Choose a scene filter from Stash to use as your Stash TV
               filter
@@ -257,6 +260,21 @@ export default function SettingsTab() {
             />
             <small>Automatically play scenes.</small>
           </div>
+
+          {selectedFilter?.filterType === "scene" && <div className="item">
+            <label htmlFor="start-position">
+              Start Point
+            </label>
+            <Select
+              inputId="start-position"
+              value={startPositionOptions.find(option => option.value === startPosition) ?? null}
+              onChange={(newValue) => newValue && setAppSetting("startPosition", newValue.value)}
+              options={startPositionOptions}
+            />
+            <small>
+              The point in the scene to start playback from.
+            </small>
+          </div>}
 
           <div className="item checkbox-item">
             <Form.Switch
