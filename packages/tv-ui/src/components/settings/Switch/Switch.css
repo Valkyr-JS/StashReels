@@ -1,0 +1,41 @@
+.Switch {
+  /* We add that extra class selector to increase specificity to override bootstrap styles */
+  &.custom-switch {
+    padding-left: initial;
+
+    .custom-control-label {
+      align-items: baseline;
+      display: flex;
+      --baseline-offset: 0.1rem;
+      --knob-width: calc(1rem - 4px);
+      
+      span {
+        flex: 1 1 auto;
+      }
+
+      &::before,
+      &::after {
+        position: unset;
+        grid-column: 2;
+        grid-row: 1;
+        flex: 0 0 auto;
+      }
+
+      /* The track */
+      &::before {
+        translate: 0 var(--baseline-offset);
+        order: 3;
+      }
+
+      /* The knob */
+      &::after {
+        translate: calc(var(--knob-width) + 2px) calc(var(--baseline-offset) - 2px);
+        order: 2;
+        position: relative;
+        top: unset;
+        left: var(--width);
+        z-index: 2;
+      }
+    }
+  }
+}

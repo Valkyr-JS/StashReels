@@ -8,6 +8,7 @@ import "./SettingsTab.scss";
 import { useStashConfigStore } from "../../../store/stashConfigStore";
 import { useAppStateStore } from "../../../store/appStateStore";
 import SideDrawer from "../SideDrawer";
+import Switch from "../Switch";
 import { useMediaItems } from "../../../hooks/useMediaItems";
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
 import { useMediaItemFilters } from "../../../hooks/useMediaItemFilters";
@@ -225,7 +226,7 @@ export default function SettingsTab() {
             {currentMediaItemFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
               <span>Filter sort order is random</span>
             ) : <>
-                <Form.Switch
+                <Switch
                   id="randomise-filter"
                   checked={isRandomised}
                   label="Randomise filter order"
@@ -236,7 +237,7 @@ export default function SettingsTab() {
           </div>
 
           <div className="item checkbox-item">
-            <Form.Switch
+            <Switch
               id="only-show-matching-orientation"
               label="Only Show Scenes Matching Orientation"
               checked={onlyShowMatchingOrientation}
@@ -252,7 +253,7 @@ export default function SettingsTab() {
       <Accordion.Collapse eventKey="1">
         <>
           <div className="item checkbox-item">
-            <Form.Switch
+            <Switch
               id="auto-play"
               label="Auto Play"
               checked={autoPlay}
@@ -277,7 +278,7 @@ export default function SettingsTab() {
           </div>}
 
           <div className="item checkbox-item">
-            <Form.Switch
+            <Switch
               id="scene-preview-only"
               label="Scene Preview Only"
               checked={scenePreviewOnly}
@@ -310,7 +311,7 @@ export default function SettingsTab() {
           </div>
 
           <div className="item checkbox-item">
-            <Form.Switch
+            <Switch
               id="crt-effect"
               label="CRT Effect"
               checked={crtEffect}
@@ -344,7 +345,7 @@ export default function SettingsTab() {
         <Accordion.Collapse eventKey="3">
           <>
             <div className="item checkbox-item">
-              <Form.Switch
+              <Switch
                 id="show-dev-options"
                 label="Hide Developer Options"
                 checked={showDevOptions}
@@ -354,7 +355,7 @@ export default function SettingsTab() {
             </div>
             
             <div className="item checkbox-item">
-              <Form.Switch
+              <Switch
                 id="debug-mode"
                 label="Debug Mode"
                 checked={debugMode}
@@ -364,7 +365,7 @@ export default function SettingsTab() {
             </div>
       
             <div className="item checkbox-item">
-              <Form.Switch
+              <Switch
                 id="enable-render-debugging"
                 label="Enable Render Debugging"
                 checked={JSON.parse(localStorage.getItem("enableRenderDebugging") || "false")}
