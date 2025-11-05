@@ -28,16 +28,16 @@
   z-index: 3;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(3px);
-  
+
   /* Reset styles applied by <dialog /> */
   color: inherit;
   border: inherit;
   padding: inherit;
-  
+
   --view-unit-min: min(var(--x-unit-dynamic), var(--y-unit-dynamic));
-  
+
   font-size: clamp(1rem, calc(var(--view-unit-min) * 3), 1.3rem);
-  
+
   --cell-padding: min(2em, calc(var(--view-unit-min) * 3));
   --border: 1px solid #ffffff27;
 
@@ -57,44 +57,44 @@
       color: #fff;
     }
   }
-  
+
   .header {
-    padding: 
+    padding:
       calc(var(--cell-padding) + var(--safe-inset-top))
       calc(var(--cell-padding) + var(--safe-inset-left))
       var(--cell-padding)
       calc(var(--cell-padding) + var(--safe-inset-left));
     /* Doesn't really matter but when using dev tools to select the header by default it will select a spacer div
-       instead as that is the next element in the DOM so is layered on top. Explicitly set z-index for the header and
-       footer to change that */
+      instead as that is the next element in the DOM so is layered on top. Explicitly set z-index for the header and
+      footer to change that */
     z-index: 1;
   }
-  
+
   .body {
     /* we don't want the header/footer and the body double up on padding. But we also can't use gap because we want to
     use border to show a dividing line between the tap areas */
     padding-top: 0;
     padding-bottom: 0;
   }
-  
+
   .body,
   .spacer {
     &:not(.col-left) {
       border-left: var(--border);
     }
-    
+
     &.row-middle {
       justify-content: flex-start;
     }
-    
+
     &.col-left {
       padding-left: calc(var(--cell-padding) + var(--safe-inset-left));
     }
-    
+
     &.col-right {
       padding-right: calc(var(--cell-padding) + var(--safe-inset-right));
     }
-    
+
     span {
       max-width: 15rem;
     }
@@ -103,24 +103,24 @@
   .footer {
     flex-direction: row;
     justify-content: space-between;
-    padding: 
+    padding:
       var(--cell-padding)
       calc(var(--cell-padding) + var(--safe-inset-right))
       calc(var(--cell-padding) + var(--safe-inset-bottom))
       calc(var(--cell-padding) + var(--safe-inset-left));
     gap: calc(var(--cell-padding) * 2);
-    
+
     @media (max-width: 600px) {
       flex-direction: column;
     }
-    
+
     .actions {
       display: flex;
       gap: 1rem;
       justify-content: center;
       align-items: center;
       align-self: end;
-      
+
       .accessInstructions {
         font-size: 0.9rem;
         opacity: 0.8;

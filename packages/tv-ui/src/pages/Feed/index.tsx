@@ -27,12 +27,12 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   if (loadedButNoScenes && !showSettings) {
     setAppSetting("showSettings", true);
   }
-  
+
     useEffect(() => {
       if (!showGuideOverlay) return;
       setAppSetting("showSettings", false);
     }, [showGuideOverlay]);
-  
+
   /* ------------------------------- Fullscreen ------------------------------- */
   const initialLoad = useRef(true);
   useEffect(() => {

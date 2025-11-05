@@ -46,7 +46,7 @@ jobs:
           git rebase --autosquash "v$PREVIOUS_VERSION"^
 
           yarn release
-          
+
           git commit -am "tmp commit with release notes"
           COMMIT_WITH_RELEASE_NOTES=$(git rev-parse HEAD)
 

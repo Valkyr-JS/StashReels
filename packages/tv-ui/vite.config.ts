@@ -14,7 +14,7 @@ export default defineConfig(({mode}) => {
   const port = env.DEV_PORT ? parseInt(env.DEV_PORT) : undefined;
   const host = env.DEV_HOST?.toLowerCase() === "true" ? true : env.DEV_HOST
   const allowedHosts = env.DEV_ALLOWED_HOSTS?.toLowerCase() === "true" ? true : env.DEV_ALLOWED_HOSTS?.split(",");
-  
+
   const proxyStash = env.STASH_PROXY?.toLowerCase().trim() === "true";
 
   // We reuse the code Stash's UI which connects to the Stash server from the client and that expects
@@ -24,13 +24,13 @@ export default defineConfig(({mode}) => {
   }
 
   process.env.VITE_STASH_TV_VERSION = pkg.version;
-  
+
   const stashUrl = env.STASH_ADDRESS ? new URL(env.STASH_ADDRESS) : undefined;
-  
+
   if (proxyStash && !env.STASH_ADDRESS) {
     throw new Error("STASH_PROXY is enabled but STASH_ADDRESS is not set");
   }
-  
+
   const proxyOptions: ProxyOptions = {
     target: env.STASH_ADDRESS,
     changeOrigin: true,
@@ -51,12 +51,12 @@ export default defineConfig(({mode}) => {
         const originalEnd = res.end;
 
         let body = Buffer.from('');
-        
+
         function shouldRewrite(res: ServerResponse) {
           const contentType = [res.getHeader("content-type") || ""].flat()[0].toString().toLowerCase();
           return contentType.startsWith("text/") || contentType.endsWith("json");
         }
-        
+
         res.write = function(...args) {
           const [chunk] = args;
           if (shouldRewrite(res)) {
@@ -67,7 +67,7 @@ export default defineConfig(({mode}) => {
           }
           return true;
         };
-        
+
         // @ts-expect-error - We should see if we can fix this type error
         res.end = function(...args) {
           const [chunk] = args;
@@ -79,7 +79,7 @@ export default defineConfig(({mode}) => {
           if (chunk) {
             body = Buffer.concat([body, Buffer.from(chunk)]);
           }
-          
+
           let bodyStr = body.toString();
           const stashHost = stashUrl?.host || "";
           if (bodyStr.includes(stashHost)) {
@@ -90,7 +90,7 @@ export default defineConfig(({mode}) => {
             // @ts-expect-error - We should see if we can fix this type error
             originalWrite.call(res, body);
           }
-          
+
           // @ts-expect-error - We should see if we can fix this type error
           originalEnd.call(res);
         };

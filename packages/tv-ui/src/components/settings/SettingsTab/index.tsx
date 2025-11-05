@@ -27,7 +27,7 @@ export default function SettingsTab() {
     availableSavedFilters,
   } = useMediaItemFilters()
 
-  const { 
+  const {
     isRandomised,
     crtEffect,
     scenePreviewOnly,
@@ -99,7 +99,7 @@ export default function SettingsTab() {
       value: subtitleLanguage,
     }
     : undefined;
-  
+
   const titleRef = React.useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!titleRef.current) return;
@@ -119,7 +119,7 @@ export default function SettingsTab() {
     return () => {
       titleRef.current?.removeEventListener("pointerup", handlePointerUp)
     }
-      
+
   }, [titleRef])
 
   const isFirstLoad = mediaItemsNeverLoaded && !mediaItemFiltersError && !mediaItemsError
@@ -131,7 +131,7 @@ export default function SettingsTab() {
   } else if (mediaItemsError || mediaItemFiltersError) {
     disableClose = true;
   }
-  
+
   const startPositionOptions = [
     { value: 'resume', label: 'Resume from last position' },
     { value: 'beginning', label: 'Beginning' },
@@ -166,7 +166,7 @@ export default function SettingsTab() {
                   <components.GroupHeading {...props}>
                     <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
                     {props.data.label}
-                    
+
                   </components.GroupHeading>
                 ),
                 SingleValue: (props) => (
@@ -336,8 +336,8 @@ export default function SettingsTab() {
           </div>
         </>
       </Accordion.Collapse>
-      
-      
+
+
       {showDevOptions && <>
         <AccordionToggle eventKey="3">
           Developer Options
@@ -353,7 +353,7 @@ export default function SettingsTab() {
               />
               <small>Hide developer options.</small>
             </div>
-            
+
             <div className="item checkbox-item">
               <Switch
                 id="debug-mode"
@@ -363,7 +363,7 @@ export default function SettingsTab() {
               />
               <small>Enable debug mode for additional logging and information.</small>
             </div>
-      
+
             <div className="item checkbox-item">
               <Switch
                 id="enable-render-debugging"
@@ -392,13 +392,13 @@ export default function SettingsTab() {
         </Accordion.Collapse>
       </>}
     </Accordion>
-  
+
   </SideDrawer>;
 };
 
 const AccordionToggle: Accordion["Toggle"] = (props) => {
   const {children, className, as, variant, eventKey, ...otherProps} = props;
-  // @ts-expect-error - AccordionContext is imported from a library that used a different React instance but it seems to work fine 
+  // @ts-expect-error - AccordionContext is imported from a library that used a different React instance but it seems to work fine
   const contextEventKey = useContext(AccordionContext);
   const open = contextEventKey === eventKey;
   return (

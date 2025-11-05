@@ -9,9 +9,9 @@
       &:focus {
         box-shadow: none;
       }
-      
+
       text-decoration: none;
-      
+
       h3 {
         display: flex;
         justify-content: space-between;
@@ -23,16 +23,16 @@
           translate: 0 calc(50% - 0.4cap);
         }
       }
-      
-      
+
+
       &.open {
         svg {
           rotate: -90deg;
         }
       }
-      
+
       transition: margin-bottom 0.3s ease;
-      
+
       margin-bottom: 0.2em;
       &.open + div {
         // Add margin to bottom of accordion body when open
@@ -49,7 +49,7 @@
       margin-bottom: 2em;
     }
   }
-  
+
   .form-group {
     margin-bottom: 0;
   }
@@ -71,13 +71,13 @@
       margin-bottom: 0;
     }
   }
-  
+
   .show-guide-overlay {
     display: flex;
     gap: 1em;
     margin-top: 0.5em;
     align-items: center;
-    
+
     button {
       flex: 0 0 auto;
     }

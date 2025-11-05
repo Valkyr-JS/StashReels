@@ -5,7 +5,7 @@
   width: min(300px, 80%);
   background-color: var(--body-bg);
   max-height: 100%;
-  
+
   // Extend background out to the top, left and bottom to cover gaps during swipe
   &::before {
     content: "";
@@ -27,7 +27,7 @@
     display: flex;
     flex-direction: column;
   }
-  
+
   .body,
   .footer {
     padding: 1.5em;

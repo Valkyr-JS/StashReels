@@ -25,7 +25,7 @@ export type MediaItem = {
 export function useMediaItems() {
   const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
   const { debugMode, scenePreviewOnly: previewOnly} = useAppStateStore()
-  
+
   const [ neverLoaded, setNeverLoaded ] = useState(true)
 
   let response
@@ -52,7 +52,7 @@ export function useMediaItems() {
       [scenesResponse.data?.findScenes.scenes]
     )
     response = scenesResponse
-    
+
   } else if (lastLoadedCurrentMediaItemFilter.entityType === "marker") {
     const markersResponse = GQL.useFindSceneMarkersForTvQuery({
       variables: {
@@ -65,7 +65,7 @@ export function useMediaItems() {
         scene_marker_filter: lastLoadedCurrentMediaItemFilter.entityFilter
       },
     })
-    
+
     mediaItems = useMemo(
       () => markersResponse.data?.findSceneMarkers.scene_markers.map(marker => ({
         id: `marker:${marker.id}`,
@@ -90,18 +90,18 @@ export function useMediaItems() {
     useAppStateStore.getState().debugMode && console.log("lastLoadedCurrentMediaItemFilter changed, resetting media items", lastLoadedCurrentMediaItemFilter)
   }, [lastLoadedCurrentMediaItemFilter])
 
-  
+
   const {
     fetchMore,
     error: mediaItemsError,
     loading: mediaItemsLoading,
   } = response
-  
+
   useEffect(() => {
     mediaItems.length && setNeverLoaded(false)
   }, [mediaItems.length])
-  
-  // Stash doesn't provide the lengths of preview videos so we track that ourselves by saving the video's duration as 
+
+  // Stash doesn't provide the lengths of preview videos so we track that ourselves by saving the video's duration as
   // soon as its metadata loads
   const [previewLengths, setPreviewLengths] = useState<{[sceneId: string]: number}>({})
   useEffect(() => {
@@ -127,7 +127,7 @@ export function useMediaItems() {
     }
   }, [previewOnly])
 
-  // Modifying the ScenePlayer to handle playing only a scene's preview would be a lot of work and 
+  // Modifying the ScenePlayer to handle playing only a scene's preview would be a lot of work and
   // would involve a lot of complexity to maintain since it would break many existing assumptions.
   // Instead we take the sightly hacky but much simpler approach of modifying the scene data itself
   // so that ScenePlayer thinks it's just a normal scene but the only available stream is the preview.
@@ -151,7 +151,7 @@ export function useMediaItems() {
       duration = mediaItem.entity.duration
     } else {
       duration = scene.id in previewLengths
-        ? previewLengths[scene.id] 
+        ? previewLengths[scene.id]
         // Estimate the video duration if we don't know it yet
         : Math.min(9.2, scene.files[0].duration)
     }
@@ -176,7 +176,7 @@ export function useMediaItems() {
       captions: null,
       scene_markers: [],
     }
-    
+
     if (mediaItem.entityType === "scene") {
       return {
         ...mediaItem,
@@ -223,7 +223,7 @@ export function useMediaItems() {
             per_page: mediaItemsPerPage,
           },
           [entityFilterKey]: lastLoadedCurrentMediaItemFilter?.entityFilter
-        } 
+        }
       })
     },
     mediaItemsError,

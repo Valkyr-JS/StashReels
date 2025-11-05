@@ -2,7 +2,7 @@
   .react-select__menu {
     margin-top: 2px;
     z-index: 10;
-  
+
     .react-select__option--is-selected {
       background-color: var(--theme-colors-primary);
     }

@@ -44,7 +44,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
 
   const [{ x }, api] = useSpring(() => ({
     from: {
-      x: 0, // Ideally this would be `showSettings ? sidebarWidth : 0` but we don't have a precise value for 
+      x: 0, // Ideally this would be `showSettings ? sidebarWidth : 0` but we don't have a precise value for
         // sidebarWidth on first render so we start closed and then open immediately if needed when sidebarWidth is set
         // with a precise value
     },
@@ -54,7 +54,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       friction: 26
     }
   }));
-  
+
   const showSettingsFirstTimeRef = useRef(true);
   useEffect(() => {
     if (showSettings) {
@@ -96,7 +96,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
 
   const overlayOpacity = x.to((px) => Math.min(sidebarWidth, (px / sidebarWidth)))
   const overlayDisplay = x.to((px) => px > 0 ? 'block' : 'none')
-  
+
   let closeButton = null;
   if (closeDisabled === "because loading") {
     closeButton = (

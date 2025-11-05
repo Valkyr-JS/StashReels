@@ -1,10 +1,10 @@
 import videoJsNamespace, { VideoJsPlayer } from "video.js";
 
-/** 
+/**
  * Hack to allow removal of plugins.
- * 
+ *
  * Video.js doesn't replace the options object with the one we return, it merges our updated options
- * object back into the original options object. Since a plugin is loaded based purely on the presence 
+ * object back into the original options object. Since a plugin is loaded based purely on the presence
  * of a key in the options.plugins object simply deleting the key won't remove the plugin since it will
  * still be present in the original options object. To get around this we replace the whole plugins
  * object with a string which can't be merged and so will wipe out the original plugins object. In a second
@@ -22,7 +22,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
             plugins: "clear"
         };
     });
-    
+
     videojs.hook('beforesetup', function(videoEl, options) {
         const pluginsToKeep: Record<string, unknown> = {}
         for (const [key, value] of Object.entries(options._originalPlugins)) {
@@ -34,7 +34,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
             plugins: pluginsToKeep
         };
     });
-    
+
     // Add plugin stubs so that ScenePlayer doesn't error when trying to use them
     videojs.hook('setup', (player) => {
         const plugins = player.toJSON().plugins || {};
@@ -46,7 +46,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                 }
             }) as unknown as VideoJsPlayer["vrMenu"];
         }
-        
+
         if (!('skipButtons' in plugins)) {
             player.skipButtons = (() => {
                 return {
@@ -55,7 +55,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                 }
             }) as unknown as VideoJsPlayer["skipButtons"];
         }
-        
+
         if (!('trackActivity' in plugins)) {
             player.trackActivity = (() => {
                 return {
@@ -64,7 +64,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                 }
             }) as unknown as VideoJsPlayer["trackActivity"];
         }
-        
+
         if (!('vttThumbnails' in plugins)) {
             player.vttThumbnails = (() => {
                 return {
@@ -72,7 +72,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
                 }
             }) as unknown as VideoJsPlayer["vttThumbnails"];
         }
-        
+
         if (!('markers' in plugins)) {
             player.markers = (() => {
                 return {

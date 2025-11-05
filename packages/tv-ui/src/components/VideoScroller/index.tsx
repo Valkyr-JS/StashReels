@@ -76,7 +76,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       return elementScroll(...args);
     }
   });
-  
+
   const rowVirtualizer = isForceLandscape ? elementRowVirtualizer : windowRowVirtualizer;
 
   const [currentIndex, _setCurrentIndex] = useReducer(
@@ -86,15 +86,15 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     },
     0
   );
-  
+
   /**
-   * The currentIndex value in ref form for when it needs to be accessed in
-   * async functions without being a dependency that causes re-renders.
-   *
-   * It's state may sometimes differ from currentIndex as the updating of currentIndex
-   * is throttled to avoid excessive re-renders. However currentIndex should eventually
-   * catch up to this value.
-   * */
+  * The currentIndex value in ref form for when it needs to be accessed in
+  * async functions without being a dependency that causes re-renders.
+  *
+  * It's state may sometimes differ from currentIndex as the updating of currentIndex
+  * is throttled to avoid excessive re-renders. However currentIndex should eventually
+  * catch up to this value.
+  * */
   const currentIndexRef = useRef(currentIndex);
 
   const setCurrentIndex = useMemo(
@@ -157,7 +157,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   const scrollToIndex = useCallback(
     (index: React.SetStateAction<number>, options?: ScrollToIndexOptions) => {
       index = typeof index === 'function' ? index(currentIndexRef.current) : index;
-      // We don't use TanStack Virtual's `scrollToIndex()` here since it won't scroll to the position for an item that 
+      // We don't use TanStack Virtual's `scrollToIndex()` here since it won't scroll to the position for an item that
       // isn't rendered yet + it seems to be a bit buggy around smooth scrolling since it scrolls then immediately
       // checks to see if it's finished scrolling and will try again if not (causing jumpiness).
       const container = rowVirtualizer.scrollElement
@@ -170,19 +170,19 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     },
     [rowVirtualizer]
   );
-  
+
   useEffect(() => {
     debugMode && console.log("currentIndex changed to", currentIndex);
     if (currentIndex >= mediaItems.length - 5) {
       loadMoreMediaItems();
     }
-  }, [currentIndex, mediaItems.length]); 
+  }, [currentIndex, mediaItems.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const nextKey = isForceLandscape ? "ArrowRight" : "ArrowDown";
       const previousKey = isForceLandscape ? "ArrowLeft" : "ArrowUp";
-      debugMode && (e.key === previousKey || e.key === nextKey) && 
+      debugMode && (e.key === previousKey || e.key === nextKey) &&
         console.log("VideoScroller Keydown", e.key, {nextKey, previousKey});
       if (e.key === previousKey) {
         // Go to the previous item
@@ -216,7 +216,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
-  
+
   // Store scroll position when window is resized
   useEffect(() => {
     const restoreScrollPosition = () => {
@@ -225,26 +225,26 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         rowVirtualizer.measure();
         const newSize = rowVirtualizer.getVirtualItems()[0].size
         if (oldSize === newSize) return;
-        
+
         scrollToIndex(currentIndex => currentIndex, { behavior: "instant" });
       }
     };
-    
+
     window.addEventListener('resize', restoreScrollPosition);
     return () => {
       window.removeEventListener('resize', restoreScrollPosition);
     };
   }, [scrollToIndex, rowVirtualizer]);
-  
+
   useEffect(() => {
     // Restore scroll position after items have been resized for landscape/portrait mode
     scrollToIndex(currentIndex => currentIndex, { behavior: "instant" });
-  }, [isForceLandscape]);  
+  }, [isForceLandscape]);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const mutationObserverRef = useRef<MutationObserver | null>(null);
   const observedElementsRef = useRef<Map<Element, number>>(new Map());
-  
+
   // Update the currentIndex when scrolling
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -252,44 +252,44 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         // Find the most visible entry
         let maxVisibility = 0;
         let mostVisibleIndex = currentIndexRef.current;
-        
+
         entries.forEach((entry) => {
           const index = observedElementsRef.current.get(entry.target);
           if (index === undefined) return;
-          
+
           // Calculate how visible the element is (ratio of intersection)
           const visibilityRatio = entry.intersectionRatio;
-          
+
           if (visibilityRatio > maxVisibility) {
             maxVisibility = visibilityRatio;
             mostVisibleIndex = index;
           }
         });
-        
+
         if (mostVisibleIndex === currentIndexRef.current) return;
-        
+
         // Only update if we found a valid entry with enough visibility
         if (maxVisibility > 0.3) {
           setCurrentIndex(mostVisibleIndex);
         }
       },
-      { 
+      {
         threshold: [0, 0.25, 0.5, 0.75, 1],
         rootMargin: "0px"
       }
     );
-    
+
     // Set up a function to refresh which elements are being observed
     const updateObservedElements = () => {
       const observer = observerRef.current;
       if (!observer) return;
-      
+
       // Clear previous observations
       observedElementsRef.current.forEach((_, element) => {
         observer.unobserve(element);
       });
       observedElementsRef.current.clear();
-      
+
       // Find all rendered items and observe them
       document.querySelectorAll('[data-index]').forEach((element) => {
         const indexAttr = element.getAttribute('data-index');
@@ -305,10 +305,10 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
 
     // Initial setup of observed elements
     setTimeout(updateObservedElements, 100); // Short delay to ensure DOM elements are rendered
-    
+
     // Set up a mutation observer to detect when the DOM changes
     mutationObserverRef.current = new MutationObserver(updateObservedElements);
-    
+
     // Start observing the container for DOM changes
     const container = document.querySelector('.VideoScroller');
     if (container) {
@@ -329,8 +329,8 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
       }
     };
   }, [setCurrentIndex]);
-  
-  
+
+
   // Freeze the list of items to render while changing orientation and switching virtualizers
   // to avoid unmounting and remounting all items which would loose video playback state.
   // This is a fairly ugly solution for that but it works.
@@ -358,7 +358,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     previousItemIndexesToRenderRef.current = newItemIndexesToRender;
     return newItemIndexesToRender;
   }, [rowVirtualizer.getVirtualItems(), itemsToRenderFrozen]);
-  
+
 
   /* -------------------------------- Component ------------------------------- */
 

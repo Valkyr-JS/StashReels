@@ -57,12 +57,12 @@ export const useStashConfigStore = create<StashConfig>((set, get) => ({
       loading: false,
     })
   },
-  /** 
-   * Updates the Stash TV config stored in Stash.
-   * 
-   * Providing a function will allow you to specify how the new config is merged with the existing config.
-   * Otherwise if an object is provided all top-level properties will be merged.
-   */
+  /**
+  * Updates the Stash TV config stored in Stash.
+  *
+  * Providing a function will allow you to specify how the new config is merged with the existing config.
+  * Otherwise if an object is provided all top-level properties will be merged.
+  */
   updateStashTvConfig: async (
     apolloClient: ApolloClient<NormalizedCacheObject>,
     config: StashTvConfigState | ((currentConfig: StashTvConfigState) => StashTvConfigState)

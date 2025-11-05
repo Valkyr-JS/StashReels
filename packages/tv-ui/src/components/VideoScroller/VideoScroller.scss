@@ -1,6 +1,6 @@
 .VideoScroller {
   position: relative;
-  
+
   .debugStats {
     position: fixed;
     top: 10px;
@@ -12,14 +12,14 @@
     font-size: 0.8rem;
     color: white;
   }
-  
+
   &.scrollSnappingEnabled {
     .MediaSlide, .dummy-video-item {
       scroll-snap-align: start;
       scroll-snap-stop: normal;
     }
   }
-  
+
   .dummy-video-item {
     display: flex;
     align-items: center;

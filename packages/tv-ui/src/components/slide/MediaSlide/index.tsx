@@ -56,16 +56,16 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     uiVisible,
     set: setAppSetting,
   } = useAppStateStore();
-  
+
   const scene = props.mediaItem.entityType === "scene" ? props.mediaItem.entity : props.mediaItem.entity.scene;
-  
+
   useEffect(() => {
     debugMode && console.log(`Mounted MediaSlide index=${props.index} sceneId=${scene.id}`);
     return () => {
       debugMode && console.log(`Unmounted MediaSlide index=${props.index} sceneId=${scene.id}`)
     };
   }, []);
-  
+
   // Don't return player if it's disposed
   const videojsPlayerRef = useGetterRef<VideoJsPlayer | null>(
     (player) => player?.isDisposed() ? null : player,
@@ -73,7 +73,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     []
   );
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  
+
   const [loadingDeferred, setLoadingDeferred] = useState(props.currentlyScrolling);
   useEffect(() => {
     if (loadingDeferred) {
@@ -82,10 +82,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }, [loadingDeferred, props.currentlyScrolling]);
 
   const isCurrentVideo = props.index === props.currentIndex;
-  
+
   // Currently hardcoded but could be made configurable later
   const autoplay = globalAutoPlay && isCurrentVideo && !showGuideOverlay;
-  
+
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
@@ -103,7 +103,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       event.stopPropagation();
     });
   }
-  
+
   useEffect(() => {
     if (!showDevOptions || !isCurrentVideo || !videojsPlayerRef.current) return;
 
@@ -112,7 +112,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     // @ts-expect-error
     window.tvCurrentMediaItem = props.mediaItem;
   }, [isCurrentVideo, showDevOptions])
-  
+
   // If duration changes (such as when scenePreviewOnly is toggled) we manually update the player since the
   // progress bar doesn't seem to update otherwise
   const firstDurationChangeRef = useRef(true);
@@ -124,7 +124,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     }
     videojsPlayerRef.current?.duration(scene.files?.[0]?.duration); // Force update of duration
   }, [scene.files?.[0]?.duration])
-  
+
   useEffect(() => {
     if (!looping || props.mediaItem.entityType !== "marker" || !videojsPlayerRef.current) return;
     // videojs-offset doesn't seem to respect loop so we have to manually restart video after it's ended
@@ -150,12 +150,12 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       videojsPlayerRef.current?.pause();
     }
   }, [props.index, props.currentIndex, autoplay]);
-  
+
   // Handle clicks and gestures on the video element
   const handleClick = useCallback((event: MouseEvent) => {
     const {currentTarget: videoElm} = event;
     if (!videoElm || !(videoElm instanceof HTMLElement)) return;
-    
+
     const videoElmWidth = videoElm.clientWidth
     if (debugMode) console.log(`Click at X=${event.clientX} (video width: ${videoElmWidth})`, videoElm);
     if (event.clientX < (videoElmWidth / 3)) {
@@ -170,7 +170,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       seekForwards()
     }
   }, [debugMode])
-    
+
   useEffect(() => {
     if (!isCurrentVideo) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -194,7 +194,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
   }, [forceLandscape, isCurrentVideo]);
-  
+
   useEffect(() => {
     if (!showGuideOverlay) return;
     videojsPlayerRef.current?.pause();
@@ -217,7 +217,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     } else {
         skipPercent = 0.33
     }
-    
+
     let skipTimeAmount = duration * skipPercent
     const newCurrentTime = currentTime + (direction === 'forwards' ? skipTimeAmount : -skipTimeAmount)
     // We make the range to look for the next marker a bit larger than the skip amount to avoid
@@ -240,7 +240,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     }
     return skipTimeAmount
   }
-  
+
   function seekForwards() {
     if (!videojsPlayerRef.current) return null;
     const duration = videojsPlayerRef.current?.duration();
@@ -262,7 +262,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     setCurrentlyPlayingMarker(findCurrentlyPlayingMarker(nextSkipAheadTime))
     videojsPlayerRef.current?.play()
   }
-    
+
   function seekBackwards() {
     if (!videojsPlayerRef.current) return null;
     const duration = videojsPlayerRef.current?.duration();
@@ -322,7 +322,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
         ? "showing"
         : "disabled";
   }, [showSubtitles]);
-  
+
   function getRandomPointInScene(scene: GQL.TvSceneDataFragment) {
     if (scene.scene_markers.length) {
       // Pick a random marker
@@ -336,8 +336,8 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     const randomPoint = Math.random() * (max - min) + min
     return Math.floor(randomPoint)
   }
-  
-  
+
+
   let initialTimestamp
   if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
     initialTimestamp = 0
@@ -403,7 +403,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }
 
   /* -------------------------------- Component ------------------------------- */
-  
+
   const videoJsControlBarElm = videojsPlayerRef.current?.getChild('ControlBar')?.el();
 
   return (
@@ -451,7 +451,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
                   end: props.mediaItem.entity.seconds + props.mediaItem.entity.duration,
                   // This moves the play head to the start of the marker clip but does not resume play even if loop is
                   // true so we handle that ourselves in an onEnded handler
-                  restart_beginning: true 
+                  restart_beginning: true
                 }
               } : {})
             }

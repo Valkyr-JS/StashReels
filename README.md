@@ -25,7 +25,7 @@ Reels](https://github.com/Valkyr-JS/StashReels) with some [performance improveme
 ## Installation
 
 1. Add the [secondfolder stash-plugins source](https://github.com/secondfolder/stash-plugins) to Stash if it hasn't been
-   added already.
+  added already.
 <ul>
 <li>
 <details>

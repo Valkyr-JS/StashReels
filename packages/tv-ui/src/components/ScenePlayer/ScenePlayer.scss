@@ -7,7 +7,7 @@
       height: 100%; /* override stash style */
     }
   }
-  
+
   &.hide-controls {
     .VideoPlayer {
       .vjs-control-bar > :not(.vjs-progress-control) {
@@ -15,7 +15,7 @@
       }
     }
   }
-  
+
   &.hide-progress-bar {
     .VideoPlayer {
       .vjs-control-bar > .vjs-progress-control {
@@ -23,7 +23,7 @@
       }
     }
   }
-  
+
   &.hide-controls:not(.hide-progress-bar) {
     .VideoPlayer {
       .vjs-control-bar > .vjs-progress-control {
@@ -31,10 +31,10 @@
       }
     }
   }
-  
+
   .video-js {
     &:not(.vjs-has-started):not(.vjs-using-native-controls) video {
-      // The DOM order should mean that the poster is always on top if visible but there's a weird iOS bug that 
+      // The DOM order should mean that the poster is always on top if visible but there's a weird iOS bug that
       // causes the video to appear on top of the poster when the video is over halfway off screen;
       opacity: 0;
     }
@@ -60,7 +60,7 @@
       flex: 1 1 auto;
     }
     /*
-    We need to include this since the sourceSelector plugin expects it to exist but we don't 
+    We need to include this since the sourceSelector plugin expects it to exist but we don't
     want it to be visible.
     */
     .vjs-fullscreen-control {
@@ -73,7 +73,7 @@
     .vjs-source-selector {
       display: none;
     }
-    
+
     // The cast button is injected by a plugin so we can't control it's dom placement but we want it to appear to the
     // right of the video duration so we use order to make duration last
     .vjs-duration {

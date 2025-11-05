@@ -18,10 +18,10 @@ videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
     player.focus = () => {}
 
-    // There seem's to be a bug with videojs where if multiple videos are loaded at the same time then the duration of 
-    // the one player can be set to that of another.     
+    // There seem's to be a bug with videojs where if multiple videos are loaded at the same time then the duration of
+    // the one player can be set to that of another.
     const originalDurationFunction = player.duration.bind(player);
-    const usingOffsetPlugin = !!player.toJSON().plugins.offset;    
+    const usingOffsetPlugin = !!player.toJSON().plugins.offset;
     function modifiedDurationFunction(): number;
     function modifiedDurationFunction(newDuration: number): void;
     function modifiedDurationFunction (newDuration?: number) {
@@ -65,14 +65,14 @@ videojs.hook('beforesetup', function(videoEl, options) {
         },
         inactivityTimeout: 5000,
         controlBar: {
-            children: [ 
+            children: [
                 'progressControl',
                 'currentTimeDisplay',
                 'customControlSpacer',
                 'durationDisplay',
                 // The fullscreen button is expected to exist by the sourceSelector plugin but we don't
                 // want to show it so we hide in css
-                'fullscreenToggle', 
+                'fullscreenToggle',
             ],
             volumePanel: false,
         },
@@ -130,17 +130,17 @@ export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOrigi
 const ScenePlayer = forwardRef<
     HTMLDivElement,
     ScenePlayerProps
->(({ 
-    className, 
-    onTimeUpdate, 
-    hideControls, 
-    hideProgressBar, 
-    onClick, 
-    onEnded, 
-    onVideojsPlayerReady, 
-    optionsToMerge, 
-    muted, 
-    loop, 
+>(({
+    className,
+    onTimeUpdate,
+    hideControls,
+    hideProgressBar,
+    onClick,
+    onEnded,
+    onVideojsPlayerReady,
+    optionsToMerge,
+    muted,
+    loop,
     trackActivity = true,
     scrubberThumbnail = true,
     markers = true,
@@ -160,7 +160,7 @@ const ScenePlayer = forwardRef<
             console.warn("ScenePlayer: Could not get root elm");
             return;
         }
-        
+
         // Set the video element to the ref provided by the parent component
         if (ref) {
             if (typeof ref === 'function') {
@@ -178,20 +178,20 @@ const ScenePlayer = forwardRef<
             debugMode && console.log(`Unmounted ScenePlayer sceneId=${otherProps.scene.id}`);
         }
     },[]);
-    
+
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);
     const videojsPlayerRef = useRef<VideoJsPlayer | null>(null);
-    
+
     // Replace with React's useId when we upgrade to React 18
     const playerId = useUID();
-    
+
     // While a scene wouldn't normally contain a stream for the preview video if the provided for whatever reason then
     // it will be treated as not a direct stream by the wrapped ScenePlayer component. This causes playback issues
     // especially around seeking. The check to determine if a stream is direct or not is hardcoded to recognise certain
     // urls. We can't change this so as a workaround we temporarily change the preview URL to end with /stream which
-    // ScenePlayer treats as a direct stream at the point where it processes the streams to load. Then we add a wrapper 
-    // to the Video.js instance's sourceSelector function to revert any preview urls back to remove the "/stream" suffix 
+    // ScenePlayer treats as a direct stream at the point where it processes the streams to load. Then we add a wrapper
+    // to the Video.js instance's sourceSelector function to revert any preview urls back to remove the "/stream" suffix
     // before Video.js actually uses them.
     otherProps.scene = {
         ...otherProps.scene,
@@ -219,7 +219,7 @@ const ScenePlayer = forwardRef<
             return sourceSelector;
         };
     }
-    
+
     // The wrapped ScenePlayer component has a buggy implementation of onComplete handling that results in all "ended"
     // handlers being removed periodically. So we disable it and reimplement making sure we only remove the onComplete
     // listener when cleaning up.
@@ -265,7 +265,7 @@ const ScenePlayer = forwardRef<
         videojsPlayerRef.current = player;
         setVideojsPlayer(player);
         handleInitialTimestamp();
-        
+
         const videoElm = player.el()?.querySelector('video')
         if (!videoElm) {
             console.warn("ScenePlayer: No video element found in container");
@@ -274,11 +274,11 @@ const ScenePlayer = forwardRef<
 
         setVideoElm(videoElm);
     }
-    
+
     /* Very annoyingly the wrapped ScenePlayer component will autoplay even if the autoplay prop is set to false, when
     initialTimestamp is greater than 0. To stop this behaviour we set the initialTimestamp to 0 for the wrapped
-    ScenePlayer and handle starting at the initialTimestamp ourselves once the Video.js player has been created. 
-    
+    ScenePlayer and handle starting at the initialTimestamp ourselves once the Video.js player has been created.
+
     Note it would also do this when autoplay is turned on in the Stash settings but we don't load ConfigurationContext
     so it can't check the settings. If we do decide to load that in the future we'll need to modify the value of that
     before it gets to the wrapped ScenePlayer so that autoplay is false (assuming we want to preference Stash TV's
@@ -309,14 +309,14 @@ const ScenePlayer = forwardRef<
         if (muted === undefined || !player || player.isDisposed()) return;
         player.muted(muted);
     }, [muted]);
-    
+
     // Pass loop prop to Video.js player
     useEffect(() => {
         const player = videojsPlayerRef.current
         if (loop === undefined || !player || player.isDisposed()) return;
         player.loop(loop);
     }, [loop]);
-    
+
     // Fix bug in wrapped ScenePlayer that some times results in an error being thrown on unmount
     useEffect(() => {
         return () => {
@@ -376,24 +376,24 @@ const ScenePlayer = forwardRef<
             videoElm.removeEventListener('timeupdate', onTimeUpdate);
         }
     }, [videoElm, onTimeUpdate]);
-    
+
     const scene = useMemo(() => {
         let scene = JSON.parse(JSON.stringify(otherProps.scene));
-        
-        // Wrapped ScenePlayer will start playback from resume_time even if initialTimestamp is set when it's set to 0. 
-        // By making resume_time at least as long as duration we short circuit some of it's logic and cause it to 
+
+        // Wrapped ScenePlayer will start playback from resume_time even if initialTimestamp is set when it's set to 0.
+        // By making resume_time at least as long as duration we short circuit some of it's logic and cause it to
         // initialTimestamp.
         if (initialTimestamp !== undefined) {
             scene.resume_time = otherProps.scene.files?.[0]?.duration;
         }
-        
+
         // Wrapped ScenePlayer only needs a subset of SceneDataFragment so to reduce network request
         // times we only give it the necessary fields
         return scene as GQL.SceneDataFragment
     }, [otherProps.scene, initialTimestamp]);
-    
-    
-    // We want tapping to trigger click events on mobile which is normally what would happen but Video.js 
+
+
+    // We want tapping to trigger click events on mobile which is normally what would happen but Video.js
     // behaves differently:
     // https://github.com/videojs/video.js/issues/8950#issuecomment-2578709881
     // So we map tap events to click events ourselves

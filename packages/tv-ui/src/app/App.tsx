@@ -9,7 +9,7 @@ import { useApolloClient, ApolloClient, NormalizedCacheObject } from '@apollo/cl
 const App = () => {
   const { forceLandscape  } = useAppStateStore()
   const { loadStashConfig } = useStashConfigStore()
-  
+
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   useEffect(() => {
     apolloClient && loadStashConfig(apolloClient)
@@ -17,7 +17,7 @@ const App = () => {
 
   // <html /> is outside of React's control so we have to set the class manually
   document.documentElement.className = cx({ "force-landscape": forceLandscape });
-  
+
   useEffect(() => {
     if (!forceLandscape) return;
 
@@ -43,27 +43,27 @@ const App = () => {
           ...('touchType' in touch ? { touchType: touch.touchType as TouchType } : {}),
         })
       }
-      
+
       if ('pageX' in event && typeof event.pageX === 'number' && 'pageY' in event && typeof event.pageY === 'number') {
         const effectivePageX = window.innerHeight - event.pageY
         const effectivePageY = event.pageX
-        
+
         updateReadOnlyProps(event, {
           pageX: effectivePageX,
           pageY: effectivePageY,
         })
       }
-      
+
       // We don't want to create a new touch event since doing so would loose it's trusted status. But there doesn't
       // appear we have to create new Touch objects for our changes to stick and we can't update or directly create a
-      // new TouchList. We can however create a TouchList indirectly by creating a new TouchEvent and copying 
+      // new TouchList. We can however create a TouchList indirectly by creating a new TouchEvent and copying
       // out it's TouchList properties.
       const newTouchEvent = new TouchEvent("touchstart", {
         touches: Array.from(event.touches).map(remapTouch),
         targetTouches: Array.from(event.targetTouches).map(remapTouch),
         changedTouches: Array.from(event.changedTouches).map(remapTouch),
       });
-      
+
       updateReadOnlyProps(event, {
         touches: newTouchEvent.touches,
         changedTouches: newTouchEvent.changedTouches,
@@ -76,7 +76,7 @@ const App = () => {
       const effectiveClientY = event.clientX
       const effectiveMovementX = -event.movementY
       const effectiveMovementY = event.movementX
-      
+
       updateReadOnlyProps(event, {
         clientX: effectiveClientX,
         clientY: effectiveClientY,

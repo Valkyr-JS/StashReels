@@ -35,30 +35,30 @@ export default function CrtEffect(props: Props) {
     if (!canvasElm) return
     const windowWidth = window.innerWidth;
     let frame: number;
-  
+
     // Set canvas size
     canvasElm.width = windowWidth / 3;
     canvasElm.height = (windowWidth * 0.5625) / 3;
-  
+
     // Generate CRT noise
     function snow(canvasElm: HTMLCanvasElement) {
       const canvasContext = canvasElm.getContext('2d')
       if (!canvasContext) return
-  
+
       var w = canvasContext.canvas.width,
         h = canvasContext.canvas.height,
         d = canvasContext.createImageData(w, h),
         b = new Uint32Array(d.data.buffer),
         len = b.length;
-  
+
       for (var i = 0; i < len; i++) {
         b[i] = ((255 * Math.random()) | 0) << 24;
       }
-  
+
       canvasContext.globalAlpha = 0.4;
       canvasContext.putImageData(d, 0, 0);
     }
-  
+
     function animate() {
       if (!canvasElm) return;
       snow(canvasElm);

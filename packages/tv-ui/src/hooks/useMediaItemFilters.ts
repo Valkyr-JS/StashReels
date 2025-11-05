@@ -13,11 +13,11 @@ import { useConditionalMemo } from "./useMemoConditional";
  * seem to do a great job of naming these different formats to make that clear. When a filter is saved it usually just
  * referred to as a saved filter but when it's used in a search it's referred to as a by the type of entity being
  * searched, like a media item filter.
- * 
- * To make this clearer we use "saved filter" to refer to a filter in its saved format (or "saved media item filter" for 
- * specifically a media item filter) and "searchable filter" to refer to a filter in its searchable format (or "searchable 
+ *
+ * To make this clearer we use "saved filter" to refer to a filter in its saved format (or "saved media item filter" for
+ * specifically a media item filter) and "searchable filter" to refer to a filter in its searchable format (or "searchable
  * media item filter" for specifically a media item filter).
- * 
+ *
  * The rest of the Stash TV codebase pretty much only deals with the searchable format so we just hide this distinction
  * and only present the searchable format outside of this file which we simply refer to as a "filter" (or "media item filter"
  * for specifically a media item filter).
@@ -67,7 +67,7 @@ export function useMediaItemFilters() {
     randomSeed,
   } = useGlobalFilterState()
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
-  
+
 
   const {
     general: { stashDefaultScenesFilter, availableSavedSceneFilters, availableSavedMarkerFilters },
@@ -76,7 +76,7 @@ export function useMediaItemFilters() {
   } = useStashConfigStore();
   const { isRandomised, onlyShowMatchingOrientation } = useAppStateStore();
   const { orientation } = useWindowSize()
-  
+
   let limitOrientation: "landscape" | "portrait" | undefined = undefined
   if (onlyShowMatchingOrientation && orientation !== "square") {
     limitOrientation = orientation
@@ -91,7 +91,7 @@ export function useMediaItemFilters() {
     [currentSearchableFilter],
     !mediaItemFiltersLoading
   )
-  
+
   // Load default filter on initial load.
   useEffect(() => {
     if (useGlobalFilterState.getState().loadingResponsibilityClaimed || stashConfigLoading) return;
@@ -106,7 +106,7 @@ export function useMediaItemFilters() {
           useGlobalFilterState.setState({
             currentSavedFilter: {
               ...stashDefaultScenesFilter,
-              filter: '', // The filter prop is deprecated in favour of find_filter and object_filter, and it's not 
+              filter: '', // The filter prop is deprecated in favour of find_filter and object_filter, and it's not
                 // provided when getting a default saved filter so we can safely set an empty string here.
             }
           })
@@ -149,7 +149,7 @@ export function useMediaItemFilters() {
       // Stash has no record of a filter with this ID
       return undefined;
     }
-    
+
     useGlobalFilterState.setState({
       randomSeed: getRandomSeed(),
       currentSavedFilter: {
@@ -168,7 +168,7 @@ export function useMediaItemFilters() {
 
     return data?.findSavedFilter ?? null;
   }
-  
+
   function convertSavedToSearchableFilter(
     savedFilter: SavedMediaItemFilter
   ): SearchableMediaItemFilter {
@@ -183,7 +183,7 @@ export function useMediaItemFilters() {
 
       return updatedFilter;
     }
-    
+
     function addSceneFiltersMods(sceneFilter: GQL.FindScenesForTvQueryVariables["scene_filter"]) {
       if (limitOrientation) {
         sceneFilter = sceneFilter || {};
@@ -196,7 +196,7 @@ export function useMediaItemFilters() {
       }
       return sceneFilter;
     }
-    
+
     function getSceneFilter() {
       const filter = new ListFilterModel(savedFilter.mode)
       filter.configureFromSavedFilter(savedFilter);
@@ -205,17 +205,17 @@ export function useMediaItemFilters() {
         filter.makeFilter()
       )
     }
-    
+
     function getMarkerFilter() {
       const filter = new ListFilterModel(savedFilter.mode)
       filter.configureFromSavedFilter(savedFilter);
 
       const markerFilter: GQL.FindSceneMarkersForTvQueryVariables["scene_marker_filter"] = filter.makeFilter();
       markerFilter.scene_filter = addSceneFiltersMods(markerFilter.scene_filter);
-      
+
       return markerFilter;
     }
-    
+
     const sharedProps = {
       savedFilter,
       generalFilter: getGeneralFilter(),
@@ -223,7 +223,7 @@ export function useMediaItemFilters() {
         return savedFilter.id === useStashConfigStore.getState().tv.defaultFilterId;
       }
     }
-    
+
     if (savedFilter.mode === GQL.FilterMode.Scenes) {
       return {
         ...sharedProps,
@@ -261,7 +261,7 @@ export function useMediaItemFilters() {
     },
     [availableSavedSceneFilters, stashTvDefaultFilterId]
   );
-  
+
   return {
     mediaItemFiltersLoading: mediaItemFiltersLoading,
     mediaItemFiltersNeverLoaded: neverLoaded,

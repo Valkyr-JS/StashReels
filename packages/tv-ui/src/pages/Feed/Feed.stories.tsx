@@ -212,7 +212,7 @@ export const ToggleCaptions: Story = {
       variables: {
         filter: { per_page: scenesPerPage, sort: "random" },
         scene_filter: {
-          orientation: { value: [GQL.OrientationEnum.Portrait] }, 
+          orientation: { value: [GQL.OrientationEnum.Portrait] },
           captions: { modifier: GQL.CriterionModifier.NotNull, value: "" },
         }
       }

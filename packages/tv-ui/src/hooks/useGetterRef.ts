@@ -13,7 +13,7 @@ export function useGetterRef<
   dependencies: React.DependencyList
 ): React.MutableRefObject<ReturnedType> {
   const valueSourceRef = useRef(initialValue);
-  
+
   // We use useMemo to create the ref object only once and then
   // use useEffect to update the getter logic based on dependencies
   const getterRef = useMemo(() => {
@@ -27,7 +27,7 @@ export function useGetterRef<
     }
     return getterRef;
   }, [])
-  
+
   useEffect(() => {
     Object.defineProperty(getterRef, 'current', {
       get: () => getter(valueSourceRef.current)

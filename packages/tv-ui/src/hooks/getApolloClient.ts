@@ -22,7 +22,7 @@ export function getApolloClient() {
                             filter: {
                                 ...variables?.filter,
                                 page: undefined,
-                                per_page: undefined,    
+                                per_page: undefined,
                             }
                         }),
                         merge(
@@ -49,7 +49,7 @@ export function getApolloClient() {
                             filter: {
                                 ...variables?.filter,
                                 page: undefined,
-                                per_page: undefined,    
+                                per_page: undefined,
                             }
                         }),
                         merge(
@@ -77,14 +77,14 @@ export function getApolloClient() {
         link: originalClient.link,
         cache: newCache,
     });
-    
+
     // When playing the stash player will update the video's watched time occasionally
     // (https://github.com/stashapp/stash/blob/2ed9e5332d7bfeb08877e38af5bd633ba0fd3a37/ui/v2.5/src/core/StashService.ts#L908).
     // When it does it also clears the apollo cache and reloads. We don't want this because if we've loaded many pages we'll lose them all. To get
     // around this we wrap the cache modification function and specifically ignore any requests to delete scenes from
     // the cache.
     const oldModify = newCache.modify
-    newCache.modify = (firstArg, ...otherArgs) => { 
+    newCache.modify = (firstArg, ...otherArgs) => {
         const {fields = {}} = firstArg as {fields: Modifiers}
         if ('findScenes' in fields && typeof fields.findScenes === 'function') {
             const originalModFn = fields.findScenes
@@ -96,11 +96,11 @@ export function getApolloClient() {
                 }
                 return result
             }
-             
+
         }
         // @ts-expect-error - We're doing a fairly hacking thing here by wrapping the modify function but we're trying
         // to avoid modifying the source of stash's ui.
-        return oldModify.apply(newCache, [firstArg, ...otherArgs]); 
+        return oldModify.apply(newCache, [firstArg, ...otherArgs]);
     }
     return newClient;
 }

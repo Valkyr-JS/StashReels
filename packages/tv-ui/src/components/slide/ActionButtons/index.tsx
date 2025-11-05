@@ -45,16 +45,16 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   } = useAppStateStore();
 
   const { tv: { subtitleLanguage } } = useStashConfigStore();
-  
+
   const sceneInfoDataAvailable =
     scene.performers.length > 0 ||
     !!scene.studio ||
     !!scene.title ||
     !!scene.date;
-  
+
   /** Only render captions track if available, and it matches the user's chosen
-   * language. Fails accessibility if missing, but there's no point rendering
-   * an empty track. */
+  * language. Fails accessibility if missing, but there's no point rendering
+  * an empty track. */
   const captionSources =
     scene.captions && subtitleLanguage
       ? scene.captions
@@ -75,7 +75,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           })
           .find((c) => !!c)
       : null;
-  
+
   return (
     <div
       className="ActionButtons"
