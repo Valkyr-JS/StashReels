@@ -52,6 +52,7 @@
     .vjs-control-bar {
       height: unset;
       padding-bottom: var(--y-dynamic-diff);
+      padding-right: calc(var(--safe-inset-right) + 50px);
       flex-wrap: wrap;
       column-gap: 1em;
       align-items: center;
@@ -60,14 +61,13 @@
         width: unset;
       }
       
-      padding-right: var(--safe-inset-right);
       
       // Move the first and last items in a bit to account for curved corners of mobile devices
       .vjs-current-time {
         padding-left: 35px;
       }
       > .vjs-duration {
-        padding-right: 35px;
+        padding-right: 15px;
       }
 
       .vjs-time-control {
@@ -202,25 +202,36 @@
     }
   }
   
-  .SceneInfo, .toggleable-ui, .toggleable-ui-button {
+  &.hide-controls {
+    .SceneInfo,
+    .toggleable-ui,
+    .toggleable-ui-button,
+    .video-js.vjs-user-inactive .vjs-control-bar,
+    .video-js .vjs-control-bar {
+      opacity: 0;
+      visibility: hidden;
+      transition: 
+        opacity 0.15s ease-in-out,
+        visibility 0s linear 0.15s; /* delay visibility change until after opacity fades */
+      
+      &.toggleable-ui-button {
+        opacity: 0.35;
+        visibility: unset;
+      }
+    }
+  }
+  
+  .SceneInfo:not(.active) {
     opacity: 0;
     visibility: hidden;
     transition: 
       opacity 0.15s ease-in-out,
       visibility 0s linear 0.15s; /* delay visibility change until after opacity fades */
-    
-    &.toggleable-ui-button {
-      opacity: 0.35;
-      visibility: unset;
-    }
-      
-    /* When visible */
-    &.active {
-      opacity: 1;
-      visibility: visible;
-      transition:
-        opacity 0.15s ease-in-out,
-        visibility 0s linear 0s; /* immediate visibility */
-    }
+  }
+  
+  .SceneInfo, .toggleable-ui, .toggleable-ui-button, .vjs-control-bar {
+    transition:
+      opacity 0.15s ease-in-out,
+      visibility 0s linear 0s; /* immediate visibility */
   }
 }

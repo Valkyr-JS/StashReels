@@ -53,6 +53,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     autoPlay: globalAutoPlay,
     startPosition,
     showGuideOverlay,
+    uiVisible,
     set: setAppSetting,
   } = useAppStateStore();
   
@@ -407,7 +408,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   return (
     <div
-      className={cx("MediaSlide", {inViewport: isCurrentVideo, 'cover': !letterboxing}, props.className)}
+      className={cx("MediaSlide", {inViewport: isCurrentVideo, 'cover': !letterboxing, 'hide-controls': !uiVisible}, props.className)}
       data-testid="MediaSlide--container"
       data-index={props.index}
       data-scene-id={scene.id}
