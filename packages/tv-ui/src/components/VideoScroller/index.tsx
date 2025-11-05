@@ -382,8 +382,8 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
           top: 0,
           left: 0,
           width: '100%',
-          height: 'calc(var(--y-unit-large) * 100)',
-          transform: `translateY(calc(var(--y-unit-large) * 100 * ${i}))`,
+          height: mediaSlideHeight,
+          transform: `translateY(calc(${mediaSlideHeight} * ${i}))`,
           ...(debugMode ? {
             "backgroundColor": `hsl(${i * 37  % 360}, 70%, 50%)`,
             border: `10px ${i === currentIndex ? 'black' : 'transparent'} dashed`,
