@@ -1,0 +1,24 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+
+[{*.js,*.json,*.ts,*.tsx,*.css,*.scss,*.md,*.yml,*.yaml}]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.js]
+block_comment_start = /**
+block_comment = *
+block_comment_end = */
+
+
+# Disable for 3rd party code
+[packages/stash-ui/stash/**]
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = unset
+insert_final_newline = unset
