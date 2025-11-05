@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
-import VideoItem from ".";
+import MediaSlide from ".";
 import { setCssVHDecorator } from "../../../../../.storybook/decorators";
 import { GenderEnum } from "stash-ui/dist/src/core/generated-graphql";
 
 const meta = {
-  title: "Components/VideoItem",
-  component: VideoItem,
+  title: "Components/MediaSlide",
+  component: MediaSlide,
   tags: ["autodocs"],
   args: {
     currentIndex: 0,
@@ -44,7 +44,7 @@ const meta = {
     uiIsVisible: true,
   },
   decorators: [setCssVHDecorator],
-} satisfies Meta<typeof VideoItem>;
+} satisfies Meta<typeof MediaSlide>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -53,9 +53,9 @@ export const Default: Story = {
   args: { captionsDefault: undefined },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
-    const track = canvas.queryByTestId("VideoItem--subtitles");
-    const subtitlesButton = canvas.queryByTestId("VideoItem--subtitlesButton");
+    const video: HTMLVideoElement = canvas.getByTestId("MediaSlide--video");
+    const track = canvas.queryByTestId("MediaSlide--subtitles");
+    const subtitlesButton = canvas.queryByTestId("MediaSlide--subtitlesButton");
 
     // Wait for the video to load
     video.addEventListener("canplaythrough", async () => {
@@ -82,8 +82,8 @@ export const EmptySceneInfo: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const sceneInfoButton = canvas.queryByTestId("VideoItem--infoButton");
-    const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+    const sceneInfoButton = canvas.queryByTestId("MediaSlide--infoButton");
+    const sceneInfoPanel = canvas.queryByTestId("MediaSlide--sceneInfo");
 
     // The scene info button and panel should not be in the document.
     expect(sceneInfoButton).not.toBeInTheDocument();
@@ -127,7 +127,7 @@ export const Subtitles: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const allVideos: HTMLVideoElement[] =
-      canvas.getAllByTestId("VideoItem--video");
+      canvas.getAllByTestId("MediaSlide--video");
     const video: HTMLVideoElement = allVideos[0];
 
     // Wait for the video to load
@@ -147,7 +147,7 @@ export const TogglePlayOnTap: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const allVideos: HTMLVideoElement[] =
-      canvas.getAllByTestId("VideoItem--video");
+      canvas.getAllByTestId("MediaSlide--video");
     const video: HTMLVideoElement = allVideos[0];
 
     // Wait for the video to load
@@ -170,8 +170,8 @@ export const ToggleSceneInfoButton: Story = {
   name: "Toggle scene info",
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const sceneInfoButton = canvas.getByTestId("VideoItem--infoButton");
-    const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+    const sceneInfoButton = canvas.getByTestId("MediaSlide--infoButton");
+    const sceneInfoPanel = canvas.queryByTestId("MediaSlide--sceneInfo");
 
     // Panel should not be visible by default
     expect(sceneInfoPanel).not.toBeInTheDocument();
@@ -184,7 +184,7 @@ export const ToggleSceneInfoButton: Story = {
     userEvent.click(sceneInfoButton, { delay: 300 });
     await waitFor(() => {
       // Find it again
-      const sceneInfoPanel = canvas.queryByTestId("VideoItem--sceneInfo");
+      const sceneInfoPanel = canvas.queryByTestId("MediaSlide--sceneInfo");
       expect(sceneInfoPanel).toBeInTheDocument();
     });
   },

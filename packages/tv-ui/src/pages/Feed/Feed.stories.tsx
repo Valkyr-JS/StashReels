@@ -82,7 +82,7 @@ export const LoadVideosOnRender: Story = {
       expect(loader).not.toBeInTheDocument();
 
       // No more than 11 videos should be loaded at once
-      const allItems = canvas.getAllByTestId("VideoItem--container");
+      const allItems = canvas.getAllByTestId("MediaSlide--container");
       expect(allItems.length).not.toBeGreaterThan(itemBufferEitherSide + 1);
     });
   },
@@ -104,7 +104,7 @@ export const LoadVideosOnScroll: Story = {
     for (let i = 0; i < itemBufferEitherSide * 2 + 1; i++) {
       setTimeout(
         () => {
-          const allItems = canvas.getAllByTestId("VideoItem--container");
+          const allItems = canvas.getAllByTestId("MediaSlide--container");
 
           scroller.scrollTo(
             0,
@@ -128,14 +128,14 @@ export const ToggleAudio: Story = {
 
     const canvas = within(context.canvasElement);
     const allItems: HTMLDivElement[] = canvas.getAllByTestId(
-      "VideoItem--container"
+      "MediaSlide--container"
     );
     const allVideos: HTMLVideoElement[] =
-      canvas.getAllByTestId("VideoItem--video");
+      canvas.getAllByTestId("MediaSlide--video");
     const item0: HTMLDivElement = allItems[0];
     const video0: HTMLVideoElement = allVideos[0];
     const muteButton0: HTMLButtonElement = within(item0).getByTestId(
-      "VideoItem--muteButton"
+      "MediaSlide--muteButton"
     );
 
     // Delay the video to make sure its loaded
@@ -161,9 +161,9 @@ export const ToggleLetterboxing: Story = {
     // Run the previous story
     await LoadVideosOnRender.play!(context);
     const letterboxButton = canvas.getAllByTestId(
-      "VideoItem--letterboxButton"
+      "MediaSlide--letterboxButton"
     )[0];
-    const video = canvas.getAllByTestId("VideoItem--video")[0];
+    const video = canvas.getAllByTestId("MediaSlide--video")[0];
 
     // Default state should be to fill the screen.
     await expect(video).not.toHaveClass("cover");
@@ -185,12 +185,12 @@ export const ToggleLoop: Story = {
     // Run the previous story
     await LoadVideosOnRender.play!(context);
     const allLoopButtons: HTMLButtonElement[] = canvas.getAllByTestId(
-      "VideoItem--loopButton"
+      "MediaSlide--loopButton"
     );
     const loopButton0 = allLoopButtons[0];
 
     const allVideos: HTMLVideoElement[] =
-      canvas.getAllByTestId("VideoItem--video");
+      canvas.getAllByTestId("MediaSlide--video");
     const video0 = allVideos[0];
 
     // Default state should be to continue to the next video.
@@ -230,8 +230,8 @@ export const ToggleCaptions: Story = {
     // Await promise for videos to be fetched
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
 
-    const video: HTMLVideoElement = canvas.getByTestId("VideoItem--video");
-    const subtitlesButton = canvas.getByTestId("VideoItem--subtitlesButton");
+    const video: HTMLVideoElement = canvas.getByTestId("MediaSlide--video");
+    const subtitlesButton = canvas.getByTestId("MediaSlide--subtitlesButton");
 
     // Wait for the video to load
     video.addEventListener("canplaythrough", async () => {
@@ -274,7 +274,7 @@ export const ToggleFullscreen: Story = {
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
 
     const toggleFullscreenButton = canvas.getAllByTestId(
-      "VideoItem--fullscreenButton"
+      "MediaSlide--fullscreenButton"
     )[0];
     const FeedPage = canvas.getByTestId("FeedPage");
 
@@ -306,13 +306,13 @@ export const ToggleSettings: Story = {
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
 
     const allVideos: HTMLVideoElement[] =
-      canvas.getAllByTestId("VideoItem--video");
+      canvas.getAllByTestId("MediaSlide--video");
     const video: HTMLVideoElement = allVideos[0];
 
     // Wait for the video to load
     video.addEventListener("canplaythrough", async () => {
       const toggleSettingsButton = canvas.getAllByTestId(
-        "VideoItem--settingsButton"
+        "MediaSlide--settingsButton"
       )[0];
       const settingsTab = canvas.queryByTestId("SettingsTab");
 
@@ -360,8 +360,8 @@ export const ToggleUiVisibility: Story = {
     // Await promise for videos to be fetched
     await waitFor(() => expect(scroller.childNodes.length).toBeGreaterThan(0));
 
-    const toggleUiButton = canvas.getAllByTestId("VideoItem--showUiButton")[0];
-    const togglableUi = canvas.queryAllByTestId("VideoItem--toggleableUi")[0];
+    const toggleUiButton = canvas.getAllByTestId("MediaSlide--showUiButton")[0];
+    const togglableUi = canvas.queryAllByTestId("MediaSlide--toggleableUi")[0];
 
     // UI should be visible by default
     await expect(togglableUi).toBeInTheDocument();
@@ -375,7 +375,7 @@ export const ToggleUiVisibility: Story = {
     userEvent.click(toggleUiButton, { delay: 300 });
     await waitFor(() => {
       // Find it again
-      const togglableUi = canvas.queryAllByTestId("VideoItem--toggleableUi")[0];
+      const togglableUi = canvas.queryAllByTestId("MediaSlide--toggleableUi")[0];
       expect(togglableUi).toBeInTheDocument();
     });
   },

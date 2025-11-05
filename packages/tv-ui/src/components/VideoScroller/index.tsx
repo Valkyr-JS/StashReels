@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import "./VideoScroller.scss";
-import VideoItem from "../VideoItem";
+import MediaSlide from "../slide/MediaSlide";
 import cx from "classnames";
 import { useAppStateStore } from "../../store/appStateStore";
 import { useVirtualizer, useWindowVirtualizer, windowScroll, elementScroll } from "@tanstack/react-virtual";
@@ -11,7 +11,7 @@ import { useWindowSize } from "../../hooks/useWindowSize";
 
 interface VideoScrollerProps {}
 
-const videoItemHeight = "calc(var(--y-unit-large) * 100)"
+const mediaSlideHeight = "calc(var(--y-unit-large) * 100)"
 
 export type ScrollToIndexOptions = { behavior?: ScrollBehavior }
 
@@ -44,7 +44,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     estimateSize: () => {
       if (!estimateSizeTesterElement.current) {
         const el = document.createElement('div');
-        el.style.height = videoItemHeight;
+        el.style.height = mediaSlideHeight;
         el.style.position = 'absolute';
         el.className = "VideoScroller--size-tester";
         el.style.visibility = 'hidden';
@@ -393,7 +393,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
           itemIndexesToRender.includes(i)
         ) {
           return (
-            <VideoItem
+            <MediaSlide
               changeItemHandler={(newIndex, scrollOptions) => {
                 scrollToIndex(newIndex, scrollOptions);
                 setCurrentIndex(newIndex);

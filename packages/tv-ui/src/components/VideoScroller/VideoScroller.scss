@@ -14,7 +14,7 @@
   }
   
   &.scrollSnappingEnabled {
-    .VideoItem, .dummy-video-item {
+    .MediaSlide, .dummy-video-item {
       scroll-snap-align: start;
       scroll-snap-stop: normal;
     }

@@ -132,7 +132,7 @@ export const PlayNewVideoOnScroll: Story = {
       "VideoScroller--container"
     );
     const allVideos: HTMLVideoElement[] =
-      within(scroller).getAllByTestId("VideoItem--video");
+      within(scroller).getAllByTestId("MediaSlide--video");
 
     const video0: HTMLVideoElement = allVideos[0];
     const video1: HTMLVideoElement = allVideos[1];
@@ -205,7 +205,7 @@ export const TogglePlayOnTap: Story = {
       "VideoScroller--container"
     );
     const allVideos: HTMLVideoElement[] =
-      within(scroller).getAllByTestId("VideoItem--video");
+      within(scroller).getAllByTestId("MediaSlide--video");
 
     const video: HTMLVideoElement = allVideos[0];
 

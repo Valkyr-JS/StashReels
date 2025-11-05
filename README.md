@@ -112,7 +112,7 @@ in `packages/tv-ui/src/hooks/useMediaItemFilters.ts`).
 Stash's ScenePlayer component is in some ways tightly coupled to Stash's codebase so
 `packages/tv-ui/src/components/ScenePlayer` is a wrapper around it that tries to make it a little more contained and
 provide more options for tweaking it's behaviour. That is intended to be a bit more of a generic component that could be
-used in other Stash related plugins where as `packages/tv-ui/src/components/VideoItem` uses ScenePlayer but adds explicitly Stash
+used in other Stash related plugins where as `packages/tv-ui/src/components/slide/MediaSlide` uses ScenePlayer but adds explicitly Stash
 TV related additions.
 
 The `forceLandscape` setting (toggled by the "view rotation" button) is a bit complex since a bunch of things break when

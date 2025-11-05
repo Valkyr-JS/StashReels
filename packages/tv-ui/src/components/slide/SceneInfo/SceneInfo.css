@@ -1,0 +1,35 @@
+.SceneInfo {
+  position: absolute;
+  bottom: calc(5em + var(--y-dynamic-diff));
+  left: 0;
+  width: 100%;
+  padding: 1em 5em 1em 3em;
+  z-index: 1;
+
+  align-self: flex-end;
+  background-color: rgba(0, 0, 0, 0.7);
+
+  display: grid;
+
+  a {
+    color: inherit;
+    text-decoration-color: #ffffff85;
+  }
+
+  /* Title */
+  h5 {
+    font-size: 1.1rem;
+  }
+
+  .date {
+    font-size: 0.9rem;
+  }
+
+  .performers {
+    font-size: 0.9rem;
+  }
+
+  .studio {
+    font-size: 0.9rem;
+  }
+}

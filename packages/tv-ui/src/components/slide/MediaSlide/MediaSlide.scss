@@ -1,4 +1,4 @@
-.VideoItem {
+.MediaSlide {
   height: 100%;
   background: #000;
   position: relative;
@@ -162,117 +162,7 @@
   .tap-icon.transparent {
     opacity: 0.5 !important;
   }
-  
-  
-  .controls {
-    position: absolute;
-    bottom: calc(3em + var(--y-dynamic-diff));
-    padding-top: var(--safe-inset-top);
-    padding-right: var(--safe-inset-right);
-    right: 3px;
-    
-    display: flex;
-    flex-direction: column;
-    justify-content: end;
-    align-items: end;
-    z-index: 2;
-    pointer-events: none;
-    
-    > * {
-      pointer-events: initial;
-    }
 
-    button {
-      appearance: none;
-      border: 0;
-      padding: 0;
-      cursor: pointer;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 48px; /* slightly smaller height as a hack to fit all icons on iPhone screen in landscape */
-      width: 50px;
-
-      background-color: transparent;
-      font-size: 28px;
-      line-height: 1;
-      
-      // Rotate icon if device is landscape to reflect device
-      @container viewport (min-aspect-ratio: 1/1) {
-        /* width >= height */
-        &.letterboxing svg {
-          transform: rotate(90deg);
-        }
-      }
-      
-      svg {
-        height: 1em;
-        --shadow-layer-opacity: 0.1;
-        /* Compensate for icons with less mass having visually lighter shadows */
-        &.fa-expand {
-          --shadow-layer-opacity: 0.24;
-        }
-        &.fa-down-left-and-up-right-to-center {
-          --shadow-layer-opacity: 0.14;
-        }
-        &.fa-repeat {
-          --shadow-layer-opacity: 0.19;
-        }
-        &.fa-ellipsis-vertical {
-          --shadow-layer-opacity: 0.26;
-        }
-        filter: 
-          drop-shadow(5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) 
-          drop-shadow(-5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) 
-          drop-shadow(5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) 
-          drop-shadow(-5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity)));
-      }
-
-      path {
-        stroke: white;
-        color: white;
-      }
-    }
-  }
-  
-  
-  .scene-info {
-    position: absolute;
-    bottom: calc(5em + var(--y-dynamic-diff));
-    left: 0;
-    width: 100%;
-    padding: 1em 5em 1em 3em;
-    z-index: 1;
-
-    align-self: flex-end;
-    background-color: rgba(black, 0.7);
-
-    display: grid;
-    
-    a {
-      color: inherit;
-      text-decoration-color: #ffffff85;
-    }
-
-    // Title
-    h5 {
-      font-size: 1.1rem;
-    }
-
-    .date {
-      font-size: 0.9rem;
-    }
-
-    .performers {
-      font-size: 0.9rem;
-    }
-
-    .studio {
-      font-size: 0.9rem;
-    }
-  }
-  
   .ScenePlayer ~ * {
     // Fix for weird ios bug causing video to overlap side controls. Possibly related to this: 
     // https://bugs.webkit.org/show_bug.cgi?id=212130
@@ -312,7 +202,7 @@
     }
   }
   
-  .scene-info, .toggleable-ui, .toggleable-ui-button {
+  .SceneInfo, .toggleable-ui, .toggleable-ui-button {
     opacity: 0;
     visibility: hidden;
     transition: 

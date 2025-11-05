@@ -1,0 +1,28 @@
+.ActionButton {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 48px;
+  /* slightly smaller height as a hack to fit all icons on iPhone screen in landscape */
+  width: 50px;
+
+  background-color: transparent;
+  font-size: 28px;
+  line-height: 1;
+
+  svg {
+    height: 1em;
+    --shadow-layer-opacity: 0.1;
+    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity)));
+
+    path {
+      stroke: white;
+      color: white;
+    }
+  }
+}

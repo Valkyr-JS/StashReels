@@ -1,59 +1,35 @@
-import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
-import { faExpand } from "@fortawesome/free-solid-svg-icons";
-import { faRepeat } from "@fortawesome/free-solid-svg-icons";
-import { faGear } from "@fortawesome/free-solid-svg-icons";
-import { faClosedCaptioning as faSubtitles } from "@fortawesome/free-solid-svg-icons";
-import { faVolumeHigh as faVolume } from "@fortawesome/free-solid-svg-icons";
-import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
-import { faClosedCaptioning as faSubtitlesOff } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+
 import cx from "classnames";
-import ISO6391 from "iso-639-1";
 import React, {
-  forwardRef,
-  Fragment,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import "./VideoItem.scss";
-import { sortPerformers } from "../../helpers";
-import ScenePlayer from "../ScenePlayer";
+import "./MediaSlide.scss";
+import ScenePlayer from "../../ScenePlayer";
 import { type VideoJsPlayer } from "video.js";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { useAppStateStore } from "../../store/appStateStore";
-import { useStashConfigStore } from "../../store/stashConfigStore";
-import CrtEffect from "../CrtEffect";
-import VolumeMuteOutlineIcon from '../../assets/volume-mute-outline.svg?react';
-import ExpandOutlineIcon from '../../assets/expand-outline.svg?react';
-import ContainIcon from '../../assets/contain.svg?react';
-import CoverOutlineIcon from '../../assets/cover-outline.svg?react';
-import PortraitOutlineIcon from '../../assets/portrait-rotation-outline.svg?react';
-import LandscapeIcon from '../../assets/landscape-rotation.svg?react';
-import LoopOutlineIcon from '../../assets/loop-outline.svg?react';
-import InfoOutlineIcon from '../../assets/info-outline.svg?react';
-import CogOutlineIcon from '../../assets/cog-outline.svg?react';
-import VerticalEllipsisOutlineIcon from '../../assets/vertical-ellipsis-outline.svg?react';
-import { MediaItem } from "../../hooks/useMediaItems";
+import { useAppStateStore } from "../../../store/appStateStore";
+import CrtEffect from "../../CrtEffect";
+import { MediaItem } from "../../../hooks/useMediaItems";
 import hashObject from 'object-hash';
 import { createPortal } from "react-dom";
-import { useGetterRef } from "../../hooks/useGetterRef";
+import { useGetterRef } from "../../../hooks/useGetterRef";
 import videojs from "video.js";
 import {styledBigPlayButton} from "./video-js-plugins/styled-big-play-button";
 import "./video-js-plugins/styled-big-play-button.css";
-import escapeStringRegexp from 'escape-string-regexp';
-import { proxyPrefix } from "../../constants";
-import { type ScrollToIndexOptions } from "../VideoScroller";
+import { type ScrollToIndexOptions } from "../../VideoScroller";
+import { ActionButtons } from "../ActionButtons";
+import SceneInfo from "../SceneInfo";
 
 videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
 // Max length of video for which we disable scroll animation when seeking to next/previous video
 const noAnimateDurationThreshold = 30;
 
-export interface VideoItemProps {
+export interface MediaSlideProps {
   mediaItem: MediaItem;
   changeItemHandler: ((newIndex: number | ((currentIndex: number) => number), scrollOptions?: ScrollToIndexOptions) => void);
   currentIndex: number;
@@ -63,16 +39,13 @@ export interface VideoItemProps {
   currentlyScrolling?: boolean;
 }
 
-const VideoItem: React.FC<VideoItemProps> = (props) => {
+const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   const {
-    showSettings,
-    fullscreen,
     letterboxing,
     forceLandscape,
     audioMuted,
     looping,
     showSubtitles,
-    uiVisible,
     crtEffect,
     scenePreviewOnly,
     showDevOptions,
@@ -86,12 +59,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const scene = props.mediaItem.entityType === "scene" ? props.mediaItem.entity : props.mediaItem.entity.scene;
   
   useEffect(() => {
-    debugMode && console.log(`Mounted VideoItem index=${props.index} sceneId=${scene.id}`);
+    debugMode && console.log(`Mounted MediaSlide index=${props.index} sceneId=${scene.id}`);
     return () => {
-      debugMode && console.log(`Unmounted VideoItem index=${props.index} sceneId=${scene.id}`)
+      debugMode && console.log(`Unmounted MediaSlide index=${props.index} sceneId=${scene.id}`)
     };
   }, []);
-  const { tv: { subtitleLanguage } } = useStashConfigStore();
   
   // Don't return player if it's disposed
   const videojsPlayerRef = useGetterRef<VideoJsPlayer | null>(
@@ -204,7 +176,7 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
       const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
       const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
       debugMode && (e.key === seekBackwardsKey || e.key === seekForwardsKey) &&
-        console.log(`VideoItem ${props.index} Keydown`, e.key, {seekBackwardsKey, seekForwardsKey});
+        console.log(`MediaSlide ${props.index} Keydown`, e.key, {seekBackwardsKey, seekForwardsKey});
       if (e.key === seekBackwardsKey) {
         seekBackwards()
         e.preventDefault()
@@ -337,73 +309,11 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
   const [sceneInfoOpen, setSceneInfoOpen] = useState(false);
   const sceneInfoPanelRef = useRef(null);
 
-  const sceneInfoButtonClickHandler = () => {
-    if (isCurrentVideo) setSceneInfoOpen((prev) => !prev);
-  };
-
   useEffect(() => {
     if (!isCurrentVideo) setSceneInfoOpen(false);
   }, [isCurrentVideo]);
 
-  // Only render the button if there is available data
-  const sceneInfoDataAvailable =
-    scene.performers.length > 0 ||
-    !!scene.studio ||
-    !!scene.title ||
-    !!scene.date;
-
-  const sceneInfoButton = sceneInfoDataAvailable ? (
-    <UiButton
-      className="show-scene-info"
-      active={sceneInfoOpen}
-      activeIcon={faCircleInfo}
-      activeText="Close scene info"
-      data-testid="VideoItem--infoButton"
-      inactiveIcon={InfoOutlineIcon}
-      inactiveText="Show scene info"
-      onClick={sceneInfoButtonClickHandler}
-    />
-  ) : null;
-
-
   /* -------------------------------- Subtitles ------------------------------- */
-
-  /** Only render captions track if available, and it matches the user's chosen
-   * language. Fails accessibility if missing, but there's no point rendering
-   * an empty track. */
-  const captionSources =
-    scene.captions && subtitleLanguage
-      ? scene.captions
-          .map((cap, i) => {
-            if (cap.language_code === subtitleLanguage) {
-              const src = scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
-              return (
-                <track
-                  default={subtitleLanguage === cap.language_code}
-                  key={i}
-                  kind="captions"
-                  label={ISO6391.getName(cap.language_code) || "Unknown"}
-                  src={src}
-                  srcLang={cap.language_code}
-                />
-              );
-            }
-          })
-          .find((c) => !!c)
-      : null;
-
-  const subtitlesButton = !!captionSources ? (
-    <UiButton
-      active={!!captionSources && showSubtitles}
-      activeIcon={faSubtitles}
-      activeText="Hide subtitles"
-      data-testid="VideoItem--subtitlesButton"
-      inactiveIcon={faSubtitlesOff}
-      inactiveText="Show subtitles"
-      onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
-    />
-  ) : null;
-
   // Update the subtitles track via the ref object
   useEffect(() => {
     if (videoRef.current && videoRef.current.textTracks.length)
@@ -497,8 +407,8 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
 
   return (
     <div
-      className={cx("VideoItem", {inViewport: isCurrentVideo, 'cover': !letterboxing}, props.className)}
-      data-testid="VideoItem--container"
+      className={cx("MediaSlide", {inViewport: isCurrentVideo, 'cover': !letterboxing}, props.className)}
+      data-testid="MediaSlide--container"
       data-index={props.index}
       data-scene-id={scene.id}
       ref={itemRef}
@@ -553,228 +463,15 @@ const VideoItem: React.FC<VideoItemProps> = (props) => {
           </>,
           videoJsControlBarElm
         )}
-        <SceneInfoPanel
-          {...scene}
+        <SceneInfo
           ref={sceneInfoPanelRef}
           scene={scene}
           className={cx({active: sceneInfoOpen})}
         />
-        <div
-          className="controls"
-        >
-          <div
-            className={cx("toggleable-ui", {'active': uiVisible})}
-            data-testid="VideoItem--toggleableUi"
-          >
-            <UiButton
-              className="mute"
-              active={!audioMuted}
-              activeIcon={faVolume}
-              activeText="Mute"
-              data-testid="VideoItem--muteButton"
-              inactiveIcon={VolumeMuteOutlineIcon}
-              inactiveText="Unmute"
-              onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
-            />
-
-            {subtitlesButton}
-
-            {'exitFullscreen' in document && <UiButton
-              className="fullscreen"
-              active={fullscreen}
-              activeIcon={faExpand}
-              activeText="Close fullscreen"
-              data-testid="VideoItem--fullscreenButton"
-              inactiveIcon={ExpandOutlineIcon}
-              inactiveText="Open fullscreen"
-              onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
-            />}
-
-            <UiButton
-              className="letterboxing"
-              active={!letterboxing}
-              activeIcon={CoverOutlineIcon}
-              activeText="Constrain to screen"
-              data-testid="VideoItem--letterboxButton"
-              inactiveIcon={ContainIcon}
-              inactiveText="Fill screen"
-              onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
-            />
-
-            <UiButton
-              className="force-landscape"
-              active={!forceLandscape}
-              activeIcon={PortraitOutlineIcon}
-              activeText="Landscape"
-              data-testid="VideoItem--forceLandscapeButton"
-              inactiveIcon={LandscapeIcon}
-              inactiveText="Portrait"
-              onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
-            />
-
-            <UiButton
-              className="loop"
-              active={looping}
-              activeIcon={faRepeat}
-              activeText="Stop looping scene"
-              data-testid="VideoItem--loopButton"
-              inactiveIcon={LoopOutlineIcon}
-              inactiveText="Loop scene"
-              onClick={() => setAppSetting("looping", (prev) => !prev)}
-            />
-
-            {sceneInfoButton}
-
-            <UiButton
-              className="settings"
-              active={showSettings}
-              activeIcon={faGear}
-              activeText="Close settings"
-              data-testid="VideoItem--settingsButton"
-              inactiveIcon={CogOutlineIcon}
-              inactiveText="Show settings"
-              onClick={() => setAppSetting("showSettings", (prev) => !prev)}
-            />
-          </div>
-          <UiButton
-            active={uiVisible}
-            activeIcon={faEllipsisVertical}
-            activeText="Hide UI"
-            className={cx("toggleable-ui-button", {'active': uiVisible})}
-            data-testid="VideoItem--showUiButton"
-            inactiveIcon={VerticalEllipsisOutlineIcon}
-            inactiveText="Show UI"
-            onClick={() => setAppSetting("uiVisible", (prev) => !prev)}
-          />
-        </div>
+        <ActionButtons scene={scene} sceneInfoOpen={sceneInfoOpen} setSceneInfoOpen={setSceneInfoOpen} />
       </CrtEffect>
     </div>
   );
 };
 
-export default React.memo(VideoItem);
-
-/* -------------------------------------------------------------------------- */
-/*                                  UI Button                                 */
-/* -------------------------------------------------------------------------- */
-
-interface UiButtonProps
-  extends React.DetailedHTMLProps<
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    HTMLButtonElement
-  > {
-  /** Indicates if the buttons associated action is active. */
-  active: boolean;
-  activeIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
-  activeText: string;
-  inactiveIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
-  inactiveText: string;
-}
-
-const UiButton = forwardRef<HTMLButtonElement, UiButtonProps>(
-  (
-    { active, activeIcon, activeText, inactiveIcon, inactiveText, className, ...props },
-    ref
-  ) => {
-    const fullClassName = cx(className, { active });
-    const Icon = active ? activeIcon : inactiveIcon;
-    return (
-      <button className={fullClassName} {...props} onClick={props.onClick} type="button" ref={ref}>
-        {'icon' in Icon ? (
-          <FontAwesomeIcon icon={Icon} />
-        ) : (
-          <Icon className="icon" />
-        )}
-        <span className="sr-only">
-          {active ? activeText : inactiveText}
-        </span>
-      </button>
-    );
-  }
-);
-
-/* -------------------------------------------------------------------------- */
-/*                              Scene info panel                              */
-/* -------------------------------------------------------------------------- */
-
-interface SceneInfoPanelProps extends GQL.TvSceneDataFragment {
-  style?: React.CSSProperties;
-  scene: GQL.TvSceneDataFragment;
-  className?: string;
-}
-
-const SceneInfoPanel = forwardRef(
-  (props: SceneInfoPanelProps, ref: React.ForwardedRef<HTMLDivElement>) => {
-    /* ---------------------------------- Date ---------------------------------- */
-
-    const date = props.date ? (
-      <span className="date">{props.date}</span>
-    ) : null;
-
-    /* ------------------------------- Performers ------------------------------- */
-
-    const sortedPerformers = sortPerformers(props.performers);
-    const totalPerformers = sortedPerformers.length;
-
-    const performersInner = sortedPerformers.map((pf, i) => {
-      const isOneBeforeLast = i === totalPerformers - 2;
-      const isAnyBeforeLast = i < totalPerformers - 1;
-      let suffix = null;
-      if (totalPerformers === 2 && isOneBeforeLast) suffix = " and ";
-      else {
-        if (isAnyBeforeLast) suffix = ", ";
-        if (isOneBeforeLast) suffix += "and ";
-      }
-      return (
-        <Fragment key={i}>
-          <span>{pf.name}</span>
-          {suffix}
-        </Fragment>
-      );
-    });
-
-    const performers = performersInner.length ? (
-      <div className="performers">{performersInner}</div>
-    ) : null;
-
-    /* --------------------------------- Studio --------------------------------- */
-
-    const parentStudioText = props.studio?.parent_studio
-      ? " | " + props.studio.parent_studio.name
-      : "";
-
-    const studio = props.studio ? (
-      <span className="studio">
-        {props.studio.name + parentStudioText}
-      </span>
-    ) : null;
-
-    /* ---------------------------------- Title --------------------------------- */
-
-    const title = props.title ? <h5>{props.title}</h5> : null;
-    let sceneUrl = props.paths.stream?.split("/stream")[0]?.replace("/scene", "/scenes")
-    if (sceneUrl && import.meta.env.STASH_ADDRESS) {
-      const scenePath = new URL(sceneUrl).pathname.replace(new RegExp(`^${escapeStringRegexp(proxyPrefix)}`), "");
-      sceneUrl = new URL(scenePath, import.meta.env.STASH_ADDRESS).toString()
-    }
-
-    /* -------------------------------- Component ------------------------------- */
-
-    return (
-      <div
-        className={cx("scene-info", props.className)}
-        data-testid="VideoItem--sceneInfo"
-        style={props.style}
-        ref={ref}
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
-      >
-        {studio}
-        <a href={sceneUrl || ""} target="_blank">{title}</a>
-        {performers}
-        {date}
-      </div>
-    );
-  }
-);
+export default React.memo(MediaSlide);
