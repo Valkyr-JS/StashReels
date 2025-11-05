@@ -55,7 +55,7 @@ html.force-landscape body {
 html.force-landscape body {
   overflow-y: scroll;
   /* Prevent SettingsTab from causing horizontal scroll */
-  overflow-x: hidden; 
+  overflow-x: hidden;
   scroll-snap-type: y mandatory;
   position: relative;
 }
@@ -63,6 +63,9 @@ html.force-landscape body {
 body {
   padding: 0;
   overflow-x: initial;
+  /* iOS 26.1 seems to remove the ability to push content the status bar and instead shows a solid strip of colour there
+  that is the background colour of the body. Annoying but until there's another option black looks less conspicuous. */
+  background-color: black;
 }
 
 kbd {
@@ -71,7 +74,7 @@ kbd {
 }
 
 html:has(dialog[open]) {
-  &:not(.force-landscape), 
+  &:not(.force-landscape),
   &.force-landscape body {
     overflow: hidden;
     scrollbar-gutter: stable;
