@@ -3,17 +3,22 @@ import FeedPage from "../pages/Feed";
 import cx from "classnames";
 import { useAppStateStore } from "../store/appStateStore";
 import { updateReadOnlyProps } from "../helpers";
-import { useStashConfigStore } from "../store/stashConfigStore";
-import { useApolloClient, ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import * as GQL from "stash-ui/dist/src/core/generated-graphql";
+import {ConfigurationProvider} from "stash-ui/dist/src/hooks/Config";
 
 const App = () => {
   const { forceLandscape  } = useAppStateStore()
-  const { loadStashConfig } = useStashConfigStore()
 
-  const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
-  useEffect(() => {
-    apolloClient && loadStashConfig(apolloClient)
-  }, [apolloClient])
+  const stashConfig = GQL.useConfigurationQuery();
+
+  const modifiedStashConfig = {
+    ...stashConfig.data?.configuration,
+    interface: {
+      ...stashConfig.data?.configuration?.interface,
+      // Stash TV has it's own autoplay setting so we don't want to have that overridden by Stash settings
+      autostartVideo: false,
+    }
+  } as GQL.ConfigurationQuery["configuration"];
 
   // <html /> is outside of React's control so we have to set the class manually
   document.documentElement.className = cx({ "force-landscape": forceLandscape });
@@ -112,7 +117,12 @@ const App = () => {
   }, [forceLandscape])
 
   return (
-    <FeedPage />
+    <ConfigurationProvider
+      configuration={modifiedStashConfig}
+      loading={stashConfig.loading}
+    >
+      <FeedPage />
+    </ConfigurationProvider>
   );
 };
 

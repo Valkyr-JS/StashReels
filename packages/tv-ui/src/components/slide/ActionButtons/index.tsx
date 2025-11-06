@@ -21,9 +21,9 @@ import { useAppStateStore } from "../../../store/appStateStore";
 import ISO6391 from "iso-639-1";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import cx from "classnames";
-import { useStashConfigStore } from "../../../store/stashConfigStore";
 import ActionButton from "../ActionButton";
 import "./ActionButtons.css";
+import useStashTvConfig from "../../../hooks/useStashTvConfig";
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
@@ -44,7 +44,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
     set: setAppSetting,
   } = useAppStateStore();
 
-  const { tv: { subtitleLanguage } } = useStashConfigStore();
+  const { data: { subtitleLanguage } } = useStashTvConfig()
 
   const sceneInfoDataAvailable =
     scene.performers.length > 0 ||

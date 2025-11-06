@@ -5,20 +5,18 @@ import React, { useContext, useEffect, useMemo } from "react";
 import Select from "../Select";
 import { components } from "react-select";
 import "./SettingsTab.scss";
-import { useStashConfigStore } from "../../../store/stashConfigStore";
 import { useAppStateStore } from "../../../store/appStateStore";
 import SideDrawer from "../SideDrawer";
 import Switch from "../Switch";
 import { useMediaItems } from "../../../hooks/useMediaItems";
-import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
 import { useMediaItemFilters } from "../../../hooks/useMediaItemFilters";
 import { Button, Form, Accordion } from "react-bootstrap";
 import { AccordionContext } from "react-bootstrap";
 import cx from "classnames";
+import useStashTvConfig from "../../../hooks/useStashTvConfig";
 
 export default function SettingsTab() {
-  const { updateStashTvConfig, tv: {subtitleLanguage} } = useStashConfigStore();
-  const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
+  const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
   const {
     mediaItemFiltersLoading,
     mediaItemFiltersError,
@@ -205,7 +203,6 @@ export default function SettingsTab() {
             <Button
               onClick={() => {
                 updateStashTvConfig(
-                  apolloClient,
                   {
                     defaultFilterId: selectedFilter?.value,
                   }
@@ -296,7 +293,6 @@ export default function SettingsTab() {
               onChange={(newValue) => {
                 if (!newValue) return;
                 updateStashTvConfig(
-                  apolloClient,
                   {
                     subtitleLanguage: newValue.value,
                   }

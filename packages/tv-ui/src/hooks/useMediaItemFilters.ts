@@ -1,13 +1,15 @@
 
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
-import { useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
-import { useStashConfigStore } from "../store/stashConfigStore";
 import { ListFilterModel } from "stash-ui/dist/src/models/list-filter/filter";
 import { useAppStateStore } from "../store/appStateStore";
 import { useWindowSize } from "./useWindowSize";
 import { create } from "zustand";
 import { useConditionalMemo } from "./useMemoConditional";
+import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
+import { useFindSavedFilters } from "stash-ui/dist/src/core/StashService";
+import useStashTvConfig from "./useStashTvConfig";
 
 /** In Stash a filter has a different format when it's saved vs when it's used in a search. The stash codebase doesn't
  * seem to do a great job of naming these different formats to make that clear. When a filter is saved it usually just
@@ -68,12 +70,31 @@ export function useMediaItemFilters() {
   } = useGlobalFilterState()
   const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
 
+  const {
+    configuration: {
+      ui: {
+        defaultFilters: {
+          scenes: stashDefaultScenesFilter
+        } = {}
+      } = {}
+    } = {},
+    loading: stashConfigurationLoading
+  } = useContext(ConfigurationContext)
 
   const {
-    general: { stashDefaultScenesFilter, availableSavedSceneFilters, availableSavedMarkerFilters },
-    tv: { defaultFilterId: stashTvDefaultFilterId },
-    loading: stashConfigLoading,
-  } = useStashConfigStore();
+    data: { findSavedFilters: availableSavedSceneFilters = []} = {},
+    loading: loadingAvailableSavedSceneFilters,
+  } = useFindSavedFilters(GQL.FilterMode.Scenes);
+
+  const {
+    data: { findSavedFilters: availableSavedMarkerFilters = []} = {},
+    loading: loadingAvailableSavedMarkerFilters,
+  } = useFindSavedFilters(GQL.FilterMode.SceneMarkers);
+
+  const { data: { defaultFilterId: stashTvDefaultFilterId} } = useStashTvConfig()
+
+  const stashDataLoading = stashConfigurationLoading || loadingAvailableSavedSceneFilters || loadingAvailableSavedMarkerFilters;
+
   const { isRandomised, onlyShowMatchingOrientation } = useAppStateStore();
   const { orientation } = useWindowSize()
 
@@ -94,7 +115,7 @@ export function useMediaItemFilters() {
 
   // Load default filter on initial load.
   useEffect(() => {
-    if (useGlobalFilterState.getState().loadingResponsibilityClaimed || stashConfigLoading) return;
+    if (useGlobalFilterState.getState().loadingResponsibilityClaimed || stashDataLoading) return;
     useGlobalFilterState.setState({ loadingResponsibilityClaimed: true, loading: true });
     // Place most of the logic into a separate function so we can use async/await
     async function setCurrentMediaItemFilterOnInitialLoad() {
@@ -127,7 +148,7 @@ export function useMediaItemFilters() {
       useGlobalFilterState.setState({ loading: false });
     }
     setCurrentMediaItemFilterOnInitialLoad()
-  }, [neverLoaded, stashConfigLoading, stashTvDefaultFilterId, stashDefaultScenesFilter]);
+  }, [neverLoaded, stashDataLoading, stashTvDefaultFilterId, stashDefaultScenesFilter]);
 
   async function setCurrentMediaItemFilterById(id: string) {
     useGlobalFilterState.setState({ loading: true });
@@ -220,7 +241,7 @@ export function useMediaItemFilters() {
       savedFilter,
       generalFilter: getGeneralFilter(),
       get isStashTvDefaultFilter() {
-        return savedFilter.id === useStashConfigStore.getState().tv.defaultFilterId;
+        return savedFilter.id === stashTvDefaultFilterId;
       }
     }
 

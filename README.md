@@ -104,10 +104,8 @@ working with the major code refactoring in Stash TV.
 
 Most of the app's state lives in a Zustand store in `packages/tv-ui/src/store/appStateStore.ts` so that it can be
 accessed anywhere in the codebase without needing to do lots of prop drilling.
-`packages/tv-ui/src/store/stashConfigStore.ts` manages fetching and saving any config that lives in Stash, both general
-Stash settings and config info that we save into Stash's plugin config storage. This include such as the user's default
-Stash TV filter although the code for using and updating this is encapsulated in it's own hook (`useMediaItemFilters()`
-in `packages/tv-ui/src/hooks/useMediaItemFilters.ts`).
+`packages/tv-ui/src/hooks/useStashTvConfig.ts` manages fetching and saving any Stash Tv specific config that lives in
+Stash's plugin config storage.
 
 Stash's ScenePlayer component is in some ways tightly coupled to Stash's codebase so
 `packages/tv-ui/src/components/ScenePlayer` is a wrapper around it that tries to make it a little more contained and
