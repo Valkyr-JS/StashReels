@@ -1,6 +1,6 @@
 .ActionButtons {
   position: absolute;
-  bottom: var(--y-dynamic-diff);
+  bottom: calc(var(--y-dynamic-diff) + 1em);
   padding-top: var(--safe-inset-top);
   padding-right: var(--safe-inset-right);
   right: 3px;
