@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv, ProxyOptions } from "vite";
+import { defineConfig, loadEnv, ProxyOptions, UserConfig } from "vite";
 import svgr from 'vite-plugin-svgr';
 import pkg from "../../package.json" with { type: "json" };
 import { ClientRequest, ServerResponse } from "http";
@@ -102,6 +102,13 @@ export default defineConfig(({mode}) => {
   return {
     root: "src",
     envDir: "..",
+    build: {
+      outDir: "../dist/app",
+      minify: false,
+      sourcemap: true,
+      emptyOutDir: true,
+    },
+    base: "./",
     server: {
       port,
       host,
@@ -115,5 +122,5 @@ export default defineConfig(({mode}) => {
     },
     envPrefix: ["VITE_", "STASH_ADDRESS"],
     plugins: [svgr()]
-  }
+  } satisfies UserConfig
 })
