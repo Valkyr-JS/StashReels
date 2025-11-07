@@ -7,8 +7,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 48px;
-  /* slightly smaller height as a hack to fit all icons on iPhone screen in landscape */
+  height: 50px;
   width: 50px;
 
   background-color: transparent;
@@ -17,6 +16,11 @@
 
   svg {
     height: 1em;
+    /* Buttons will flex shrink as needed up to the size of the svg + any svg margin. We add a bit of margin to ensure
+    they don't get too close to each other. */
+    --flex-margin: 7px;
+    margin-top: var(--flex-margin);
+    margin-bottom: var(--flex-margin);
     --shadow-layer-opacity: 0.1;
     filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity)));
 

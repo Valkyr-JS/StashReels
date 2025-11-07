@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { faExpand } from "@fortawesome/free-solid-svg-icons";
 import { faRepeat } from "@fortawesome/free-solid-svg-icons";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
@@ -30,6 +30,8 @@ export type Props = {
   sceneInfoOpen: boolean;
   setSceneInfoOpen: (open: boolean) => void;
 }
+
+type ScrollClasses = "top-overflowing" | "bottom-overflowing" | "scroll-width-hack";
 
 export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   const {
@@ -76,77 +78,64 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           .find((c) => !!c)
       : null;
 
+  const [stackScrollClasses, setStackScrollClasses] = React.useState<ScrollClasses[]>([]);
+
+  const stackElmRef = React.useRef<HTMLDivElement>(null);
+
+  function handleStackScroll(event: React.UIEvent<HTMLDivElement>) {
+    const target = event.currentTarget;
+    updateStackScrollClasses(target);
+  }
+
+  useEffect(() => {
+    if (!stackElmRef.current) return;
+
+    const observer = new ResizeObserver(() => {
+      if (!stackElmRef.current) return;
+      updateStackScrollClasses(stackElmRef.current);
+    });
+    observer.observe(stackElmRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [stackElmRef.current]);
+
+
+  function updateStackScrollClasses(element: HTMLDivElement) {
+    const isScrollable = element.scrollHeight !== element.offsetHeight
+    const scrollPercent = Math.abs(element.scrollTop) / (element.scrollHeight - element.offsetHeight);
+    const scrollClasses: ScrollClasses[] = [];
+    if (isScrollable) {
+      if (element.scrollWidth !== element.clientWidth || element.classList.contains("scroll-width-hack")) {
+        scrollClasses.push("scroll-width-hack");
+      }
+      if (scrollPercent <= 0) {
+        scrollClasses.push("top-overflowing");
+      } else if (scrollPercent >= 1) {
+        scrollClasses.push("bottom-overflowing");
+      } else {
+        scrollClasses.push("top-overflowing", "bottom-overflowing");
+      }
+    }
+    setStackScrollClasses(scrollClasses);
+  }
+
   return (
     <div
-      className="ActionButtons"
+      className={cx("ActionButtons", {'active': uiVisible})}
+      data-testid="MediaSlide--toggleableUi"
     >
-      <div
-        className={cx("toggleable-ui", {'active': uiVisible})}
-        data-testid="MediaSlide--toggleableUi"
-      >
+      <div className={cx("stack hide-on-ui-hide", ...stackScrollClasses)} onScroll={handleStackScroll} ref={stackElmRef}>
         <ActionButton
-          className="mute"
-          active={!audioMuted}
-          activeIcon={faVolume}
-          activeText="Mute"
-          data-testid="MediaSlide--muteButton"
-          inactiveIcon={VolumeMuteOutlineIcon}
-          inactiveText="Unmute"
-          onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
-        />
-
-        {captionSources && <ActionButton
-          active={!!captionSources && showSubtitles}
-          activeIcon={faSubtitles}
-          activeText="Hide subtitles"
-          data-testid="MediaSlide--subtitlesButton"
-          inactiveIcon={faSubtitlesOff}
-          inactiveText="Show subtitles"
-          onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
-        />}
-
-        {'exitFullscreen' in document && <ActionButton
-          className="fullscreen"
-          active={fullscreen}
-          activeIcon={faExpand}
-          activeText="Close fullscreen"
-          data-testid="MediaSlide--fullscreenButton"
-          inactiveIcon={ExpandOutlineIcon}
-          inactiveText="Open fullscreen"
-          onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
-        />}
-
-        <ActionButton
-          className="letterboxing"
-          active={!letterboxing}
-          activeIcon={CoverOutlineIcon}
-          activeText="Constrain to screen"
-          data-testid="MediaSlide--letterboxButton"
-          inactiveIcon={ContainIcon}
-          inactiveText="Fill screen"
-          onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
-        />
-
-        <ActionButton
-          className="force-landscape"
-          active={!forceLandscape}
-          activeIcon={PortraitOutlineIcon}
-          activeText="Landscape"
-          data-testid="MediaSlide--forceLandscapeButton"
-          inactiveIcon={LandscapeIcon}
-          inactiveText="Portrait"
-          onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
-        />
-
-        <ActionButton
-          className="loop"
-          active={looping}
-          activeIcon={faRepeat}
-          activeText="Stop looping scene"
-          data-testid="MediaSlide--loopButton"
-          inactiveIcon={LoopOutlineIcon}
-          inactiveText="Loop scene"
-          onClick={() => setAppSetting("looping", (prev) => !prev)}
+          className="settings"
+          active={showSettings}
+          activeIcon={faGear}
+          activeText="Close settings"
+          data-testid="MediaSlide--settingsButton"
+          inactiveIcon={CogOutlineIcon}
+          inactiveText="Show settings"
+          onClick={() => setAppSetting("showSettings", (prev) => !prev)}
         />
 
         {sceneInfoDataAvailable && <ActionButton
@@ -161,21 +150,76 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
         />}
 
         <ActionButton
-          className="settings"
-          active={showSettings}
-          activeIcon={faGear}
-          activeText="Close settings"
-          data-testid="MediaSlide--settingsButton"
-          inactiveIcon={CogOutlineIcon}
-          inactiveText="Show settings"
-          onClick={() => setAppSetting("showSettings", (prev) => !prev)}
+          className="loop"
+          active={looping}
+          activeIcon={faRepeat}
+          activeText="Stop looping scene"
+          data-testid="MediaSlide--loopButton"
+          inactiveIcon={LoopOutlineIcon}
+          inactiveText="Loop scene"
+          onClick={() => setAppSetting("looping", (prev) => !prev)}
+        />
+
+
+        <ActionButton
+          className="force-landscape"
+          active={!forceLandscape}
+          activeIcon={PortraitOutlineIcon}
+          activeText="Landscape"
+          data-testid="MediaSlide--forceLandscapeButton"
+          inactiveIcon={LandscapeIcon}
+          inactiveText="Portrait"
+          onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
+        />
+
+        <ActionButton
+          className="letterboxing"
+          active={!letterboxing}
+          activeIcon={CoverOutlineIcon}
+          activeText="Constrain to screen"
+          data-testid="MediaSlide--letterboxButton"
+          inactiveIcon={ContainIcon}
+          inactiveText="Fill screen"
+          onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
+        />
+
+        {'exitFullscreen' in document && <ActionButton
+          className="fullscreen"
+          active={fullscreen}
+          activeIcon={faExpand}
+          activeText="Close fullscreen"
+          data-testid="MediaSlide--fullscreenButton"
+          inactiveIcon={ExpandOutlineIcon}
+          inactiveText="Open fullscreen"
+          onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
+        />}
+
+        {captionSources && <ActionButton
+          active={!!captionSources && showSubtitles}
+          activeIcon={faSubtitles}
+          activeText="Hide subtitles"
+          data-testid="MediaSlide--subtitlesButton"
+          inactiveIcon={faSubtitlesOff}
+          inactiveText="Show subtitles"
+          onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
+        />}
+
+        <ActionButton
+          className="mute"
+          active={!audioMuted}
+          activeIcon={faVolume}
+          activeText="Mute"
+          data-testid="MediaSlide--muteButton"
+          inactiveIcon={VolumeMuteOutlineIcon}
+          inactiveText="Unmute"
+          onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
         />
       </div>
       <ActionButton
         active={uiVisible}
         activeIcon={faEllipsisVertical}
         activeText="Hide UI"
-        className={cx("toggleable-ui-button", {'active': uiVisible})}
+        className={cx("dim-on-ui-hide", {'active': uiVisible})}
         data-testid="MediaSlide--showActionButton"
         inactiveIcon={VerticalEllipsisOutlineIcon}
         inactiveText="Show UI"

@@ -70,7 +70,7 @@ const SceneInfo = forwardRef(({scene, className, style}: Props, ref: React.Forwa
 
     return (
       <div
-        className={cx("SceneInfo", className)}
+        className={cx("SceneInfo", "hide-on-ui-hide", className)}
         data-testid="MediaSlide--sceneInfo"
         style={style}
         ref={ref}
