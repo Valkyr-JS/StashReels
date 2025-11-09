@@ -4,6 +4,18 @@ import { useFirstMountState } from "react-use";
 import cx from "classnames";
 import "./useViewportRotate.css";
 
+// Exactly like useEffect but the first run happens synchronously on first render
+function useEffectKeen(effect: () => void | (() => void), deps: React.DependencyList) {
+  const isFirstMount = useFirstMountState();
+  const firstRunResult = isFirstMount ? effect() : undefined;
+  useEffect(() => {
+    if (isFirstMount) {
+      return firstRunResult;
+    } else {
+      return effect();
+    }
+  }, deps);
+}
 
 export function useViewportRotate(rotationEnabled: boolean) {
   const isFirstMount = useFirstMountState();
@@ -11,14 +23,8 @@ export function useViewportRotate(rotationEnabled: boolean) {
   // <html /> is outside of React's control so we have to set the class manually
   document.documentElement.className = cx({ "force-landscape": rotationEnabled });
 
-  // Trigger a resize event when rotationEnabled changes to force re-layout
-  useEffect(() => {
-    if (isFirstMount) return;
-    window.dispatchEvent(new Event("resize"));
-  }, [rotationEnabled])
-
   // Remap innerWidth/innerHeight
-  useEffect(() => {
+  useEffectKeen(() => {
     if (!rotationEnabled) return;
 
     const originalDescriptorInnerHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight');
@@ -47,7 +53,7 @@ export function useViewportRotate(rotationEnabled: boolean) {
   }, [rotationEnabled])
 
   // Remap mouse events
-  useEffect(() => {
+  useEffectKeen(() => {
     if (!rotationEnabled) return;
 
     function remapMouseEventForLandscapeMode(event: MouseEvent) {
@@ -87,7 +93,7 @@ export function useViewportRotate(rotationEnabled: boolean) {
   }, [rotationEnabled])
 
   // Remap touch events
-  useEffect(() => {
+  useEffectKeen(() => {
     if (!rotationEnabled) return;
 
     function remapTouchEventForLandscapeMode(event: TouchEvent) {
@@ -151,7 +157,7 @@ export function useViewportRotate(rotationEnabled: boolean) {
   }, [rotationEnabled])
 
   // Remap getBoundingClientRect()
-  useEffect(() => {
+  useEffectKeen(() => {
     if (!rotationEnabled) return;
 
     const originalGetBoundingClientRectFunc = Element.prototype.getBoundingClientRect;
@@ -174,5 +180,12 @@ export function useViewportRotate(rotationEnabled: boolean) {
     return () => {
       Element.prototype.getBoundingClientRect = originalGetBoundingClientRectFunc;
     }
+  }, [rotationEnabled])
+
+  // Trigger a resize event when rotationEnabled changes to force re-layout. Deliberately run after all the other
+  // effects above have run.
+  useEffect(() => {
+    if (isFirstMount) return;
+    window.dispatchEvent(new Event("resize"));
   }, [rotationEnabled])
 }
