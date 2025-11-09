@@ -11,7 +11,7 @@ import { useWindowSize } from "../../hooks/useWindowSize";
 
 interface VideoScrollerProps {}
 
-const mediaSlideHeight = "calc(var(--y-unit-large) * 100)"
+const mediaSlideHeight = "calc(var(--y-unit-small) * 100)"
 
 export type ScrollToIndexOptions = { behavior?: ScrollBehavior }
 
