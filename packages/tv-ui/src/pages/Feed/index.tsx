@@ -19,9 +19,8 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
   const { showSettings, fullscreen, showGuideOverlay, set: setAppSetting } = useAppStateStore();
   const { mediaItemFiltersLoading, mediaItemFiltersError } = useMediaItemFilters()
   const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
-  const isFirstLoad = mediaItemsNeverLoaded && !mediaItemFiltersError && !mediaItemsError
 
-  const loadedButNoScenes = !isFirstLoad && mediaItems.length === 0
+  const loadedButNoScenes = !mediaItemsNeverLoaded && !mediaItemsLoading && mediaItems.length === 0
 
   // Show settings tab if we've finished loading scenes but have no scenes to show
   if (loadedButNoScenes && !showSettings) {
@@ -51,7 +50,7 @@ const FeedPage: React.FC<FeedPageProps> = ({className}) => {
 
   return (
   <main data-testid="FeedPage" className={className}>
-      {(mediaItemFiltersLoading || mediaItemsLoading) && <Loading heading="Fetching media..." />}
+      {(mediaItemsNeverLoaded || mediaItemFiltersLoading || mediaItemsLoading) && <Loading heading="Fetching media..." />}
       {mediaItems.length > 0 && <VideoScroller />}
       {loadedButNoScenes && <div>No Media Found</div>}
       {showGuideOverlay && <GuideOverlay onClose={() => setAppSetting("showGuideOverlay", false)} />}
