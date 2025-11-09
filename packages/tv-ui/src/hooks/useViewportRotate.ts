@@ -11,12 +11,47 @@ export function useViewportRotate(rotationEnabled: boolean) {
   // <html /> is outside of React's control so we have to set the class manually
   document.documentElement.className = cx({ "force-landscape": rotationEnabled });
 
+  // Trigger a resize event when rotationEnabled changes to force re-layout
+  useEffect(() => {
+    if (isFirstMount) return;
+    window.dispatchEvent(new Event("resize"));
+  }, [rotationEnabled])
+
+  // Remap innerWidth/innerHeight
+  useEffect(() => {
+    if (!rotationEnabled) return;
+
+    const originalDescriptorInnerHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight');
+    const originalDescriptorInnerWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+
+    Object.defineProperty(window, 'innerHeight', {
+      get() {
+        return originalDescriptorInnerWidth?.get?.call(window)
+      },
+      configurable: true
+    });
+
+    Object.defineProperty(window, 'innerWidth', {
+      get() {
+        return originalDescriptorInnerHeight?.get?.call(window)
+      },
+      configurable: true
+    });
+
+    return () => {
+      if (originalDescriptorInnerHeight)
+        Object.defineProperty(window, 'innerHeight', originalDescriptorInnerHeight);
+      if (originalDescriptorInnerWidth)
+        Object.defineProperty(window, 'innerWidth', originalDescriptorInnerWidth);
+    }
+  }, [rotationEnabled])
+
   // Remap mouse events
   useEffect(() => {
     if (!rotationEnabled) return;
 
     function remapMouseEventForLandscapeMode(event: MouseEvent) {
-      const effectiveClientX = window.innerHeight - event.clientY
+      const effectiveClientX = window.innerWidth - event.clientY
       const effectiveClientY = event.clientX
       const effectiveMovementX = -event.movementY
       const effectiveMovementY = event.movementX
@@ -39,6 +74,7 @@ export function useViewportRotate(rotationEnabled: boolean) {
     window.addEventListener("mousedown", remapMouseEventForLandscapeMode, { capture: true });
     window.addEventListener("mousemove", remapMouseEventForLandscapeMode, { capture: true });
     window.addEventListener("mouseup", remapMouseEventForLandscapeMode, { capture: true });
+    window.addEventListener("click", remapMouseEventForLandscapeMode, { capture: true });
     return () => {
       window.removeEventListener("pointerdown", remapMouseEventForLandscapeMode, { capture: true });
       window.removeEventListener("pointermove", remapMouseEventForLandscapeMode, { capture: true });
@@ -46,6 +82,7 @@ export function useViewportRotate(rotationEnabled: boolean) {
       window.removeEventListener("mousedown", remapMouseEventForLandscapeMode, { capture: true });
       window.removeEventListener("mousemove", remapMouseEventForLandscapeMode, { capture: true });
       window.removeEventListener("mouseup", remapMouseEventForLandscapeMode, { capture: true });
+      window.removeEventListener("click", remapMouseEventForLandscapeMode, { capture: true });
     }
   }, [rotationEnabled])
 
@@ -55,7 +92,7 @@ export function useViewportRotate(rotationEnabled: boolean) {
 
     function remapTouchEventForLandscapeMode(event: TouchEvent) {
       function remapTouch(touch: Touch) {
-        const effectiveClientX = window.innerHeight - touch.clientY
+        const effectiveClientX = window.innerWidth - touch.clientY
         const effectiveClientY = touch.clientX
         return new Touch({
           ...('altitudeAngle' in touch && typeof touch.altitudeAngle === 'number' ? { altitudeAngle: touch.altitudeAngle } : {}),
@@ -77,7 +114,7 @@ export function useViewportRotate(rotationEnabled: boolean) {
       }
 
       if ('pageX' in event && typeof event.pageX === 'number' && 'pageY' in event && typeof event.pageY === 'number') {
-        const effectivePageX = window.innerHeight - event.pageY
+        const effectivePageX = window.innerWidth - event.pageY
         const effectivePageY = event.pageX
 
         updateReadOnlyProps(event, {
@@ -110,6 +147,32 @@ export function useViewportRotate(rotationEnabled: boolean) {
       window.removeEventListener("touchstart", remapTouchEventForLandscapeMode, { capture: true });
       window.removeEventListener("touchmove", remapTouchEventForLandscapeMode, { capture: true });
       window.removeEventListener("touchend", remapTouchEventForLandscapeMode, { capture: true });
+    }
+  }, [rotationEnabled])
+
+  // Remap getBoundingClientRect()
+  useEffect(() => {
+    if (!rotationEnabled) return;
+
+    const originalGetBoundingClientRectFunc = Element.prototype.getBoundingClientRect;
+
+    Element.prototype.getBoundingClientRect = function(...args) {
+      // It seems like getBoundingClientRect knows an element has been rotated and so will measure the dimensions of the
+      // rotated element. That means width becomes height and vice versa. The x and y coordinates are now measured from
+      // the same viewport edges but to the new closest edges on the element.
+      const viewportRect = originalGetBoundingClientRectFunc.apply(document.documentElement, args);
+      const elementRect = originalGetBoundingClientRectFunc.apply(this, args);
+
+      return new DOMRect(
+        (viewportRect.height + viewportRect.y) - (elementRect.y + elementRect.height),
+        elementRect.x,
+        elementRect.height,
+        elementRect.width
+      );
+    };
+
+    return () => {
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRectFunc;
     }
   }, [rotationEnabled])
 }
