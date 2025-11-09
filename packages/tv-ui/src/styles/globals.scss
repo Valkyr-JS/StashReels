@@ -1,71 +1,24 @@
 html {
-  --x-unit-small: 1svw;
-  --y-unit-small: 1svh;
-  --x-unit-large: 1lvw;
-  --y-unit-large: 1lvh;
-  --x-unit-dynamic: 1dvw;
-  --y-unit-dynamic: 1dvh;
-  --y-dynamic-diff: calc((100 * var(--y-unit-large)) - (100 * var(--y-unit-dynamic)));
-  --safe-inset-top: env(safe-area-inset-top, 0);
-  --safe-inset-right: env(safe-area-inset-right, 0);
-  --safe-inset-bottom: env(safe-area-inset-bottom, 0);
-  --safe-inset-left: env(safe-area-inset-left, 0);
   scroll-snap-type: y mandatory;
   scroll-behavior: auto;
   container: viewport/size;
-}
 
-html.force-landscape {
-  /*
-  When in force landscape mode it shouldn't be possible to scroll up and down
-  the viewport, instead scrolling should occur horizontally inside the rotated
-  root element. Even though we make the root element not bigger than the viewport
-  to avoid scrolling mobile browsers sometimes still have a "rubber band" effect
-  when attempting to scroll passed the top or bottom. This breaks the illusion
-  that we're in a true landscape orientation so we disable it.
-  */
-  overscroll-behavior-y: none;
+  &.force-landscape {
+    scroll-snap-type: unset; /* When the root is rotated scroll snapping doesn't seem to work on the root so we set it on a child instead */
 
-  --x-unit-small: 1svh;
-  --y-unit-small: 1svw;
-  --x-unit-large: 1lvh;
-  --y-unit-large: 1lvw;
-  --x-unit-dynamic: 1dvh;
-  --y-unit-dynamic: 1dvw;
-  --safe-inset-top: env(safe-area-inset-left, 0);
-  --safe-inset-right: env(safe-area-inset-top, 0);
-  --safe-inset-bottom: env(safe-area-inset-right, 0);
-  --safe-inset-left: env(safe-area-inset-bottom, 0);
+    & body {
+      scroll-snap-type: y mandatory;
+    }
+  }
 
-  scroll-snap-type: unset; /* When the root is rotated scroll snapping doesn't seem to work on the root so we set it on a child instead */
-  position: absolute;
-  left: 50%;
-  top: calc(50% + (env(safe-area-inset-top)/2));
-  transform: translate(-50%, -50%) rotate(-90deg);
-  transform-origin: center center 0px;
-  overflow: hidden;
-}
-
-html.force-landscape,
-html.force-landscape body {
-  height: 100svw;
-  width: calc(100svh + env(safe-area-inset-top));
-}
-
-html.force-landscape body {
-  overflow-y: scroll;
-  /* Prevent SettingsTab from causing horizontal scroll */
-  overflow-x: hidden;
-  scroll-snap-type: y mandatory;
-  position: relative;
-}
-
-body {
-  padding: 0;
-  overflow-x: initial;
-  /* iOS 26.1 seems to remove the ability to push content the status bar and instead shows a solid strip of colour there
-  that is the background colour of the body. Annoying but until there's another option black looks less conspicuous. */
-  background-color: black;
+  body {
+    padding: 0;
+    /* Overrides value set in Stash's CSS */
+    overflow-x: initial;
+    /* iOS 26.1 seems to remove the ability to push content the status bar and instead shows a solid strip of colour there
+    that is the background colour of the body. Annoying but until there's another option black looks less conspicuous. */
+    background-color: black;
+  }
 }
 
 kbd {
