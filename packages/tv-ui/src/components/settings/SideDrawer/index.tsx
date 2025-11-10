@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from "react";
 import { useSpring, animated, config } from "@react-spring/web";
 import "./SideDrawer.scss";
 import { useAppStateStore } from "../../../store/appStateStore";
+import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
 
 type Props = {
   children?: React.ReactNode,
@@ -18,7 +19,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   const bodyRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const { showSettings, forceLandscape, showGuideOverlay, set: setAppSetting } = useAppStateStore();
+  const { showSettings, showGuideOverlay, set: setAppSetting } = useAppStateStore();
 
   const [sidebarWidth, setSidebarWidth] = React.useState(window.innerWidth);
   useEffect(() => {
@@ -116,6 +117,8 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     );
   }
 
+  const bodyScrollClasses = useOverflowIndicators(bodyRef);
+
   /* -------------------------------- Component ------------------------------- */
 
   return <>
@@ -132,7 +135,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       style={{ right: x.to(px => `calc(100% - ${px}px)`) }}
     >
       <div className="content">
-        <div className="body" ref={bodyRef}>
+        <div className={cx("body", bodyScrollClasses)} ref={bodyRef}>
           {children}
         </div>
 

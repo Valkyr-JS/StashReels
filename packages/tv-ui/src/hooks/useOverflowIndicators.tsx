@@ -39,9 +39,10 @@ export default function useOverflowIndicators(stackElmRef: React.MutableRefObjec
   function updateStackScrollClasses(element: HTMLElement) {
     const isScrollable = element.scrollHeight > element.offsetHeight;
     const scrollPercent = Math.abs(element.scrollTop) / (element.scrollHeight - element.offsetHeight);
-    console.log({isScrollable, scrollPercent});
-    setIsOverflowingTop(isScrollable && scrollPercent < 1);
-    setIsOverflowingBottom(isScrollable && scrollPercent > 0);
+    const isReversed = getComputedStyle(element).flexDirection?.includes('reverse');
+    const scrollPercentDirectionCorrected = isReversed ? 1 - scrollPercent : scrollPercent;
+    setIsOverflowingTop(isScrollable && scrollPercentDirectionCorrected > 0);
+    setIsOverflowingBottom(isScrollable && scrollPercentDirectionCorrected < 1);
   }
 
   return stackScrollClasses
