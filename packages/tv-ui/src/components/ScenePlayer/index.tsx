@@ -113,6 +113,7 @@ export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOrigi
     hideControls?: boolean;
     hideProgressBar?: boolean;
     onClick?: (event: MouseEvent) => void;
+    onPointerUp?: (event: PointerEvent) => void;
     onVideojsPlayerReady?: (player: VideoJsPlayer) => void;
     optionsToMerge?: VideoJsPlayerOptions;
     scene: GQL.TvSceneDataFragment;
@@ -136,6 +137,7 @@ const ScenePlayer = forwardRef<
     hideControls,
     hideProgressBar,
     onClick,
+    onPointerUp,
     onEnded,
     onVideojsPlayerReady,
     optionsToMerge,
@@ -425,6 +427,14 @@ const ScenePlayer = forwardRef<
             videojsPlayer.off('click', onClick);
         }
     }, [videojsPlayer, onClick]);
+
+    useEffect(() => {
+        if (!videojsPlayer || !onPointerUp) return;
+        videojsPlayer.on('pointerup', onPointerUp);
+        return () => {
+            videojsPlayer.off('pointerup', onPointerUp);
+        }
+    }, [videojsPlayer, onPointerUp]);
 
     return (
         <div

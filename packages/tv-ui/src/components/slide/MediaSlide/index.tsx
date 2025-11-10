@@ -152,12 +152,12 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }, [props.index, props.currentIndex, autoplay]);
 
   // Handle clicks and gestures on the video element
-  const handleClick = useCallback((event: MouseEvent) => {
+  const handlePointerUp = useCallback((event: PointerEvent) => {
     const {currentTarget: videoElm} = event;
     if (!videoElm || !(videoElm instanceof HTMLElement)) return;
 
     const videoElmWidth = videoElm.clientWidth
-    if (debugMode) console.log(`Click at X=${event.clientX} (video width: ${videoElmWidth})`, videoElm);
+    if (debugMode) console.log(`Pointer up at X=${event.clientX} (video width: ${videoElmWidth})`, videoElm);
     if (event.clientX < (videoElmWidth / 3)) {
       seekBackwards()
     } else if (event.clientX < ((videoElmWidth / 3) * 2)) {
@@ -437,7 +437,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           onPrevious={() => {}}
           refVideo={videoRef}
           onEnded={handleOnEnded}
-          onClick={handleClick}
+          onPointerUp={handlePointerUp}
           onVideojsPlayerReady={handleVideojsPlayerReady}
           trackActivity={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
           scrubberThumbnail={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
