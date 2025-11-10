@@ -24,35 +24,7 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
     overflow-x: hidden;
     overscroll-behavior: contain;
 
-    --fade-height: 4em;
-    --top-fade-height: var(--fade-height);
-    --bottom-fade-height: var(--fade-height);
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0,
-      black var(--top-fade-height, 0),
-      black calc(100% - var(--bottom-fade-height, 0)),
-      transparent 100%
-    );
-    transition: --top-fade-height 1s, --bottom-fade-height 1s;
-    mask-size: 100% calc(100% + ( var(--fade-height) * 2 ));
-    mask-position: center;
-    transition: mask-position 0.3s ease, mask-size 0.3s ease;
-
-    &.top-overflowing {
-      /* animation: fade-top 2.5s ease infinite; */
-      mask-position: top;
-    }
-
-    &.bottom-overflowing {
-      /* animation: fade-bottom 2.5s ease infinite; */
-      mask-position: bottom;
-    }
-
-    &.top-overflowing.bottom-overflowing {
-      mask-size: 100% 100%;
-      mask-position: center;
-    }
+    --additional-transitions: var(--overflow-indicators-transition);
   }
 
   .ActionButton {

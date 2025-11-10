@@ -192,6 +192,8 @@
     }
   }
 
+  --ui-toggle-transition-duration: 0.15s;
+
   &.hide-controls {
     .hide-on-ui-hide,
     .dim-on-ui-hide,
@@ -200,8 +202,9 @@
       opacity: 0;
       visibility: hidden;
       transition:
-        opacity 0.15s ease-in-out,
-        visibility 0s linear 0.15s; /* delay visibility change until after opacity fades */
+        opacity var(--ui-toggle-transition-duration) ease-in-out,
+        visibility 0s linear var(--ui-toggle-transition-duration), /* delay visibility change until after opacity fades */
+        var(--additional-transitions, --dummy-fallback-var-to-stop-it-braking);
 
       &.dim-on-ui-hide {
         opacity: 0.35;
@@ -214,13 +217,15 @@
     opacity: 0;
     visibility: hidden;
     transition:
-      opacity 0.15s ease-in-out,
-      visibility 0s linear 0.15s; /* delay visibility change until after opacity fades */
+      opacity var(--ui-toggle-transition-duration) ease-in-out,
+      visibility 0s linear var(--ui-toggle-transition-duration), /* delay visibility change until after opacity fades */
+      var(--additional-transitions, --dummy-fallback-var-to-stop-it-braking);
   }
 
   .hide-on-ui-hide, .dim-on-ui-hide, .vjs-control-bar {
     transition:
-      opacity 0.15s ease-in-out,
-      visibility 0s linear 0s; /* immediate visibility */
+      opacity var(--ui-toggle-transition-duration) ease-in-out,
+      visibility 0s linear 0s, /* immediate visibility */
+      var(--additional-transitions, --dummy-fallback-var-to-stop-it-braking);
   }
 }

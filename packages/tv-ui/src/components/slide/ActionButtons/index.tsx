@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import { faExpand } from "@fortawesome/free-solid-svg-icons";
 import { faRepeat } from "@fortawesome/free-solid-svg-icons";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
@@ -24,6 +24,7 @@ import cx from "classnames";
 import ActionButton from "../ActionButton";
 import "./ActionButtons.css";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
+import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
@@ -31,7 +32,6 @@ export type Props = {
   setSceneInfoOpen: (open: boolean) => void;
 }
 
-type ScrollClasses = "top-overflowing" | "bottom-overflowing";
 
 export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   const {
@@ -78,52 +78,15 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           .find((c) => !!c)
       : null;
 
-  const [stackScrollClasses, setStackScrollClasses] = React.useState<ScrollClasses[]>([]);
-
-  const stackElmRef = React.useRef<HTMLDivElement>(null);
-
-  function handleStackScroll(event: React.UIEvent<HTMLDivElement>) {
-    const target = event.currentTarget;
-    updateStackScrollClasses(target);
-  }
-
-  useEffect(() => {
-    if (!stackElmRef.current) return;
-
-    const observer = new ResizeObserver(() => {
-      if (!stackElmRef.current) return;
-      updateStackScrollClasses(stackElmRef.current);
-    });
-    observer.observe(stackElmRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [stackElmRef.current]);
-
-
-  function updateStackScrollClasses(element: HTMLDivElement) {
-    const isScrollable = element.scrollHeight !== element.offsetHeight
-    const scrollPercent = Math.abs(element.scrollTop) / (element.scrollHeight - element.offsetHeight);
-    const scrollClasses: ScrollClasses[] = [];
-    if (isScrollable) {
-      if (scrollPercent <= 0) {
-        scrollClasses.push("top-overflowing");
-      } else if (scrollPercent >= 1) {
-        scrollClasses.push("bottom-overflowing");
-      } else {
-        scrollClasses.push("top-overflowing", "bottom-overflowing");
-      }
-    }
-    setStackScrollClasses(scrollClasses);
-  }
+  const stackElmRef = useRef<HTMLDivElement>(null);
+  const stackScrollClasses = useOverflowIndicators(stackElmRef);
 
   return (
     <div
       className={cx("ActionButtons", {'active': uiVisible})}
       data-testid="MediaSlide--toggleableUi"
     >
-      <div className={cx("stack hide-on-ui-hide", ...stackScrollClasses)} onScroll={handleStackScroll} ref={stackElmRef}>
+      <div className={cx("stack hide-on-ui-hide", ...stackScrollClasses)} ref={stackElmRef}>
         <ActionButton
           className="settings"
           active={showSettings}

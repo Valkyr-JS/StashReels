@@ -1,0 +1,35 @@
+.indicators-on-overflow {
+  --fade-height: 4em;
+  --top-fade-height: var(--fade-height);
+  --bottom-fade-height: var(--fade-height);
+  --overflow-indicators-transition-duration: 0.2s;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--top-fade-height, 0),
+    black calc(100% - var(--bottom-fade-height, 0)),
+    transparent 100%
+  );
+  mask-size: 100% calc(100% + ( var(--fade-height) * 2 ));
+  mask-position: center;
+  --overflow-indicators-transition:
+    mask-position var(--overflow-indicators-transition-duration) ease,
+    mask-size var(--overflow-indicators-transition-duration) ease;
+  transition: var(--overflow-indicators-transition);
+
+
+  &.top-overflowing {
+    mask-position: top;
+    mask-size: 100% calc(100% + var(--fade-height));
+  }
+
+  &.bottom-overflowing {
+    mask-position: bottom;
+    mask-size: 100% calc(100% + var(--fade-height));
+  }
+
+  &.top-overflowing.bottom-overflowing {
+    mask-size: 100% 100%;
+    mask-position: center;
+  }
+}
