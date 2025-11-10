@@ -280,7 +280,7 @@ export function useMediaItemFilters() {
       }
       return savedFilters;
     },
-    [availableSavedSceneFilters, stashTvDefaultFilterId]
+    [availableSavedSceneFilters, availableSavedMarkerFilters, stashTvDefaultFilterId]
   );
 
   return {
