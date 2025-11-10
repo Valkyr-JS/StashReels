@@ -16,31 +16,40 @@ export type Props = React.DetailedHTMLProps<
   activeText: string;
   inactiveIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
   inactiveText: string;
+  sideInfo?: React.ReactNode;
 }
 
 const ActionButton = forwardRef<HTMLButtonElement, Props>(
   (
-    { active, activeIcon, activeText, inactiveIcon, inactiveText, className, ...props },
+    { active, activeIcon, activeText, inactiveIcon, inactiveText, className, sideInfo, ...props },
     ref
   ) => {
     const Icon = active ? activeIcon : inactiveIcon;
     return (
-      <button
+      <div
         className={cx("ActionButton", className, { active })}
-        {...props}
-        onClick={props.onClick}
-        type="button"
-        ref={ref}
       >
-        {'icon' in Icon ? (
-          <FontAwesomeIcon icon={Icon} />
-        ) : (
-          <Icon className="icon" />
+        {sideInfo && (
+          <div className="side-info">
+            {sideInfo}
+          </div>
         )}
-        <span className="sr-only">
-          {active ? activeText : inactiveText}
-        </span>
-      </button>
+        <button
+          {...props}
+          onClick={props.onClick}
+          type="button"
+          ref={ref}
+        >
+          {'icon' in Icon ? (
+            <FontAwesomeIcon icon={Icon} />
+          ) : (
+            <Icon className="icon" />
+          )}
+          <span className="sr-only">
+            {active ? activeText : inactiveText}
+          </span>
+        </button>
+      </div>
     );
   }
 );

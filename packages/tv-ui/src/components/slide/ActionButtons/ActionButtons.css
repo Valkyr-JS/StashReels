@@ -1,6 +1,5 @@
 .ActionButtons {
   --bottom-offset: 1em;
-  --top-offset: 1em;
   position: absolute;
   bottom: calc(var(--y-dynamic-diff) + var(--bottom-offset));
   padding-top: var(--safe-inset-top);
@@ -12,9 +11,7 @@
   justify-content: end;
   align-items: end;
   z-index: 2;
-  pointer-events: none;
   max-height: calc(var(--y-unit-small) * 100 - var(--bottom-offset));
-
 
   .stack {
     position: relative;
@@ -22,6 +19,9 @@
     /* We reverse the order so that we start from the bottom when scrollable */
     flex-direction: column-reverse;
     overflow-y: auto;
+    /* Firefox will automatically make overflow-x visible if overflow-y is set to auto even if we try to explicitly set
+overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appearing. */
+    overflow-x: hidden;
     overscroll-behavior: contain;
 
     --fade-height: 4em;
@@ -38,7 +38,6 @@
     mask-size: 100% calc(100% + ( var(--fade-height) * 2 ));
     mask-position: center;
     transition: mask-position 0.3s ease, mask-size 0.3s ease;
-    padding-top: var(--top-offset);
 
     &.top-overflowing {
       /* animation: fade-top 2.5s ease infinite; */
@@ -54,23 +53,6 @@
       mask-size: 100% 100%;
       mask-position: center;
     }
-
-    /* Not sure why but on firefox scrollbars take up space but in this case they don't cause the element's width to
-    expand. Chrome's scroll bars also take up space but they do grow. This is a dirty hack to deal with that situation
-    so the buttons aren't cut off. */
-    &.scroll-width-hack {
-      width: calc(100% + 16px);
-    }
-
-    /* gap: 2em; */
-
-    > * {
-      /* flex: 0 0 auto; */
-    }
-  }
-
-  > * {
-    pointer-events: initial;
   }
 
   .ActionButton {

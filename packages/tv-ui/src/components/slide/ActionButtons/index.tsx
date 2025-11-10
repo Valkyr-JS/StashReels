@@ -31,7 +31,7 @@ export type Props = {
   setSceneInfoOpen: (open: boolean) => void;
 }
 
-type ScrollClasses = "top-overflowing" | "bottom-overflowing" | "scroll-width-hack";
+type ScrollClasses = "top-overflowing" | "bottom-overflowing";
 
 export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   const {
@@ -107,9 +107,6 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
     const scrollPercent = Math.abs(element.scrollTop) / (element.scrollHeight - element.offsetHeight);
     const scrollClasses: ScrollClasses[] = [];
     if (isScrollable) {
-      if (element.scrollWidth !== element.clientWidth || element.classList.contains("scroll-width-hack")) {
-        scrollClasses.push("scroll-width-hack");
-      }
       if (scrollPercent <= 0) {
         scrollClasses.push("top-overflowing");
       } else if (scrollPercent >= 1) {
@@ -219,7 +216,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
         active={uiVisible}
         activeIcon={faEllipsisVertical}
         activeText="Hide UI"
-        className={cx("dim-on-ui-hide", {'active': uiVisible})}
+        className={cx("toggle-ui", "dim-on-ui-hide", {'active': uiVisible})}
         data-testid="MediaSlide--showActionButton"
         inactiveIcon={VerticalEllipsisOutlineIcon}
         inactiveText="Show UI"

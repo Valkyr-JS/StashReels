@@ -1,32 +1,45 @@
 .ActionButton {
-  appearance: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-
+  --button-size: 50px;
   display: flex;
-  justify-content: center;
+  justify-content: end;
   align-items: center;
-  height: 50px;
-  width: 50px;
+  /* Height is defined in root container to allow flex shrinking */
+  height: var(--button-size);
 
-  background-color: transparent;
-  font-size: 28px;
-  line-height: 1;
+  button {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-  svg {
-    height: 1em;
-    /* Buttons will flex shrink as needed up to the size of the svg + any svg margin. We add a bit of margin to ensure
-    they don't get too close to each other. */
-    --flex-margin: 7px;
-    margin-top: var(--flex-margin);
-    margin-bottom: var(--flex-margin);
-    --shadow-layer-opacity: 0.1;
-    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity)));
+    background-color: transparent;
+    width: var(--button-size);
+    transition: scale 0.1s ease-in-out;
 
-    path {
-      stroke: white;
-      color: white;
+    &:hover {
+      svg {
+        scale: 1.1;
+      }
+    }
+
+    svg {
+      height: 28px;
+      width: auto;
+      /* Buttons will flex shrink as needed up to the size of the svg + any svg margin. We add a bit of margin to ensure
+      they don't get too close to each other. */
+      --flex-margin: 7px;
+      margin-top: var(--flex-margin);
+      margin-bottom: var(--flex-margin);
+      --shadow-layer-opacity: 0.1;
+      filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity)));
+
+      path {
+        stroke: white;
+        color: white;
+      }
     }
   }
 }
