@@ -1,4 +1,5 @@
 import React, {
+  ComponentProps,
   forwardRef,
 } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -6,6 +7,7 @@ import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import cx from "classnames";
 import "./ActionButton.css";
 import { useUID } from "react-uid";
+import { OverlayTrigger, Popover } from "react-bootstrap";
 
 export type Props = React.DetailedHTMLProps<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -34,8 +36,22 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     ...otherProps
   } = props;
   const Icon = active ? activeIcon : inactiveIcon;
-  const sidePanelRef = React.useRef<HTMLDialogElement>(null);
-  const sidePanelId = useUID();
+  const SidePanel = ({children}: {children: ComponentProps<typeof OverlayTrigger>['children']}) => {
+    if (!sidePanel) return <>{children}</>
+    const popover = (
+      <Popover
+        className="action-button-side-panel"
+        id={`action-button-side-panel-${useUID()}`}
+      >
+        <>{sidePanel}</>
+      </Popover>
+    )
+    return (
+      <OverlayTrigger trigger="click" placement="left" overlay={popover}>
+        {children}
+      </OverlayTrigger>
+    )
+  }
 
   return (
     <div
@@ -46,32 +62,22 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
           {sideInfo}
         </div>
       )}
-      {sidePanel && (
-        <dialog
-          className="side-panel"
-          popover="auto"
-          id={sidePanelId}
-          ref={sidePanelRef}
+      <SidePanel>
+        <button
+          {...otherProps}
+          type="button"
+          ref={ref}
         >
-          {sidePanel}
-        </dialog>
-      )}
-      <button
-        {...otherProps}
-        popovertarget={sidePanelId}
-        popovertargetaction="toggle"
-        type="button"
-        ref={ref}
-      >
-        {'icon' in Icon ? (
-          <FontAwesomeIcon icon={Icon} />
-        ) : (
-          <Icon className="icon" />
-        )}
-        <span className="sr-only">
-          {active ? activeText : inactiveText}
-        </span>
-      </button>
+          {'icon' in Icon ? (
+            <FontAwesomeIcon icon={Icon} />
+          ) : (
+            <Icon className="icon" />
+          )}
+          <span className="sr-only">
+            {active ? activeText : inactiveText}
+          </span>
+        </button>
+      </SidePanel>
     </div>
   );
 });
