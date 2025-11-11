@@ -6,6 +6,26 @@
   /* Height is defined in root container to allow flex shrinking */
   height: var(--button-size);
 
+  .side-panel {
+    margin: 0;
+    inset: auto;
+    position-area: center left;
+    animation: slideInFromRight 0.1s ease-out forwards;
+    background: var(--body-bg);
+    color: var(--text-color);
+    padding: 0.5em 0.9em;
+    border: 0;
+    border-radius: 0.5em;
+  }
+
+  .side-info {
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  &:has(.side-panel:popover-open) .side-info {
+    opacity: 0;
+  }
+
   button {
     appearance: none;
     border: 0;
@@ -41,5 +61,16 @@
         color: white;
       }
     }
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(0.5em);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }
