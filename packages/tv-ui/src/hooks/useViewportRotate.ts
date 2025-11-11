@@ -23,6 +23,15 @@ export function useViewportRotate(rotationEnabled: boolean) {
   // <html /> is outside of React's control so we have to set the class manually
   document.documentElement.className = cx({ "force-landscape": rotationEnabled });
 
+  useEffect(() => {
+    /*
+    * Chrome seems to scroll the window element down a bit when applying the rotation transform,
+    * probably to try and keep the same content visible. This messes up our positioning however
+    * so we manually scroll back to the top when enabling rotation.
+    */
+    if (rotationEnabled) window.scrollTo(0,0);
+  }, [rotationEnabled]);
+
   // Remap innerWidth/innerHeight
   useEffectKeen(() => {
     if (!rotationEnabled) return;
