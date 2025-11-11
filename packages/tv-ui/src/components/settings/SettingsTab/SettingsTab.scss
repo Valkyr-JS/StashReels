@@ -24,7 +24,6 @@
         }
       }
 
-
       &.open {
         svg {
           rotate: -90deg;
@@ -43,14 +42,19 @@
         margin-bottom: 1.5rem;
       }
     }
-  }
-  .item {
-    &:not(:last-child) {
-      margin-bottom: 2em;
+
+    > button + div {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      &.collapse:not(.show) {
+        display: none;
+      }
     }
   }
 
   .form-group {
+    /* We use gap to space out items rather than margin */
     margin-bottom: 0;
   }
 
@@ -58,21 +62,7 @@
     font-size: 1.3rem;
   }
 
-  .checkbox-item {
-    label {
-      display: flex;
-
-      input[type="checkbox"] {
-        margin-right: 1em;
-      }
-    }
-
-    h3 {
-      margin-bottom: 0;
-    }
-  }
-
-  .show-guide-overlay {
+  .form-group.button-description-inline {
     display: flex;
     gap: 1em;
     margin-top: 0.5em;

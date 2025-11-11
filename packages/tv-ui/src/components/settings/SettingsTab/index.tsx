@@ -148,7 +148,7 @@ export default function SettingsTab() {
       </AccordionToggle>
       <Accordion.Collapse eventKey="0">
         <>
-          <div className="item">
+          <Form.Group>
             <label htmlFor="filter">
               Media Filter
             </label>
@@ -175,10 +175,10 @@ export default function SettingsTab() {
                 ),
               }}
             />
-            <small>
+            <Form.Text className="text-muted">
               Choose a scene filter from Stash to use as your Stash TV
               filter
-            </small>
+            </Form.Text>
 
             {mediaItemFiltersError ? (
               <div className="error">
@@ -197,9 +197,9 @@ export default function SettingsTab() {
                 </p>
               </div>
             )}
-          </div>
+          </Form.Group>
 
-          {selectedFilter && !selectedFilter.isStashTvDefaultFilter && !noMediaItemsAvailable && <div className="item">
+          {selectedFilter && !selectedFilter.isStashTvDefaultFilter && !noMediaItemsAvailable && <Form.Group>
             <Button
               onClick={() => {
                 updateStashTvConfig(
@@ -212,14 +212,14 @@ export default function SettingsTab() {
               Set "{selectedFilter?.label}" as the default filter
             </Button>
             <div>
-              <small>
+              <Form.Text className="text-muted">
                 Set the currently selected scene filter as the default filter
                 when opening Stash TV.
-              </small>
+              </Form.Text>
             </div>
-          </div>}
+          </Form.Group>}
 
-          <div className="item checkbox-item">
+          <Form.Group>
             {currentMediaItemFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (
               <span>Filter sort order is random</span>
             ) : <>
@@ -229,19 +229,19 @@ export default function SettingsTab() {
                   label="Randomise filter order"
                   onChange={event => {console.log(event); setAppSetting("isRandomised", event.target.checked)}}
                 />
-              <small>Randomise the order of scenes in the filter.</small>
+              <Form.Text className="text-muted">Randomise the order of scenes in the filter.</Form.Text>
             </>}
-          </div>
+          </Form.Group>
 
-          <div className="item checkbox-item">
+          <Form.Group>
             <Switch
               id="only-show-matching-orientation"
               label="Only Show Scenes Matching Orientation"
               checked={onlyShowMatchingOrientation}
               onChange={event => setAppSetting("onlyShowMatchingOrientation", event.target.checked)}
             />
-            <small>Limit scenes to only those in the same orientation as the current window.</small>
-          </div>
+            <Form.Text className="text-muted">Limit scenes to only those in the same orientation as the current window.</Form.Text>
+          </Form.Group>
         </>
       </Accordion.Collapse>
       <AccordionToggle eventKey="1">
@@ -249,17 +249,17 @@ export default function SettingsTab() {
       </AccordionToggle>
       <Accordion.Collapse eventKey="1">
         <>
-          <div className="item checkbox-item">
+          <Form.Group>
             <Switch
               id="auto-play"
               label="Auto Play"
               checked={autoPlay}
               onChange={event => setAppSetting("autoPlay", event.target.checked)}
             />
-            <small>Automatically play scenes.</small>
-          </div>
+            <Form.Text className="text-muted">Automatically play scenes.</Form.Text>
+          </Form.Group>
 
-          {selectedFilter?.filterType === "scene" && <div className="item">
+          {selectedFilter?.filterType === "scene" && <Form.Group>
             <label htmlFor="start-position">
               Start Point
             </label>
@@ -269,21 +269,22 @@ export default function SettingsTab() {
               onChange={(newValue) => newValue && setAppSetting("startPosition", newValue.value)}
               options={startPositionOptions}
             />
-            <small>
+            <Form.Text className="text-muted">
               The point in the scene to start playback from.
-            </small>
-          </div>}
+            </Form.Text>
+          </Form.Group>}
 
-          <div className="item checkbox-item">
+          <Form.Group>
             <Switch
               id="scene-preview-only"
               label="Scene Preview Only"
               checked={scenePreviewOnly}
               onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
             />
-            <small>Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</small>
-          </div>
-          <div className="item">
+            <Form.Text className="text-muted">Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</Form.Text>
+          </Form.Group>
+
+          <Form.Group>
             <label htmlFor="subtitle-language">
               Subtitle language
             </label>
@@ -301,20 +302,20 @@ export default function SettingsTab() {
               options={subtitlesList}
               placeholder="Select a subtitle language"
             />
-            <small>
+            <Form.Text className="text-muted">
               Select the language to use for subtitles if available.
-            </small>
-          </div>
+            </Form.Text>
+          </Form.Group>
 
-          <div className="item checkbox-item">
+          <Form.Group>
             <Switch
               id="crt-effect"
               label="CRT Effect"
               checked={crtEffect}
               onChange={event => setAppSetting("crtEffect", event.target.checked)}
             />
-            <small>Emulate the visual effects of an old CRT television.</small>
-          </div>
+            <Form.Text className="text-muted">Emulate the visual effects of an old CRT television.</Form.Text>
+          </Form.Group>
         </>
       </Accordion.Collapse>
       <AccordionToggle eventKey="2">
@@ -322,14 +323,14 @@ export default function SettingsTab() {
       </AccordionToggle>
       <Accordion.Collapse eventKey="2">
         <>
-          <div className="item checkbox-item show-guide-overlay">
+          <Form.Group className="button-description-inline">
             <Button
               onClick={() => setAppSetting('showGuideOverlay', true)}
             >
               Show Guide
             </Button>
-            <small>Show instructions for using Stash TV.</small>
-          </div>
+            <Form.Text className="text-muted">Show instructions for using Stash TV.</Form.Text>
+          </Form.Group>
         </>
       </Accordion.Collapse>
 
@@ -340,27 +341,27 @@ export default function SettingsTab() {
         </AccordionToggle>
         <Accordion.Collapse eventKey="3">
           <>
-            <div className="item checkbox-item">
+            <Form.Group>
               <Switch
                 id="show-dev-options"
                 label="Hide Developer Options"
                 checked={showDevOptions}
                 onChange={event => setAppSetting("showDevOptions", false)}
               />
-              <small>Hide developer options.</small>
-            </div>
+              <Form.Text className="text-muted">Hide developer options.</Form.Text>
+            </Form.Group>
 
-            <div className="item checkbox-item">
+            <Form.Group>
               <Switch
                 id="debug-mode"
                 label="Debug Mode"
                 checked={debugMode}
                 onChange={event => setAppSetting("debugMode", event.target.checked)}
               />
-              <small>Enable debug mode for additional logging and information.</small>
-            </div>
+              <Form.Text className="text-muted">Enable debug mode for additional logging and information.</Form.Text>
+            </Form.Group>
 
-            <div className="item checkbox-item">
+            <Form.Group>
               <Switch
                 id="enable-render-debugging"
                 label="Enable Render Debugging"
@@ -370,20 +371,20 @@ export default function SettingsTab() {
                   window.location.reload()
                 }}
               />
-              <small>Enable render debugging.</small>
-            </div>
+              <Form.Text className="text-muted">Enable render debugging.</Form.Text>
+            </Form.Group>
 
-            <div className="item">
+            <Form.Group>
               <Button
                 onClick={() => window.location.reload()}
               >
                 Reload Page
               </Button>
-            </div>
+            </Form.Group>
 
-            <div className="item">
+            <Form.Group>
               {import.meta.env.VITE_STASH_TV_VERSION}
-            </div>
+            </Form.Group>
           </>
         </Accordion.Collapse>
       </>}
