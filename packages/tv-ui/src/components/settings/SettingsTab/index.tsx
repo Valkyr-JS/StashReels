@@ -14,6 +14,7 @@ import { Button, Form, Accordion } from "react-bootstrap";
 import { AccordionContext } from "react-bootstrap";
 import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
+import { NumberField } from "stash-ui/dist/src/utils/form";
 
 export default function SettingsTab() {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -34,6 +35,7 @@ export default function SettingsTab() {
     debugMode,
     autoPlay,
     startPosition,
+    maxMedia,
     set: setAppSetting
   } = useAppStateStore();
   const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
@@ -372,6 +374,28 @@ export default function SettingsTab() {
                 }}
               />
               <Form.Text className="text-muted">Enable render debugging.</Form.Text>
+            </Form.Group>
+
+            <Form.Group>
+              <label htmlFor="max-media">
+                Media Limit
+              </label>
+              <NumberField
+                id="max-media"
+                className="text-input"
+                value={maxMedia ?? ""}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setAppSetting(
+                    "maxMedia",
+                    event.currentTarget.value
+                      ? Number.parseInt(event.currentTarget.value)
+                      : undefined
+                  )
+                }
+              />
+              <Form.Text className="text-muted">
+                Limit the number of media items that are shown (loading amount is unaffected).
+              </Form.Text>
             </Form.Group>
 
             <Form.Group>

@@ -16,6 +16,7 @@ type AppState = {
   onlyShowMatchingOrientation: boolean;
   showDevOptions: boolean;
   debugMode: boolean;
+  maxMedia: undefined | number;
   autoPlay: boolean;
   startPosition: 'resume' | 'beginning' | 'random';
   showGuideOverlay?: boolean;
@@ -45,6 +46,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
       onlyShowMatchingOrientation: false,
       showDevOptions: false,
       debugMode: false,
+      maxMedia: undefined,
       autoPlay: true,
       startPosition: 'resume',
       showGuideOverlay: true,

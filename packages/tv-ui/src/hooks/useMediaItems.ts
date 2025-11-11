@@ -24,7 +24,7 @@ export type MediaItem = {
 
 export function useMediaItems() {
   const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
-  const { debugMode, scenePreviewOnly: previewOnly} = useAppStateStore()
+  const { debugMode, maxMedia, scenePreviewOnly: previewOnly} = useAppStateStore()
 
   const [ neverLoaded, setNeverLoaded ] = useState(true)
 
@@ -196,13 +196,23 @@ export function useMediaItems() {
     }
   }
 
+
+  mediaItems = useMemo(
+    () => {
+      let modifiedMediaItems = mediaItems
+      if (typeof maxMedia === "number") {
+        modifiedMediaItems = modifiedMediaItems.slice(0, maxMedia)
+      }
+      if (previewOnly) {
+        modifiedMediaItems = modifiedMediaItems.map(makeMediaItemPreviewOnly)
+      }
+      return modifiedMediaItems
+    },
+    [mediaItems, previewOnly, maxMedia, hashObject(previewLengths)]
+  )
+
   return {
-    mediaItems: useMemo(() => mediaItems
-      .map(
-        mediaItem => previewOnly ? makeMediaItemPreviewOnly(mediaItem) : mediaItem
-      ),
-      [mediaItems, previewOnly, hashObject(previewLengths)]
-    ),
+    mediaItems,
     loadMoreMediaItems: () => {
       const nextPage = mediaItems.length ? Math.ceil(mediaItems.length / mediaItemsPerPage) + 1 : 1
       debugMode && console.log("Fetch next media page:", nextPage)
