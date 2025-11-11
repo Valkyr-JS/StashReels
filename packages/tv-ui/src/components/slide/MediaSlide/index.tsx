@@ -153,8 +153,8 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   // Handle clicks and gestures on the video element
   const handlePointerUp = useCallback((event: PointerEvent) => {
-    const {currentTarget: videoElm} = event;
-    if (!videoElm || !(videoElm instanceof HTMLElement)) return;
+    const {target: videoElm} = event;
+    if (!(videoElm instanceof HTMLVideoElement)) return;
 
     const videoElmWidth = videoElm.clientWidth
     if (debugMode) console.log(`Pointer up at X=${event.clientX} (video width: ${videoElmWidth})`, videoElm);
@@ -259,7 +259,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       return
     }
     videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
-    setCurrentlyPlayingMarker(findCurrentlyPlayingMarker(nextSkipAheadTime))
+    setCurrentlyPlayingMarkers(findCurrentlyPlayingMarkers(nextSkipAheadTime))
     videojsPlayerRef.current?.play()
   }
 
@@ -285,7 +285,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       }
     }
     videojsPlayerRef.current?.currentTime(nextSkipBackTime)
-    setCurrentlyPlayingMarker(findCurrentlyPlayingMarker(nextSkipBackTime))
+    setCurrentlyPlayingMarkers(findCurrentlyPlayingMarkers(nextSkipBackTime))
     videojsPlayerRef.current?.play()
   }
 
@@ -346,60 +346,64 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }
 
   // Track what marker (if any) is currently playing
-  const findCurrentlyPlayingMarker = (currentTime: number) => {
+  const findCurrentlyPlayingMarkers = (currentTime: number) => {
     if (props.mediaItem.entityType === "marker") {
-      return props.mediaItem.entity;
+      return [props.mediaItem.entity];
     } else if (props.mediaItem.entityType === "scene") {
       const scene = props.mediaItem.entity;
-      const marker = scene.scene_markers.find(marker => {
+      const markers = scene.scene_markers.filter(marker => {
         const markerStartSearchTime = marker.seconds;
         const nextMarker = scene.scene_markers.find(m => m.seconds > markerStartSearchTime);
         const makerEndTime = marker.end_seconds ?? marker.seconds + 20; // Default marker length is 20s
         const makerEndSearchTime = Math.min(makerEndTime, nextMarker?.seconds ?? Infinity);
         return markerStartSearchTime <= currentTime && makerEndSearchTime > currentTime
       });
-      return marker
+      return markers
     } else {
       props.mediaItem satisfies never
+      throw new Error(`Unknown media item type: ${props.mediaItem}`);
     }
   }
-  const [currentlyPlayingMarker, setCurrentlyPlayingMarker] = useState<GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]["scene_markers"][number] | undefined>(findCurrentlyPlayingMarker(0));
-  const currentlyPlayingMarkerDisplayName = useMemo(
+  const [currentlyPlayingMarkers, setCurrentlyPlayingMarkers] = useState<GQL.FindScenesForTvQuery["findScenes"]["scenes"][number]["scene_markers"][number][]>(findCurrentlyPlayingMarkers(0));
+  const currentlyPlayingMarkersDisplayName = useMemo(
     () => {
-      if (!currentlyPlayingMarker) return null;
-      const tags = [currentlyPlayingMarker.primary_tag, ...currentlyPlayingMarker.tags]
-        .filter(tag => tag.name !== currentlyPlayingMarker.title);
-      const tagsFormatted = tags.length
-        ? (
-          <span className="tags">
-            {tags.map((tag, index) => {
-              let joiner
-              if (index === tags.length - 2) {
-                joiner = " & "
-              } else if (index < tags.length - 2) {
-                joiner = ", "
-              }
-              return <React.Fragment key={tag.name + index}>
-                <span className="tag" key={index}>{tag.name}</span>
-                {joiner && <span className="joiner">{joiner}</span>}
-              </React.Fragment>
-            })}
-          </span>
-        ) : null
-      const titleFormatted = currentlyPlayingMarker.title ? (
-        <span className="title">{currentlyPlayingMarker.title}</span>
-      ) : null;
-      return titleFormatted ?? tagsFormatted
+      if (!currentlyPlayingMarkers) return null;
+
+      const markerNames: { name: string, type: "tag" | "title" }[] = []
+      for (const marker of currentlyPlayingMarkers) {
+        const tags = [marker.primary_tag, ...marker.tags]
+        if (marker.title) {
+          markerNames.push(
+            { name: marker.title, type: "title" }
+          );
+          continue;
+        }
+        markerNames.push(
+          ...tags.map(tag => ({ name: tag.name, type: "tag" } as const))
+        )
+      }
+      return markerNames.map(({name, type}, index) => {
+        let joiner
+        if (index === markerNames.length - 2) {
+          joiner = " & "
+        } else if (index < markerNames.length - 2) {
+          joiner = ", "
+        }
+        return <React.Fragment key={name + index}>
+          <span className={type}>{name}</span>
+          {joiner && <span className="joiner">{joiner}</span>}
+        </React.Fragment>
+      })
     },
-    [currentlyPlayingMarker]
+    [currentlyPlayingMarkers]
   );
   const handleOnTimeUpdate = (event: Event) => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     if (currentTime === undefined) return;
-    const marker = findCurrentlyPlayingMarker(currentTime);
-    if (marker === currentlyPlayingMarker) return
-    debugMode && console.log(`Marker playback update - now playing marker `, marker ? `id=${marker.title ?? marker.primary_tag.name}` : "none", {currentTime, marker});
-    setCurrentlyPlayingMarker(marker)
+    const markers = findCurrentlyPlayingMarkers(currentTime);
+    if (markers.length === currentlyPlayingMarkers.length && markers.every(marker => currentlyPlayingMarkers.includes(marker))) return
+    debugMode && console.log(`Marker playback update - now playing markers `, markers ? `id=${markers.map(({title}) => title).join(", ")}` : "none", {currentTime, markers});
+    setCurrentlyPlayingMarkers(markers)
   }
 
   /* -------------------------------- Component ------------------------------- */
@@ -457,9 +461,9 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
             }
           }}
         />}
-        {currentlyPlayingMarker && videoJsControlBarElm && createPortal(
+        {currentlyPlayingMarkers.length > 0 && videoJsControlBarElm && createPortal(
           <>
-            <div className="vjs-control">{currentlyPlayingMarkerDisplayName}</div>
+            <div className="vjs-control currently-playing-marker">{currentlyPlayingMarkersDisplayName}</div>
             <div className="vjs-custom-control-spacer vjs-spacer">&nbsp;</div>
           </>,
           videoJsControlBarElm
