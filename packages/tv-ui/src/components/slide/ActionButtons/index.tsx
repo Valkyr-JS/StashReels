@@ -107,7 +107,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
     if (ratingSystemOptions.type === RatingSystemType.Stars) {
       sceneRatingFormatted = (scene.rating100 / 20).toFixed(1).replace(/\.0$/, ""); // Convert 0-100 to 0-5
     } else {
-      sceneRatingFormatted = scene.rating100.toString();
+      sceneRatingFormatted = (scene.rating100 / 10).toString();
     }
   }
 
@@ -174,7 +174,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           inactiveIcon={StarOutlineIcon}
           inactiveText="Rate scene"
           sidePanel={
-            <div className={cx("action-button-rating-stars", {'not-set': typeof scene.rating100 !== "number"})}>
+            <div className={cx("action-button-rating-stars", {'not-set': typeof scene.rating100 !== "number"}, ratingSystemOptions.type.toLowerCase())}>
               <span className="clear star-rating-number">Clear</span>
               <RatingSystem
                 value={scene.rating100}
