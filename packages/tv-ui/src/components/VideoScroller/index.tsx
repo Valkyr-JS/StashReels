@@ -8,6 +8,7 @@ import throttle from 'throttleit';
 import { clamp } from "../../helpers";
 import { useMediaItems } from "../../hooks/useMediaItems";
 import { useWindowSize } from "../../hooks/useWindowSize";
+import hashObject from 'object-hash';
 
 interface VideoScrollerProps {}
 
@@ -19,7 +20,14 @@ export type ScrollToIndexOptions = { behavior?: ScrollBehavior }
 export const itemBufferEitherSide = 1 as const;
 
 const VideoScroller: React.FC<VideoScrollerProps> = () => {
-  const { forceLandscape: isForceLandscape, onlyShowMatchingOrientation, debugMode, set: setAppSetting } = useAppStateStore();
+  const {
+    forceLandscape: isForceLandscape,
+    onlyShowMatchingOrientation,
+    debugMode,
+    scenePreviewOnly,
+    markerPreviewOnly,
+    set: setAppSetting
+  } = useAppStateStore();
   const { orientation } = useWindowSize()
   const rootElmRef = useRef<HTMLDivElement | null>(null);
 
@@ -400,7 +408,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
               }}
               currentIndex={currentIndex}
               index={i}
-              key={mediaItem.id}
+              key={hashObject([mediaItem.id, scenePreviewOnly, markerPreviewOnly])}
               mediaItem={mediaItem}
               style={style}
               currentlyScrolling={rowVirtualizer.isScrolling}

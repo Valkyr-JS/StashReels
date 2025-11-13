@@ -105,6 +105,7 @@ allowPluginRemoval(videojs);
 ScenePlayerOriginal.displayName = "ScenePlayerOriginal";
 
 export type ScenePlayerProps = Omit<React.ComponentProps<typeof ScenePlayerOriginal>, 'scene' | 'onComplete' | 'initialTimestamp'> & {
+    id?: string;
     className?: string;
     onTimeUpdate?: (event: Event) => void;
     // We define onEnded instead of using wrapped ScenePlayer's onComplete prop so we can make it optional as well as
@@ -132,6 +133,7 @@ const ScenePlayer = forwardRef<
     HTMLDivElement,
     ScenePlayerProps
 >(({
+    id,
     className,
     onTimeUpdate,
     hideControls,
@@ -442,6 +444,7 @@ const ScenePlayer = forwardRef<
             ref={containerRef}
             data-scene-id={otherProps.scene?.id}
             data-player-id={playerId}
+            id={id}
         >
             <ScenePlayerOriginal
                 {...otherProps}

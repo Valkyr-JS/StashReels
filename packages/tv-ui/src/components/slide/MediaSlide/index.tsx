@@ -48,6 +48,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     showSubtitles,
     crtEffect,
     scenePreviewOnly,
+    markerPreviewOnly,
     showDevOptions,
     debugMode,
     autoPlay: globalAutoPlay,
@@ -144,8 +145,8 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       firstDurationChangeRef.current = false;
       return
     }
-    videojsPlayerRef.current?.duration(scene.files?.[0]?.duration); // Force update of duration
-  }, [scene.files?.[0]?.duration])
+    videojsPlayerRef.current?.duration(getMediaItemDuration()); // Force update of duration
+  }, [getMediaItemDuration()])
 
   useEffect(() => {
     if (!looping || props.mediaItem.entityType !== "marker" || !videojsPlayerRef.current) return;
@@ -369,7 +370,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }, [props.mediaItem.entityType === "marker" || startPosition, getMediaItemDuration()]);
 
   const endTimestamp = useMemo(() => {
-    if (props.mediaItem.entityType === "marker") return undefined;
+    if (props.mediaItem.entityType === "marker" || (props.mediaItem.entityType === "scene" && scenePreviewOnly)) return undefined;
     const duration = props.mediaItem.entity.files[0]?.duration;
     const lengthRemaining = duration - (initialTimestamp ?? 0);
     if (endPosition === 'fixed-length') {
@@ -393,7 +394,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       return (initialTimestamp || 0) + Math.floor(Math.random() * (effectiveMaxPlayLength - effectiveMinPlayLength + 1)) + effectiveMinPlayLength
     }
     return undefined;
-  }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration()]);
+  }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration(), scenePreviewOnly]);
 
   // Track what marker (if any) is currently playing
   const findCurrentlyPlayingMarkers = (currentTime: number) => {
@@ -451,6 +452,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     if (currentTime === undefined) return;
     if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3)) {
+      debugMode && console.log(`End timestamp reached at ${currentTime}s (end: ${endTimestamp}s)`);
       videojsPlayerRef.current?.pause();
       goToItem('next');
     }
@@ -482,6 +484,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
         {debugMode && <div className="loadingDeferredDebugBackground" />}
         <img className="loadingDeferredPreview" src={scene.paths.screenshot || ""} />
         {!loadingDeferred && <ScenePlayer
+          id={`scene-player-${props.mediaItem.id}`}
           // Force remount when scene streams change to ensure videojs reloads the source
           key={JSON.stringify([scene.id, hashObject(scene.sceneStreams)])}
           onTimeUpdate={handleOnTimeUpdate}
@@ -504,7 +507,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           optionsToMerge={{
             plugins: {
               styledBigPlayButton: {},
-              ...(props.mediaItem.entityType === "marker" && !scenePreviewOnly ? {
+              ...(props.mediaItem.entityType === "marker" && !markerPreviewOnly ? {
                 offset: {
                   start: props.mediaItem.entity.seconds,
                   end: props.mediaItem.entity.seconds + props.mediaItem.entity.duration,

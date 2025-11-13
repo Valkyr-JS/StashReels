@@ -13,6 +13,7 @@ type AppState = {
   isRandomised: boolean;
   crtEffect: boolean;
   scenePreviewOnly: boolean;
+  markerPreviewOnly: boolean;
   onlyShowMatchingOrientation: boolean;
   showDevOptions: boolean;
   debugMode: boolean;
@@ -47,6 +48,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
       isRandomised: false,
       crtEffect: false,
       scenePreviewOnly: false,
+      markerPreviewOnly: false,
       onlyShowMatchingOrientation: false,
       showDevOptions: false,
       debugMode: false,

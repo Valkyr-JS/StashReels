@@ -1,7 +1,7 @@
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useMediaItemFilters } from './useMediaItemFilters';
 import { useEffect, useMemo, useState } from "react";
-import { getSceneIdForVideoJsPlayer } from "../helpers";
+import { getMediaItemIdForVideoJsPlayer } from "../helpers";
 import { useAppStateStore } from "../store/appStateStore";
 import hashObject from 'object-hash';
 
@@ -26,7 +26,8 @@ export const defaultMarkerLength = 20;
 
 export function useMediaItems() {
   const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
-  const { debugMode, maxMedia, scenePreviewOnly: previewOnly} = useAppStateStore()
+  const { debugMode, maxMedia, scenePreviewOnly, markerPreviewOnly } = useAppStateStore()
+  const previewOnly = scenePreviewOnly || markerPreviewOnly
 
   const [ neverLoaded, setNeverLoaded ] = useState(true)
 
@@ -111,15 +112,16 @@ export function useMediaItems() {
       if (!(event?.target instanceof HTMLVideoElement)) return;
       const videoElm = event.target
       try {
-        const sceneId = getSceneIdForVideoJsPlayer(videoElm);
+        const mediaItemId = getMediaItemIdForVideoJsPlayer(videoElm);
+        debugMode && console.log("Saving preview length for media item", mediaItemId, "duration", videoElm.duration)
         setPreviewLengths(
           prev => ({
             ...prev,
-            [sceneId]: videoElm.duration
+            [mediaItemId]: videoElm.duration
           })
         )
       } catch (error) {
-        console.warn("Failed to get scene ID for video element", error)
+        console.warn("Failed to get media item ID for video element", error)
       }
     }
     window.addEventListener('loadedmetadata', saveDurationOnceMetadataLoaded, {capture: true});
@@ -147,15 +149,17 @@ export function useMediaItems() {
       return mediaItem
     }
     const scene = 'scene' in mediaItem.entity ? mediaItem.entity.scene : mediaItem.entity
-    let duration
+    let estimatedDuration: number
     if (mediaItem.entityType === "marker") {
-      duration = mediaItem.entity.duration
+      estimatedDuration = Math.min(defaultMarkerLength, scene.files[0].duration)
     } else {
-      duration = scene.id in previewLengths
-        ? previewLengths[scene.id]
-        // Estimate the video duration if we don't know it yet
-        : Math.min(9.2, scene.files[0].duration)
+      estimatedDuration = Math.min(9.2, scene.files[0].duration)
     }
+    debugMode && mediaItem.id in previewLengths && console.log("Duration cached", mediaItem.id, previewLengths[mediaItem.id])
+    const duration = mediaItem.id in previewLengths
+      ? previewLengths[mediaItem.id]
+      // Estimate the video duration if we don't know it yet
+      : estimatedDuration
     const updatedScene = {
       ...scene,
       sceneStreams: [
@@ -204,12 +208,15 @@ export function useMediaItems() {
       if (typeof maxMedia === "number") {
         modifiedMediaItems = modifiedMediaItems.slice(0, maxMedia)
       }
-      if (previewOnly) {
+      if (
+        (lastLoadedCurrentMediaItemFilter?.entityType === "scene" && scenePreviewOnly)
+        || (lastLoadedCurrentMediaItemFilter?.entityType === "marker" && markerPreviewOnly)
+      ) {
         modifiedMediaItems = modifiedMediaItems.map(makeMediaItemPreviewOnly)
       }
       return modifiedMediaItems
     },
-    [mediaItems, previewOnly, maxMedia, hashObject(previewLengths)]
+    [mediaItems, scenePreviewOnly, markerPreviewOnly, maxMedia, hashObject(previewLengths)]
   )
 
   return {

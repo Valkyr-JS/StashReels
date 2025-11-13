@@ -30,6 +30,7 @@ export default function SettingsTab() {
     isRandomised,
     crtEffect,
     scenePreviewOnly,
+    markerPreviewOnly,
     onlyShowMatchingOrientation,
     showDevOptions,
     debugMode,
@@ -271,113 +272,127 @@ export default function SettingsTab() {
             <Form.Text className="text-muted">Automatically play scenes.</Form.Text>
           </Form.Group>
 
-          {selectedFilter?.filterType === "scene" && <Form.Group>
-            <label htmlFor="start-position">
-              Start Point
-            </label>
-            <Select
-              inputId="start-position"
-              value={startPositionOptions.find(option => option.value === startPosition) ?? null}
-              onChange={(newValue) => newValue && setAppSetting("startPosition", newValue.value)}
-              options={startPositionOptions}
-            />
-            <Form.Text className="text-muted">
-              The point in the scene to start playback from.
-            </Form.Text>
-          </Form.Group>}
+          {selectedFilter?.filterType === "scene" && (
+            <Form.Group>
+              <Switch
+                id="scene-preview-only"
+                label="Scene Preview Only"
+                checked={scenePreviewOnly}
+                onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
+              />
+              <Form.Text className="text-muted">Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</Form.Text>
+            </Form.Group>
+          )}
+          {selectedFilter?.filterType === "marker" && (
+            <Form.Group>
+              <Switch
+                id="marker-preview-only"
+                label="Play Low-res Preview"
+                checked={markerPreviewOnly}
+                onChange={event => setAppSetting("markerPreviewOnly", event.target.checked)}
+              />
+              <Form.Text className="text-muted">Play the low-resolution maker preview which can be useful for low bandwidth situations. (Requires the preview files to have been generated in Stash for a marker otherwise the full-quality video will be shown.)</Form.Text>
+            </Form.Group>
+          )}
 
-          {selectedFilter?.filterType === "scene" && <Form.Group>
-            <label htmlFor="end-position">
-              End Point
-            </label>
-            <Select
-              inputId="end-position"
-              value={endPositionOptions.find(option => option.value === endPosition) ?? null}
-              onChange={(newValue) => newValue && setAppSetting("endPosition", newValue.value)}
-              options={endPositionOptions}
-            />
-            <Form.Text className="text-muted">
-              The point in the scene to end playback.
-            </Form.Text>
-
-            {selectedFilter?.filterType === "scene" && endPosition === "fixed-length" && <Form.Group>
-              <label htmlFor="play-length">
-                Play Length
+          {selectedFilter?.filterType === "scene" && !scenePreviewOnly && <>
+            <Form.Group>
+              <label htmlFor="start-position">
+                Start Point
               </label>
-              <NumberField
-                id="play-length"
-                className="text-input"
-                value={playLength ?? ""}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  setAppSetting(
-                    "playLength",
-                    event.currentTarget.value
-                      ? Number.parseInt(event.currentTarget.value)
-                      : undefined
-                  )
-                }
+              <Select
+                inputId="start-position"
+                value={startPositionOptions.find(option => option.value === startPosition) ?? null}
+                onChange={(newValue) => newValue && setAppSetting("startPosition", newValue.value)}
+                options={startPositionOptions}
               />
               <Form.Text className="text-muted">
-                The length to play the scene for. Will play the full scene if not set.
+                The point in the scene to start playback from.
               </Form.Text>
-            </Form.Group>}
+            </Form.Group>
 
-            {selectedFilter?.filterType === "scene" && endPosition === "random-length" && <Form.Group>
-              <label>
-                Random Play Length Range
+            <Form.Group>
+              <label htmlFor="end-position">
+                End Point
               </label>
-              <div className="inline">
-                <label htmlFor="min-play-length" className="sr-only">
-                  Random Length Minimum
-                </label>
-                <NumberField
-                  id="min-play-length"
-                  className="text-input"
-                  placeholder="Min"
-                  value={minPlayLength ?? ""}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setAppSetting(
-                      "minPlayLength",
-                      event.currentTarget.value
-                        ? Number.parseInt(event.currentTarget.value)
-                        : undefined
-                    )
-                  }
-                />
-                <label htmlFor="max-play-length" className="sr-only">
-                  Random Length Maximum
-                </label>
-                <NumberField
-                  id="max-play-length"
-                  className="text-input"
-                  value={maxPlayLength ?? ""}
-                  placeholder="Max"
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setAppSetting(
-                      "maxPlayLength",
-                      event.currentTarget.value
-                        ? Number.parseInt(event.currentTarget.value)
-                        : undefined
-                    )
-                  }
-                />
-              </div>
+              <Select
+                inputId="end-position"
+                value={endPositionOptions.find(option => option.value === endPosition) ?? null}
+                onChange={(newValue) => newValue && setAppSetting("endPosition", newValue.value)}
+                options={endPositionOptions}
+              />
               <Form.Text className="text-muted">
-                Sets the minimum and maximum length to randomly play the scene for.
+                The point in the scene to end playback.
               </Form.Text>
-            </Form.Group>}
-          </Form.Group>}
 
+              {endPosition === "fixed-length" && <Form.Group>
+                <label htmlFor="play-length">
+                  Play Length
+                </label>
+                <NumberField
+                  id="play-length"
+                  className="text-input"
+                  value={playLength ?? ""}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setAppSetting(
+                      "playLength",
+                      event.currentTarget.value
+                        ? Number.parseInt(event.currentTarget.value)
+                        : undefined
+                    )
+                  }
+                />
+                <Form.Text className="text-muted">
+                  The length to play the scene for. Will play the full scene if not set.
+                </Form.Text>
+              </Form.Group>}
 
-          <Form.Group>
-            <Switch
-              id="scene-preview-only"
-              label="Scene Preview Only"
-              checked={scenePreviewOnly}
-              onChange={event => setAppSetting("scenePreviewOnly", event.target.checked)}
-            />
-            <Form.Text className="text-muted">Play a short preview rather than the full scene. (Requires the preview files to have been generated in Stash for a scene otherwise the full scene will be shown.)</Form.Text>
-          </Form.Group>
+              {endPosition === "random-length" && <Form.Group>
+                <label>
+                  Random Play Length Range
+                </label>
+                <div className="inline">
+                  <label htmlFor="min-play-length" className="sr-only">
+                    Random Length Minimum
+                  </label>
+                  <NumberField
+                    id="min-play-length"
+                    className="text-input"
+                    placeholder="Min"
+                    value={minPlayLength ?? ""}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setAppSetting(
+                        "minPlayLength",
+                        event.currentTarget.value
+                          ? Number.parseInt(event.currentTarget.value)
+                          : undefined
+                      )
+                    }
+                  />
+                  <label htmlFor="max-play-length" className="sr-only">
+                    Random Length Maximum
+                  </label>
+                  <NumberField
+                    id="max-play-length"
+                    className="text-input"
+                    value={maxPlayLength ?? ""}
+                    placeholder="Max"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setAppSetting(
+                        "maxPlayLength",
+                        event.currentTarget.value
+                          ? Number.parseInt(event.currentTarget.value)
+                          : undefined
+                      )
+                    }
+                  />
+                </div>
+                <Form.Text className="text-muted">
+                  Sets the minimum and maximum length to randomly play the scene for.
+                </Form.Text>
+              </Form.Group>}
+            </Form.Group>
+          </>}
 
           <Form.Group>
             <label htmlFor="subtitle-language">
