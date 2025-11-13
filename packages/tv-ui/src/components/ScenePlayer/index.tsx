@@ -184,27 +184,33 @@ const ScenePlayer = forwardRef<
         }
     },[]);
 
-    const [videoJsEventsToLogAttached, setVideoJsEventsToLogAttached] = useState<string[]>([]);
+    const videoJsEventsToLogAttached = useRef<Record<string, boolean>>({});
     const logVideoJsEvent = useCallback((event: Event) =>{
       console.groupCollapsed(`ScenePlayer [id=${id}] event: ${event.type}`);
       console.info(event);
+      if (event.type === "timeupdate") {
+        console.info("currentTime:", videojsPlayerRef.current?.currentTime());
+      }
       console.groupEnd();
     }, [])
     useEffect(() => {
+      // Attach lot to events that should be attached but aren't yet
       for (const eventName of videoJsEventsToLog) {
-        if (!videoJsEventsToLogAttached.includes(eventName)) {
+        if (!videoJsEventsToLogAttached.current[eventName]) {
           const player = videojsPlayerRef.current;
           if (!player) continue;
           player.on(eventName, logVideoJsEvent)
-          setVideoJsEventsToLogAttached(prev => [...prev, eventName]);
+          videoJsEventsToLogAttached.current[eventName] = true;
         }
       }
-      for (const eventName of videoJsEventsToLogAttached) {
+      // Detach log from events that are attached but shouldn't be any more
+      const attachedEvents = Object.entries(videoJsEventsToLogAttached.current).filter(([, attached]) => attached).map(([eventName]) => eventName);
+      for (const eventName of attachedEvents) {
         if (!videoJsEventsToLog.includes(eventName)) {
           const player = videojsPlayerRef.current;
           if (!player) continue;
           player.off(eventName, logVideoJsEvent)
-          setVideoJsEventsToLogAttached(prev => prev.filter(e => e !== eventName));
+          videoJsEventsToLogAttached.current[eventName] = false;
         }
       }
     }, [videoJsEventsToLog, videoJsEventsToLogAttached]);
@@ -287,7 +293,7 @@ const ScenePlayer = forwardRef<
     videoJsSetupCallbacks[playerId] = (player) => {
         for (const eventName of videoJsEventsToLog) {
           player.on(eventName, logVideoJsEvent)
-          setVideoJsEventsToLogAttached(prev => [...prev, eventName]);
+          videoJsEventsToLogAttached.current[eventName] = true;
         }
         if (loop !== undefined) {
             // Ideally we wouldn't need this. See comment for "loop" in videoJsOptionsOverride
