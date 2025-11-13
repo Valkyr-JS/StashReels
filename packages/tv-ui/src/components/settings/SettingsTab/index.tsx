@@ -328,7 +328,7 @@ export default function SettingsTab() {
 
               {endPosition === "fixed-length" && <Form.Group>
                 <label htmlFor="play-length">
-                  Play Length
+                  Play Length (Seconds)
                 </label>
                 <NumberField
                   id="play-length"
@@ -350,7 +350,7 @@ export default function SettingsTab() {
 
               {endPosition === "random-length" && <Form.Group>
                 <label>
-                  Random Play Length Range
+                  Random Play Length Range (Seconds)
                 </label>
                 <div className="inline">
                   <label htmlFor="min-play-length" className="sr-only">
