@@ -1,9 +1,15 @@
 import React, { useRef } from "react";
-import { faExpand } from "@fortawesome/free-solid-svg-icons";
-import { faRepeat } from "@fortawesome/free-solid-svg-icons";
-import { faGear } from "@fortawesome/free-solid-svg-icons";
-import { faVolumeHigh as faVolume } from "@fortawesome/free-solid-svg-icons";
-import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
+import {
+  faExpand,
+  faRepeat,
+  faGear,
+  faStar,
+  faVolumeHigh as faVolume,
+  faEllipsisVertical,
+  faCircleInfo,
+  faClosedCaptioning as faSubtitles,
+  faClosedCaptioning as faSubtitlesOff
+} from "@fortawesome/free-solid-svg-icons";
 import VolumeMuteOutlineIcon from '../../../assets/volume-mute-outline.svg?react';
 import ExpandOutlineIcon from '../../../assets/expand-outline.svg?react';
 import ContainIcon from '../../../assets/contain.svg?react';
@@ -12,11 +18,9 @@ import PortraitOutlineIcon from '../../../assets/portrait-rotation-outline.svg?r
 import LandscapeIcon from '../../../assets/landscape-rotation.svg?react';
 import LoopOutlineIcon from '../../../assets/loop-outline.svg?react';
 import CogOutlineIcon from '../../../assets/cog-outline.svg?react';
-import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 import InfoOutlineIcon from '../../../assets/info-outline.svg?react';
+import StarOutlineIcon from '../../../assets/star-outline.svg?react';
 import VerticalEllipsisOutlineIcon from '../../../assets/vertical-ellipsis-outline.svg?react';
-import { faClosedCaptioning as faSubtitles } from "@fortawesome/free-solid-svg-icons";
-import { faClosedCaptioning as faSubtitlesOff } from "@fortawesome/free-solid-svg-icons";
 import { useAppStateStore } from "../../../store/appStateStore";
 import ISO6391 from "iso-639-1";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
@@ -25,6 +29,11 @@ import ActionButton from "../ActionButton";
 import "./ActionButtons.css";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
 import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
+import { defaultRatingSystemOptions, RatingSystemType } from "stash-ui/dist/src/utils/rating";
+import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
+import { RatingSystem } from "stash-ui/dist/src/components/Shared/Rating/RatingSystem";
+import "stash-ui/dist/src/components/Shared/Rating/styles.scss";
+import { useSceneUpdate } from "stash-ui/dist/src/core/StashService";
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
@@ -47,6 +56,9 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   } = useAppStateStore();
 
   const { data: { subtitleLanguage } } = useStashTvConfig()
+
+  const { configuration: config } = React.useContext(ConfigurationContext);
+  const [updateScene] = useSceneUpdate();
 
   const sceneInfoDataAvailable =
     scene.performers.length > 0 ||
@@ -81,6 +93,30 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   const stackElmRef = useRef<HTMLDivElement>(null);
   const stackScrollClasses = useOverflowIndicators(stackElmRef);
 
+
+  const ratingSystemOptions =
+    config?.ui.ratingSystemOptions ?? defaultRatingSystemOptions;
+
+  let sceneRatingFormatted
+  if (typeof scene.rating100 === "number") {
+    if (ratingSystemOptions.type === RatingSystemType.Stars) {
+      sceneRatingFormatted = (scene.rating100 / 20).toFixed(1).replace(/\.0$/, ""); // Convert 0-100 to 0-5
+    } else {
+      sceneRatingFormatted = scene.rating100.toString();
+    }
+  }
+
+  function setRating(newRating: number | null) {
+    updateScene({
+      variables: {
+        input: {
+          id: scene.id,
+          rating100: newRating,
+        },
+      },
+    });
+  }
+
   return (
     <div
       className={cx("ActionButtons", {'active': uiVisible})}
@@ -110,6 +146,28 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
         />}
 
         <ActionButton
+          className="rate-scene"
+          active={typeof scene.rating100 === "number"}
+          activeIcon={faStar}
+          activeText="Rate scene"
+          data-testid="MediaSlide--rateButton"
+          inactiveIcon={StarOutlineIcon}
+          inactiveText="Rate scene"
+          sidePanel={
+            <div className="action-button-rating-stars">
+              <span className="clear star-rating-number">Clear</span>
+              <RatingSystem
+                value={scene.rating100}
+                onSetRating={setRating}
+                clickToRate
+                withoutContext
+              />
+            </div>
+          }
+          sideInfo={sceneRatingFormatted}
+        />
+
+        <ActionButton
           className="loop"
           active={looping}
           activeIcon={faRepeat}
@@ -119,7 +177,6 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           inactiveText="Loop scene"
           onClick={() => setAppSetting("looping", (prev) => !prev)}
         />
-
 
         <ActionButton
           className="force-landscape"

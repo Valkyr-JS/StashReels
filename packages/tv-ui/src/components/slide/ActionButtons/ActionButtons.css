@@ -1,10 +1,10 @@
 .ActionButtons {
-  --bottom-offset: 1em;
+  --bottom-offset: 1.1em;
   position: absolute;
   bottom: calc(var(--y-dynamic-diff) + var(--bottom-offset));
   padding-top: var(--safe-inset-top);
   padding-right: var(--safe-inset-right);
-  right: 3px;
+  right: 0.6em;
 
   display: flex;
   flex-direction: column;
@@ -16,6 +16,7 @@
   .stack {
     position: relative;
     display: flex;
+    padding-top: 10px;
     /* We reverse the order so that we start from the bottom when scrollable */
     flex-direction: column-reverse;
     overflow-y: auto;
@@ -25,6 +26,14 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
     overscroll-behavior: contain;
 
     --additional-transitions: var(--overflow-indicators-transition);
+  }
+
+  .toggle-ui {
+    /* Stop the position of the toggle icon from shifting relative to the progress bar as the size of the buttons flexes */
+    align-items: end;
+    svg {
+      margin-bottom: 10px;
+    }
   }
 
   .ActionButton {
@@ -54,5 +63,29 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
         --shadow-layer-opacity: 0.26;
       }
     }
+  }
+}
+
+/* Lives inside the popover element which is rendered as a child of body */
+.action-button-rating-stars {
+  display: flex;
+
+  &:has(.rating-stars .star-rating-number) .clear {
+    display: none;
+  }
+
+  .rating-stars {
+    gap: 0.2em;
+  }
+
+  .star-rating-number {
+    order: -1;
+    margin-left: 0;
+    font-size: 1.2rem;
+  }
+
+  svg {
+    height: 2em;
+    display: block; /* Remove small space under inline-blocks */
   }
 }

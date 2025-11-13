@@ -1,14 +1,17 @@
 .ActionButton {
-  --button-size: 50px;
   display: flex;
+  gap: 3px;
   justify-content: end;
   align-items: center;
   /* Height is defined in root container to allow flex shrinking */
-  height: var(--button-size);
+  height: 50px;
 
 
   .side-info {
     transition: opacity 0.2s ease-in-out;
+    margin-left: 0.5em;
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
+    font-weight: bold;
   }
 
   &:has(button[aria-describedby]) .side-info {
@@ -25,7 +28,7 @@
     align-items: center;
 
     background-color: transparent;
-    width: var(--button-size);
+    width: 40px;
     transition: scale 0.1s ease-in-out;
 
     &:hover {
@@ -68,7 +71,7 @@
   animation: slideInFromRight 0.1s ease-out forwards;
   background: var(--body-bg);
   color: var(--text-color);
-  padding: 0.5em 0.9em;
+  padding: 0.7em 0.9em;
   border: 0;
   border-radius: 0.5em;
 }

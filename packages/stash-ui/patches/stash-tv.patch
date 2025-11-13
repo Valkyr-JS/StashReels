@@ -1,9 +1,9 @@
 diff --git a/ui/v2.5/graphql/stash-tv.graphql b/ui/v2.5/graphql/stash-tv.graphql
 new file mode 100644
-index 00000000..a2db53a4
+index 00000000..c30bede4
 --- /dev/null
 +++ b/ui/v2.5/graphql/stash-tv.graphql
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,119 @@
 +query FindScenesForTv(
 +  $filter: FindFilterType
 +  $scene_filter: SceneFilterType
@@ -106,6 +106,7 @@ index 00000000..a2db53a4
 +    language_code
 +    caption_type
 +  }
++  rating100
 +  resume_time
 +  scene_markers {
 +    title

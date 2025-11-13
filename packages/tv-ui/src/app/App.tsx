@@ -4,6 +4,10 @@ import { useAppStateStore } from "../store/appStateStore";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import {ConfigurationProvider} from "stash-ui/dist/src/hooks/Config";
 import { useViewportRotate } from "../hooks/useViewportRotate";
+import { ErrorBoundary } from "stash-ui/dist/src/components/ErrorBoundary";
+import { IntlProvider, CustomFormats } from "react-intl";
+import englishMessages from "stash-ui/dist/src/locales/en-GB.json";
+import flattenMessages from "stash-ui/dist/src/utils/flattenMessages";
 
 const App = () => {
   const { forceLandscape  } = useAppStateStore()
@@ -21,13 +25,34 @@ const App = () => {
 
   useViewportRotate(forceLandscape);
 
+  // We only support English for now but we have to load IntlProvider so we don't break
+  // components imported from stash-ui that rely on it.
+  const defaultLocale = "en-GB";
+  const messages = flattenMessages((englishMessages as unknown) as Record<string, string>);
+  const language =
+    stashConfig.data?.configuration?.interface?.language ?? defaultLocale;
+  const intlFormats: CustomFormats = {
+    date: {
+      long: { year: "numeric", month: "long", day: "numeric" },
+    },
+  };
+
   return (
-    <ConfigurationProvider
-      configuration={modifiedStashConfig}
-      loading={stashConfig.loading}
+    <IntlProvider
+      locale={language}
+      messages={messages}
+      formats={intlFormats}
     >
-      <FeedPage />
-    </ConfigurationProvider>
+      {/* @ts-expect-error -- Error is possibly due to different React version between packages tv-ui and stash-ui but this seems to work okay */}
+      <ErrorBoundary>
+        <ConfigurationProvider
+          configuration={modifiedStashConfig}
+          loading={stashConfig.loading}
+        >
+          <FeedPage />
+        </ConfigurationProvider>
+      </ErrorBoundary>
+    </IntlProvider>
   );
 };
 
