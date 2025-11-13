@@ -104,6 +104,22 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     });
   }
 
+  function goToItem(direction: 'next' | 'previous') {
+    const played = videojsPlayerRef.current?.played()
+    let totalPlayedLength = 0;
+    if (played) {
+      for (let i = 0; i < (played.length || 0); i++) {
+        totalPlayedLength += played.end(i) - played.start(i);
+      }
+    }
+
+    const shouldSkipAnimation = totalPlayedLength < noAnimateDurationThreshold
+    props.changeItemHandler(
+      (currentIndex) => Math.max(currentIndex + (direction === 'next' ? 1 : -1), 0),
+      { ...(shouldSkipAnimation ? { behavior: 'instant' } : {}) }
+    );
+  }
+
   useEffect(() => {
     if (!showDevOptions || !isCurrentVideo || !videojsPlayerRef.current) return;
 
@@ -252,10 +268,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     const nextSkipAheadTime = videojsPlayerRef.current?.currentTime() + skipAmount
     debugMode && console.log("Seeking forwards", {skipAmount, duration, nextSkipAheadTime})
     if (nextSkipAheadTime > duration) {
-      props.changeItemHandler(
-        (currentIndex) => currentIndex + 1,
-        { ...(duration < noAnimateDurationThreshold ? { behavior: 'instant' } : {}) }
-      );
+      goToItem('next')
       return
     }
     videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
@@ -277,10 +290,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
         // There's no previous video to go back to so just go to the very start of this one
         nextSkipBackTime = 0
       } else {
-        props.changeItemHandler(
-          (currentIndex) => Math.max(currentIndex - 1, 0),
-          { ...(duration < noAnimateDurationThreshold ? { behavior: 'instant' } : {}) }
-        );
+        goToItem('previous')
         return
       }
     }
@@ -296,10 +306,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   /** Handle the event fired at the end of video playback. */
   const handleOnEnded = () => {
     // If not looping on end, scroll to the next item.
-    if (!looping && isCurrentVideo) props.changeItemHandler(
-      (currentIndex) => currentIndex + 1,
-      { ...((videojsPlayerRef.current?.duration() || 0) < noAnimateDurationThreshold ? { behavior: 'instant' } : {}) }
-    );
+    if (!looping && isCurrentVideo) goToItem('next');
   };
 
   /* ------------------------------- Scene info ------------------------------- */
