@@ -67,11 +67,32 @@
   }
 }
 
-.action-button-side-panel {
-  animation: slideInFromRight 0.1s ease-out forwards;
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.popover.action-button-side-panel {
   background: var(--body-bg);
   color: var(--text-color);
   padding: 0.7em 0.9em;
   border: 0;
   border-radius: 0.5em;
+  font-size: unset;
+
+  > .arrow::after {
+    border-left-color: var(--body-bg);
+  }
+
+  &.show {
+    animation: slideInFromRight 0.1s ease-out forwards;
+  }
+
+  &:not(.show) {
+    animation: fadeOut 0.1s ease-out forwards;
+  }
 }

@@ -66,10 +66,11 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
   }
 }
 
-/* Lives inside the popover element which is rendered as a child of body */
+/* These live inside the popover element which is rendered as a child of body */
 .action-button-rating-stars {
   display: flex;
 
+  &.not-set .clear,
   &:has(.rating-stars .star-rating-number) .clear {
     display: none;
   }
@@ -81,11 +82,30 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
   .star-rating-number {
     order: -1;
     margin-left: 0;
-    font-size: 1.2rem;
+    font-size: unset;
   }
 
   svg {
-    height: 2em;
+    width: 1.5em;
+    height: 1lh;
     display: block; /* Remove small space under inline-blocks */
   }
+}
+.action-button-o-counter {
+  display: flex;
+  gap: 0.3em;
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+
+    &[disabled] {
+      opacity: 0.4;
+    }
+  }
+}
+.action-button-rating-stars,
+.action-button-o-counter {
+  font-size: 1.2em;
 }

@@ -8,6 +8,9 @@ import cx from "classnames";
 import "./ActionButton.css";
 import { useUID } from "react-uid";
 import { OverlayTrigger, Popover } from "react-bootstrap";
+import { create } from "zustand";
+
+const useCurrentOpenPopover = create<null | string>(() => (null))
 
 export type Props = React.DetailedHTMLProps<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -38,16 +41,24 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
   const Icon = active ? activeIcon : inactiveIcon;
   const SidePanel = ({children}: {children: ComponentProps<typeof OverlayTrigger>['children']}) => {
     if (!sidePanel) return <>{children}</>
+    const currentOpenPopover = useCurrentOpenPopover()
+    const id = `action-button-side-panel-${useUID()}`
     const popover = (
       <Popover
         className="action-button-side-panel"
-        id={`action-button-side-panel-${useUID()}`}
+        id={id}
       >
         <>{sidePanel}</>
       </Popover>
     )
     return (
-      <OverlayTrigger trigger="click" placement="left" overlay={popover}>
+      <OverlayTrigger
+        trigger="click"
+        placement="left"
+        overlay={popover}
+        show={id === currentOpenPopover}
+        onToggle={() => useCurrentOpenPopover.setState(id === currentOpenPopover ? null : id)}
+      >
         {children}
       </OverlayTrigger>
     )

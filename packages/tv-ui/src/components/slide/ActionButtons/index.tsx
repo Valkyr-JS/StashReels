@@ -8,7 +8,9 @@ import {
   faEllipsisVertical,
   faCircleInfo,
   faClosedCaptioning as faSubtitles,
-  faClosedCaptioning as faSubtitlesOff
+  faClosedCaptioning as faSubtitlesOff,
+  faPlus,
+  faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 import VolumeMuteOutlineIcon from '../../../assets/volume-mute-outline.svg?react';
 import ExpandOutlineIcon from '../../../assets/expand-outline.svg?react';
@@ -20,6 +22,8 @@ import LoopOutlineIcon from '../../../assets/loop-outline.svg?react';
 import CogOutlineIcon from '../../../assets/cog-outline.svg?react';
 import InfoOutlineIcon from '../../../assets/info-outline.svg?react';
 import StarOutlineIcon from '../../../assets/star-outline.svg?react';
+import SplashIcon from '../../../assets/splash.svg?react';
+import SplashOutlineIcon from '../../../assets/splash-outline.svg?react';
 import VerticalEllipsisOutlineIcon from '../../../assets/vertical-ellipsis-outline.svg?react';
 import { useAppStateStore } from "../../../store/appStateStore";
 import ISO6391 from "iso-639-1";
@@ -33,7 +37,8 @@ import { defaultRatingSystemOptions, RatingSystemType } from "stash-ui/dist/src/
 import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
 import { RatingSystem } from "stash-ui/dist/src/components/Shared/Rating/RatingSystem";
 import "stash-ui/dist/src/components/Shared/Rating/styles.scss";
-import { useSceneUpdate } from "stash-ui/dist/src/core/StashService";
+import { useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
@@ -117,6 +122,21 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
     });
   }
 
+  const [incrementOCount] = useSceneIncrementO(scene.id);
+  const [removeOCountTime] = useSceneDecrementO(scene.id);
+  const decrementOCount = () => {
+    // o_history appears to already be sorted newest to oldest but we sort anyway to be sure that's always the case
+    const latestOHistoryTime = scene.o_history?.toSorted().reverse()[0]
+    if (latestOHistoryTime) {
+      removeOCountTime({
+        variables: {
+          id: scene.id,
+          times: [latestOHistoryTime],
+        },
+      })
+    }
+  }
+
   return (
     <div
       className={cx("ActionButtons", {'active': uiVisible})}
@@ -154,7 +174,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           inactiveIcon={StarOutlineIcon}
           inactiveText="Rate scene"
           sidePanel={
-            <div className="action-button-rating-stars">
+            <div className={cx("action-button-rating-stars", {'not-set': typeof scene.rating100 !== "number"})}>
               <span className="clear star-rating-number">Clear</span>
               <RatingSystem
                 value={scene.rating100}
@@ -168,14 +188,25 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
         />
 
         <ActionButton
-          className="loop"
-          active={looping}
-          activeIcon={faRepeat}
-          activeText="Stop looping scene"
-          data-testid="MediaSlide--loopButton"
-          inactiveIcon={LoopOutlineIcon}
-          inactiveText="Loop scene"
-          onClick={() => setAppSetting("looping", (prev) => !prev)}
+          className="o-counter"
+          active={(scene.o_counter ?? 0) > 0}
+          activeIcon={SplashIcon}
+          activeText="Undo Orgasm Mark"
+          data-testid="MediaSlide--oCounterButton"
+          inactiveIcon={SplashOutlineIcon}
+          inactiveText="Mark Orgasm"
+          sidePanel={
+            <div className="action-button-o-counter">
+              <button onClick={() => decrementOCount()} disabled={(scene.o_counter ?? 0) <= 0}>
+                <FontAwesomeIcon icon={faMinus} />
+              </button>
+              {scene.o_counter ?? 0}
+              <button onClick={() => incrementOCount()}>
+                <FontAwesomeIcon icon={faPlus} />
+              </button>
+            </div>
+          }
+          sideInfo={(scene.o_counter ?? 0) > 0 && scene.o_counter}
         />
 
         <ActionButton
@@ -189,17 +220,6 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
         />
 
-        <ActionButton
-          className="letterboxing"
-          active={!letterboxing}
-          activeIcon={CoverOutlineIcon}
-          activeText="Constrain to screen"
-          data-testid="MediaSlide--letterboxButton"
-          inactiveIcon={ContainIcon}
-          inactiveText="Fill screen"
-          onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
-        />
-
         {'exitFullscreen' in document && <ActionButton
           className="fullscreen"
           active={fullscreen}
@@ -209,16 +229,6 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           inactiveIcon={ExpandOutlineIcon}
           inactiveText="Open fullscreen"
           onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
-        />}
-
-        {captionSources && <ActionButton
-          active={!!captionSources && showSubtitles}
-          activeIcon={faSubtitles}
-          activeText="Hide subtitles"
-          data-testid="MediaSlide--subtitlesButton"
-          inactiveIcon={faSubtitlesOff}
-          inactiveText="Show subtitles"
-          onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
         />}
 
         <ActionButton
@@ -231,6 +241,38 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           inactiveText="Unmute"
           onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
         />
+
+        <ActionButton
+          className="letterboxing"
+          active={!letterboxing}
+          activeIcon={CoverOutlineIcon}
+          activeText="Constrain to screen"
+          data-testid="MediaSlide--letterboxButton"
+          inactiveIcon={ContainIcon}
+          inactiveText="Fill screen"
+          onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
+        />
+
+        <ActionButton
+          className="loop"
+          active={looping}
+          activeIcon={faRepeat}
+          activeText="Stop looping scene"
+          data-testid="MediaSlide--loopButton"
+          inactiveIcon={LoopOutlineIcon}
+          inactiveText="Loop scene"
+          onClick={() => setAppSetting("looping", (prev) => !prev)}
+        />
+
+        {captionSources && <ActionButton
+          active={!!captionSources && showSubtitles}
+          activeIcon={faSubtitles}
+          activeText="Hide subtitles"
+          data-testid="MediaSlide--subtitlesButton"
+          inactiveIcon={faSubtitlesOff}
+          inactiveText="Show subtitles"
+          onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
+        />}
       </div>
       <ActionButton
         active={uiVisible}
