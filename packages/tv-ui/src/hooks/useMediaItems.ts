@@ -27,7 +27,8 @@ export const defaultMarkerLength = 20;
 export function useMediaItems() {
   const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
   const { debugMode, maxMedia, scenePreviewOnly, markerPreviewOnly } = useAppStateStore()
-  const previewOnly = scenePreviewOnly || markerPreviewOnly
+  const previewOnly = (lastLoadedCurrentMediaItemFilter?.entityType === "scene" && scenePreviewOnly)
+    || (lastLoadedCurrentMediaItemFilter?.entityType === "marker" && markerPreviewOnly)
 
   const [ neverLoaded, setNeverLoaded ] = useState(true)
 
@@ -208,15 +209,12 @@ export function useMediaItems() {
       if (typeof maxMedia === "number") {
         modifiedMediaItems = modifiedMediaItems.slice(0, maxMedia)
       }
-      if (
-        (lastLoadedCurrentMediaItemFilter?.entityType === "scene" && scenePreviewOnly)
-        || (lastLoadedCurrentMediaItemFilter?.entityType === "marker" && markerPreviewOnly)
-      ) {
+      if (previewOnly) {
         modifiedMediaItems = modifiedMediaItems.map(makeMediaItemPreviewOnly)
       }
       return modifiedMediaItems
     },
-    [mediaItems, scenePreviewOnly, markerPreviewOnly, maxMedia, hashObject(previewLengths)]
+    [mediaItems, previewOnly, maxMedia, hashObject(previewLengths)]
   )
 
   return {

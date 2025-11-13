@@ -482,13 +482,20 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           {" "}{props.mediaItem.entityType === "marker" ? `(Marker: ${props.mediaItem.entity.primary_tag.name})` : ""}
         </div>}
         {debugMode && <div className="loadingDeferredDebugBackground" />}
-        <img className="loadingDeferredPreview" src={scene.paths.screenshot || ""} />
+        {loadingDeferred && scene.paths.screenshot && <img className="loadingDeferredPreview" src={scene.paths.screenshot} />}
         {!loadingDeferred && <ScenePlayer
           id={`scene-player-${props.mediaItem.id}`}
           // Force remount when scene streams change to ensure videojs reloads the source
           key={JSON.stringify([scene.id, hashObject(scene.sceneStreams)])}
           onTimeUpdate={handleOnTimeUpdate}
-          scene={scene}
+          scene={{
+            ...scene,
+            paths: {
+              ...scene.paths,
+              // We avoid showing the poster if we are auto-playing to prevent a flash of the poster before playback starts
+              ...(globalAutoPlay ? { screenshot: null } : {})
+            },
+          }}
           hideScrubberOverride={true}
           muted={audioMuted}
           autoplay={autoplay}
