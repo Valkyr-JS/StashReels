@@ -1,7 +1,7 @@
 import ScenePlayerOriginal from "stash-ui/dist/src/components/ScenePlayer/ScenePlayer"
 import "stash-ui/dist/src/components/ScenePlayer/styles.css"
 import "./ScenePlayer.scss";
-import React, { ForwardedRef, forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUID } from 'react-uid';
 import { default as cx } from "classnames";
 import videojs, { VideoJsPlayerOptions, type VideoJsPlayer } from "video.js";
@@ -175,13 +175,39 @@ const ScenePlayer = forwardRef<
         }
     }, []);
 
-    const { debugMode } = useAppStateStore();
+    const { debugMode, videoJsEventsToLog } = useAppStateStore();
+
     useEffect(() => {
         debugMode && console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);
         return () => {
             debugMode && console.log(`Unmounted ScenePlayer sceneId=${otherProps.scene.id}`);
         }
     },[]);
+
+    const [videoJsEventsToLogAttached, setVideoJsEventsToLogAttached] = useState<string[]>([]);
+    const logVideoJsEvent = useCallback((event: Event) =>{
+      console.groupCollapsed(`ScenePlayer [id=${id}] event: ${event.type}`);
+      console.info(event);
+      console.groupEnd();
+    }, [])
+    useEffect(() => {
+      for (const eventName of videoJsEventsToLog) {
+        if (!videoJsEventsToLogAttached.includes(eventName)) {
+          const player = videojsPlayerRef.current;
+          if (!player) continue;
+          player.on(eventName, logVideoJsEvent)
+          setVideoJsEventsToLogAttached(prev => [...prev, eventName]);
+        }
+      }
+      for (const eventName of videoJsEventsToLogAttached) {
+        if (!videoJsEventsToLog.includes(eventName)) {
+          const player = videojsPlayerRef.current;
+          if (!player) continue;
+          player.off(eventName, logVideoJsEvent)
+          setVideoJsEventsToLogAttached(prev => prev.filter(e => e !== eventName));
+        }
+      }
+    }, [videoJsEventsToLog, videoJsEventsToLogAttached]);
 
     const [videoElm, setVideoElm] = useState<HTMLVideoElement | null>(null);
     const [videojsPlayer, setVideojsPlayer] = useState<VideoJsPlayer | null>(null);
@@ -259,6 +285,10 @@ const ScenePlayer = forwardRef<
 
     // Code to be run when wrapped ScenePlayer's Video.js player has been created
     videoJsSetupCallbacks[playerId] = (player) => {
+        for (const eventName of videoJsEventsToLog) {
+          player.on(eventName, logVideoJsEvent)
+          setVideoJsEventsToLogAttached(prev => [...prev, eventName]);
+        }
         if (loop !== undefined) {
             // Ideally we wouldn't need this. See comment for "loop" in videoJsOptionsOverride
             setTimeout(() => !player.isDisposed() && player.loop(loop), 100);

@@ -33,6 +33,7 @@ export default function SettingsTab() {
     markerPreviewOnly,
     onlyShowMatchingOrientation,
     showDevOptions,
+    videoJsEventsToLog,
     debugMode,
     autoPlay,
     startPosition,
@@ -507,6 +508,33 @@ export default function SettingsTab() {
             </Form.Group>
 
             <Form.Group>
+              <label htmlFor="video-js-events-to-log">
+                Video.js Events To Log
+              </label>
+              <Select
+                inputId="video-js-events-to-log"
+                value={videoJsEventsToLog.map(eventName => ({
+                  label: eventName,
+                  value: eventName,
+                }))}
+                onChange={(newValue) => setAppSetting(
+                  "videoJsEventsToLog",
+                  newValue.some(item => item.value === "all") ? videoJsEvents : newValue.map(item => item.value)
+                )}
+                options={["all", ...videoJsEvents].map(eventName => ({
+                  label: eventName,
+                  value: eventName,
+                }))}
+                placeholder="Select video.js events to log"
+                isMulti={true}
+                closeMenuOnSelect={false}
+              />
+              <Form.Text className="text-muted">
+                Which video.js events to log to the console.
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group>
               <Button
                 onClick={() => window.location.reload()}
               >
@@ -539,3 +567,65 @@ const AccordionToggle: Accordion["Toggle"] = (props) => {
     </Accordion.Toggle>
   )
 }
+
+// Taken from: https://gist.github.com/alexrqs/a6db03bade4dc405a61c63294a64f97a?permalink_comment_id=4312389#gistcomment-4312389
+const videoJsEvents = [...new Set([
+  // HTMLMediaElement events
+  'abort',
+  'canplay',
+  'canplaythrough',
+  'durationchange',
+  'emptied',
+  'ended',
+  'error',
+  'loadeddata',
+  'loadedmetadata',
+  'loadstart',
+  'pause',
+  'play',
+  'playing',
+  'progress',
+  'ratechange',
+  'seeked',
+  'seeking',
+  'stalled',
+  'suspend',
+  'timeupdate',
+  'volumechange',
+  'waiting',
+
+  // HTMLVideoElement events
+  'enterpictureinpicture',
+  'leavepictureinpicture',
+
+  // Element events
+  'fullscreenchange',
+  'resize',
+
+  // video.js events
+  'audioonlymodechange',
+  'audiopostermodechange',
+  'controlsdisabled',
+  'controlsenabled',
+  'debugon',
+  'debugoff',
+  'disablepictureinpicturechanged',
+  'dispose',
+  'enterFullWindow',
+  'error',
+  'exitFullWindow',
+  'firstplay',
+  'fullscreenerror',
+  'languagechange',
+  'loadedmetadata',
+  'loadstart',
+  'playerreset',
+  'playerresize',
+  'posterchange',
+  'ready',
+  'textdata',
+  'useractive',
+  'userinactive',
+  'usingcustomcontrols',
+  'usingnativecontrols',
+])];

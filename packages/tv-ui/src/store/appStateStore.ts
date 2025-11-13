@@ -16,6 +16,7 @@ type AppState = {
   markerPreviewOnly: boolean;
   onlyShowMatchingOrientation: boolean;
   showDevOptions: boolean;
+  videoJsEventsToLog: readonly string[];
   debugMode: boolean;
   maxMedia: undefined | number;
   autoPlay: boolean;
@@ -52,6 +53,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
       onlyShowMatchingOrientation: false,
       showDevOptions: false,
       debugMode: false,
+      videoJsEventsToLog: [],
       maxMedia: undefined,
       autoPlay: true,
       startPosition: 'resume',
