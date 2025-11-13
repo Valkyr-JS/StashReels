@@ -215,7 +215,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "c" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      if (e.key === "c" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
         setAppSetting("crtEffect", (prev) => !prev);
       }
     }
