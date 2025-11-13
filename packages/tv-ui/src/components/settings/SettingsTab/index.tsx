@@ -35,6 +35,10 @@ export default function SettingsTab() {
     debugMode,
     autoPlay,
     startPosition,
+    endPosition,
+    playLength,
+    minPlayLength,
+    maxPlayLength,
     maxMedia,
     set: setAppSetting
   } = useAppStateStore();
@@ -136,6 +140,12 @@ export default function SettingsTab() {
     { value: 'resume', label: 'Resume from last position' },
     { value: 'beginning', label: 'Beginning' },
     { value: 'random', label: 'Random marker (or position if none)' },
+  ] as const
+
+  const endPositionOptions = [
+    { value: 'video-end', label: 'End of video' },
+    { value: 'fixed-length', label: 'After a fixed length of time' },
+    { value: 'random-length', label: 'After a random length of time' },
   ] as const
 
   /* -------------------------------- Component ------------------------------- */
@@ -275,6 +285,89 @@ export default function SettingsTab() {
               The point in the scene to start playback from.
             </Form.Text>
           </Form.Group>}
+
+          {selectedFilter?.filterType === "scene" && <Form.Group>
+            <label htmlFor="end-position">
+              End Point
+            </label>
+            <Select
+              inputId="end-position"
+              value={endPositionOptions.find(option => option.value === endPosition) ?? null}
+              onChange={(newValue) => newValue && setAppSetting("endPosition", newValue.value)}
+              options={endPositionOptions}
+            />
+            <Form.Text className="text-muted">
+              The point in the scene to end playback.
+            </Form.Text>
+
+            {selectedFilter?.filterType === "scene" && endPosition === "fixed-length" && <Form.Group>
+              <label htmlFor="play-length">
+                Play Length
+              </label>
+              <NumberField
+                id="play-length"
+                className="text-input"
+                value={playLength ?? ""}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setAppSetting(
+                    "playLength",
+                    event.currentTarget.value
+                      ? Number.parseInt(event.currentTarget.value)
+                      : undefined
+                  )
+                }
+              />
+              <Form.Text className="text-muted">
+                The length to play the scene for. Will play the full scene if not set.
+              </Form.Text>
+            </Form.Group>}
+
+            {selectedFilter?.filterType === "scene" && endPosition === "random-length" && <Form.Group>
+              <label>
+                Random Play Length Range
+              </label>
+              <div className="inline">
+                <label htmlFor="min-play-length" className="sr-only">
+                  Random Length Minimum
+                </label>
+                <NumberField
+                  id="min-play-length"
+                  className="text-input"
+                  placeholder="Min"
+                  value={minPlayLength ?? ""}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setAppSetting(
+                      "minPlayLength",
+                      event.currentTarget.value
+                        ? Number.parseInt(event.currentTarget.value)
+                        : undefined
+                    )
+                  }
+                />
+                <label htmlFor="max-play-length" className="sr-only">
+                  Random Length Maximum
+                </label>
+                <NumberField
+                  id="max-play-length"
+                  className="text-input"
+                  value={maxPlayLength ?? ""}
+                  placeholder="Max"
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setAppSetting(
+                      "maxPlayLength",
+                      event.currentTarget.value
+                        ? Number.parseInt(event.currentTarget.value)
+                        : undefined
+                    )
+                  }
+                />
+              </div>
+              <Form.Text className="text-muted">
+                Sets the minimum and maximum length to randomly play the scene for.
+              </Form.Text>
+            </Form.Group>}
+          </Form.Group>}
+
 
           <Form.Group>
             <Switch

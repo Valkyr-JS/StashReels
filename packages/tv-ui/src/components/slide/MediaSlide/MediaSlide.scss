@@ -61,6 +61,17 @@
         width: unset;
       }
 
+      .end-timestamp {
+        position: absolute;
+        top: 50%;
+        opacity: 0.8;
+
+        transform: translate(-50%, -50%);
+        background: var(--red);
+        width: 2px;
+        height: 1em;
+      }
+
 
       // Move the first and last items in a bit to account for curved corners of mobile devices
       .vjs-current-time {

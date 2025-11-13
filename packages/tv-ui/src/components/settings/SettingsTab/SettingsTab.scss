@@ -62,6 +62,19 @@
     font-size: 1.3rem;
   }
 
+  .form-group .form-group {
+    margin-top: 1em;
+
+    label {
+      font-size: 1rem;
+    }
+  }
+
+  .inline {
+    display: flex;
+    gap: 1em;
+  }
+
   .form-group.button-description-inline {
     display: flex;
     gap: 1em;

@@ -22,6 +22,8 @@ export type MediaItem = {
   }
 )
 
+export const defaultMarkerLength = 20;
+
 export function useMediaItems() {
   const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
   const { debugMode, maxMedia, scenePreviewOnly: previewOnly} = useAppStateStore()
@@ -73,7 +75,6 @@ export function useMediaItems() {
         entity: {
           ...marker,
           get duration() {
-            const defaultMarkerLength = 20;
             const endTime = marker.end_seconds ?? Math.min(marker.seconds + defaultMarkerLength, marker.scene.files[0].duration);
             return endTime - marker.seconds;
           }

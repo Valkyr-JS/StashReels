@@ -13,7 +13,7 @@ import { type VideoJsPlayer } from "video.js";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { useAppStateStore } from "../../../store/appStateStore";
 import CrtEffect from "../../CrtEffect";
-import { MediaItem } from "../../../hooks/useMediaItems";
+import { defaultMarkerLength, MediaItem } from "../../../hooks/useMediaItems";
 import hashObject from 'object-hash';
 import { createPortal } from "react-dom";
 import { useGetterRef } from "../../../hooks/useGetterRef";
@@ -52,6 +52,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     debugMode,
     autoPlay: globalAutoPlay,
     startPosition,
+    endPosition,
+    playLength,
+    minPlayLength,
+    maxPlayLength,
     showGuideOverlay,
     uiVisible,
     set: setAppSetting,
@@ -65,6 +69,8 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       debugMode && console.log(`Unmounted MediaSlide index=${props.index} sceneId=${scene.id}`)
     };
   }, []);
+
+  const getMediaItemDuration = () => props.mediaItem.entityType === "marker" ? props.mediaItem.entity.duration : props.mediaItem.entity.files[0]?.duration;
 
   // Don't return player if it's disposed
   const videojsPlayerRef = useGetterRef<VideoJsPlayer | null>(
@@ -265,9 +271,17 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
-    const nextSkipAheadTime = videojsPlayerRef.current?.currentTime() + skipAmount
+    const currentTime = videojsPlayerRef.current?.currentTime();
+    const nextSkipAheadTime = currentTime + skipAmount
     debugMode && console.log("Seeking forwards", {skipAmount, duration, nextSkipAheadTime})
+    // Go to next item if the next jump goes to or past the end of the video
     if (nextSkipAheadTime > duration) {
+      goToItem('next')
+      return
+    }
+    // Go to next item if we'd be jumping over the end timestamp
+    if (endTimestamp !== undefined && currentTime <= endTimestamp && nextSkipAheadTime >= endTimestamp) {
+      videojsPlayerRef.current?.pause();
       goToItem('next')
       return
     }
@@ -345,12 +359,41 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }
 
 
-  let initialTimestamp
-  if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
-    initialTimestamp = 0
-  } else if (startPosition === 'random') {
-    initialTimestamp = getRandomPointInScene(scene)
-  }
+  const initialTimestamp = useMemo(() => {
+    if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
+      return 0
+    } else if (startPosition === 'random') {
+      return getRandomPointInScene(scene)
+    }
+    return props.mediaItem.entity.resume_time ?? undefined;
+  }, [props.mediaItem.entityType === "marker" || startPosition, getMediaItemDuration()]);
+
+  const endTimestamp = useMemo(() => {
+    if (props.mediaItem.entityType === "marker") return undefined;
+    const duration = props.mediaItem.entity.files[0]?.duration;
+    const lengthRemaining = duration - (initialTimestamp ?? 0);
+    if (endPosition === 'fixed-length') {
+      return Math.min(
+        (initialTimestamp || 0) + (playLength ?? Infinity),
+        duration
+      )
+    } else if (endPosition === 'random-length') {
+      const effectiveMinPlayLength = Math.min(
+        minPlayLength ?? 1,
+        lengthRemaining
+      );
+      const effectiveMaxPlayLength = Math.max(
+        effectiveMinPlayLength,
+        Math.min(
+          maxPlayLength ?? Infinity,
+          lengthRemaining
+        )
+      );
+
+      return (initialTimestamp || 0) + Math.floor(Math.random() * (effectiveMaxPlayLength - effectiveMinPlayLength + 1)) + effectiveMinPlayLength
+    }
+    return undefined;
+  }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration()]);
 
   // Track what marker (if any) is currently playing
   const findCurrentlyPlayingMarkers = (currentTime: number) => {
@@ -361,7 +404,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       const markers = scene.scene_markers.filter(marker => {
         const markerStartSearchTime = marker.seconds;
         const nextMarker = scene.scene_markers.find(m => m.seconds > markerStartSearchTime);
-        const makerEndTime = marker.end_seconds ?? marker.seconds + 20; // Default marker length is 20s
+        const makerEndTime = marker.end_seconds ?? marker.seconds + defaultMarkerLength;
         const makerEndSearchTime = Math.min(makerEndTime, nextMarker?.seconds ?? Infinity);
         return markerStartSearchTime <= currentTime && makerEndSearchTime > currentTime
       });
@@ -407,6 +450,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   const handleOnTimeUpdate = (event: Event) => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     if (currentTime === undefined) return;
+    if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3)) {
+      videojsPlayerRef.current?.pause();
+      goToItem('next');
+    }
     const markers = findCurrentlyPlayingMarkers(currentTime);
     if (markers.length === currentlyPlayingMarkers.length && markers.every(marker => currentlyPlayingMarkers.includes(marker))) return
     debugMode && console.log(`Marker playback update - now playing markers `, markers ? `id=${markers.map(({title}) => title).join(", ")}` : "none", {currentTime, markers});
@@ -416,6 +463,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   /* -------------------------------- Component ------------------------------- */
 
   const videoJsControlBarElm = videojsPlayerRef.current?.getChild('ControlBar')?.el();
+  const videoJsProgressControlElm = videojsPlayerRef.current?.getChild('ControlBar')?.getChild('ProgressControl')?.el();
 
   return (
     <div
@@ -474,6 +522,15 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
             <div className="vjs-custom-control-spacer vjs-spacer">&nbsp;</div>
           </>,
           videoJsControlBarElm
+        )}
+        {endTimestamp !== undefined && videoJsProgressControlElm && createPortal(
+          <>
+            <div
+              className="vjs-control end-timestamp"
+              style={{left: `${(endTimestamp / (videojsPlayerRef.current?.duration() || 1)) * 100}%`}}
+            ></div>
+          </>,
+          videoJsProgressControlElm
         )}
         <SceneInfo
           ref={sceneInfoPanelRef}

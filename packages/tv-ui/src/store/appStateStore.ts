@@ -19,6 +19,10 @@ type AppState = {
   maxMedia: undefined | number;
   autoPlay: boolean;
   startPosition: 'resume' | 'beginning' | 'random';
+  endPosition: 'video-end' | 'fixed-length' | 'random-length';
+  playLength?: number;
+  minPlayLength?: number;
+  maxPlayLength?: number;
   showGuideOverlay?: boolean;
 }
 
@@ -49,6 +53,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
       maxMedia: undefined,
       autoPlay: true,
       startPosition: 'resume',
+      endPosition: 'video-end',
       showGuideOverlay: true,
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
         set((state) => ({
