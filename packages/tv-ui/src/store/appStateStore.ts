@@ -2,10 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
 
 type AppState = {
-  showSettings: boolean;
   audioMuted: boolean;
   showSubtitles: boolean;
-  fullscreen: boolean;
   letterboxing: boolean;
   forceLandscape: boolean;
   looping: boolean;
@@ -15,9 +13,6 @@ type AppState = {
   scenePreviewOnly: boolean;
   markerPreviewOnly: boolean;
   onlyShowMatchingOrientation: boolean;
-  showDevOptions: boolean;
-  videoJsEventsToLog: readonly string[];
-  debugMode: boolean;
   maxMedia: undefined | number;
   autoPlay: boolean;
   startPosition: 'resume' | 'beginning' | 'random';
@@ -26,6 +21,14 @@ type AppState = {
   minPlayLength?: number;
   maxPlayLength?: number;
   showGuideOverlay?: boolean;
+  // Non-persistent state
+  showSettings: boolean;
+  fullscreen: boolean;
+  // Developer options
+  showDevOptions: boolean;
+  debugMode: boolean;
+  enableRenderDebugging: boolean;
+  videoJsEventsToLog: readonly string[];
 }
 
 type AppAction = {
@@ -51,14 +54,15 @@ export const useAppStateStore = create<AppState & AppAction>()(
       scenePreviewOnly: false,
       markerPreviewOnly: false,
       onlyShowMatchingOrientation: false,
-      showDevOptions: false,
-      debugMode: false,
-      videoJsEventsToLog: [],
       maxMedia: undefined,
       autoPlay: true,
       startPosition: 'resume',
       endPosition: 'video-end',
       showGuideOverlay: true,
+      showDevOptions: false,
+      debugMode: false,
+      enableRenderDebugging: JSON.parse(localStorage.getItem("enableRenderDebugging") || "false"),
+      videoJsEventsToLog: [],
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
         set((state) => ({
           [propName]: typeof value === "function" ? value(state[propName]) : value
@@ -71,7 +75,8 @@ export const useAppStateStore = create<AppState & AppAction>()(
         Object.fromEntries(
           Object.entries(state).filter(([key]) => ![
             'showSettings',
-            'fullscreen'
+            'fullscreen',
+            'enableRenderDebugging'
           ].includes(key)),
         ),
     }

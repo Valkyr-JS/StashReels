@@ -4,6 +4,10 @@ import { useMedia } from "react-use";
 import cx from "classnames";
 import "./Select.css"
 
+RSSelect.whyDidYouRender = {
+  customName: 'ReactSelect'
+}
+
 const Select: RSSelect = (props) => {
   const {className, ...otherProps} = props as ComponentProps<typeof RSSelect>;
   const hasTouchScreen = useMedia("(pointer: coarse)");

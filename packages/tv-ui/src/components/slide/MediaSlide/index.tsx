@@ -39,6 +39,8 @@ export interface MediaSlideProps {
   currentlyScrolling?: boolean;
 }
 
+const mountCount = new Map<string, number>();
+
 const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   const {
     letterboxing,
@@ -51,6 +53,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     markerPreviewOnly,
     showDevOptions,
     debugMode,
+    enableRenderDebugging,
     autoPlay: globalAutoPlay,
     startPosition,
     endPosition,
@@ -61,6 +64,14 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     uiVisible,
     set: setAppSetting,
   } = useAppStateStore();
+
+  useMemo(() => {
+    if (!enableRenderDebugging) return
+    const timesMounted = mountCount.get(props.mediaItem.id) || 0;
+    console.log("🔜 MediaSlide mounting:", props.mediaItem.id, ...(timesMounted ? [`(count: ${timesMounted})`] : []))
+    mountCount.set(props.mediaItem.id, timesMounted + 1);
+  }, [])
+  useEffect(() => () => { enableRenderDebugging && console.log("🔚 MediaSlide unmount:", props.mediaItem.id) }, [])
 
   const scene = props.mediaItem.entityType === "scene" ? props.mediaItem.entity : props.mediaItem.entity.scene;
 

@@ -24,12 +24,16 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
     forceLandscape: isForceLandscape,
     onlyShowMatchingOrientation,
     debugMode,
+    enableRenderDebugging,
     scenePreviewOnly,
     markerPreviewOnly,
     set: setAppSetting
   } = useAppStateStore();
   const { orientation } = useWindowSize()
   const rootElmRef = useRef<HTMLDivElement | null>(null);
+
+  useMemo(() => enableRenderDebugging && console.log("🔜 VideoScroller mounting"), [])
+  useEffect(() => () => { enableRenderDebugging && console.log("🔚 VideoScroller unmounting") }, [])
 
   /* ------------------------ Handle loading new videos ----------------------- */
 
