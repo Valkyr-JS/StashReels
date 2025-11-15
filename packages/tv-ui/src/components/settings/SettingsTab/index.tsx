@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faCirclePlay, faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { memo, useContext, useEffect, useMemo } from "react";
 import Select from "../Select";
 import { components } from "react-select";
 import "./SettingsTab.scss";
@@ -16,7 +16,7 @@ import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
 import { NumberField } from "stash-ui/dist/src/utils/form";
 
-export default function SettingsTab() {
+const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
   const {
     mediaItemFiltersLoading,
@@ -152,7 +152,7 @@ export default function SettingsTab() {
 
   /* -------------------------------- Component ------------------------------- */
   return <SideDrawer
-    title={<span ref={titleRef}>Settings</span>}
+    title={useMemo(() => <span ref={titleRef}>Settings</span>, [])}
     closeDisabled={disableClose}
     className="SettingsTab"
   >
@@ -551,7 +551,10 @@ export default function SettingsTab() {
     </Accordion>
 
   </SideDrawer>;
-};
+});
+
+SettingsTab.displayName = "SettingsTab";
+export default SettingsTab;
 
 const AccordionToggle: Accordion["Toggle"] = (props) => {
   const {children, className, as, variant, eventKey, ...otherProps} = props;

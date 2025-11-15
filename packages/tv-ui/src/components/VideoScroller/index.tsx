@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import "./VideoScroller.scss";
 import MediaSlide from "../slide/MediaSlide";
 import cx from "classnames";
@@ -19,7 +19,7 @@ export type ScrollToIndexOptions = { behavior?: ScrollBehavior }
 /** The number of items to fetch data for. */
 export const itemBufferEitherSide = 1 as const;
 
-const VideoScroller: React.FC<VideoScrollerProps> = () => {
+const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
   const {
     forceLandscape: isForceLandscape,
     onlyShowMatchingOrientation,
@@ -372,6 +372,30 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
   }, [rowVirtualizer.getVirtualItems(), itemsToRenderFrozen]);
 
 
+  const changeItemHandler = useCallback((newIndex, scrollOptions) => {
+    scrollToIndex(newIndex, scrollOptions);
+    setCurrentIndex(newIndex);
+  }, [scrollToIndex, setCurrentIndex]);
+
+
+  const mediaSlidePositioningStyles = useMemo(
+    () => mediaItems.map((mediaItem, i) => {
+      return {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: mediaSlideHeight,
+        transform: `translateY(calc(${mediaSlideHeight} * ${i}))`,
+        ...(debugMode ? {
+          "backgroundColor": `hsl(${i * 37  % 360}, 70%, 50%)`,
+          border: `10px ${i === currentIndex ? 'black' : 'transparent'} dashed`,
+        } : {})
+      } as const
+    }),
+    [mediaItems, mediaSlideHeight, debugMode]
+  );
+
   /* -------------------------------- Component ------------------------------- */
 
   // ? Added tabIndex to container to satisfy accessible scroll region.
@@ -389,39 +413,31 @@ const VideoScroller: React.FC<VideoScrollerProps> = () => {
         {onlyShowMatchingOrientation && ` limiting to ${orientation} orientation`}
       </div>}
       {mediaItems.map((mediaItem, i) => {
-        const style = {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: mediaSlideHeight,
-          transform: `translateY(calc(${mediaSlideHeight} * ${i}))`,
-          ...(debugMode ? {
-            "backgroundColor": `hsl(${i * 37  % 360}, 70%, 50%)`,
-            border: `10px ${i === currentIndex ? 'black' : 'transparent'} dashed`,
-          } : {})
-        } as const
-        if (
-          itemIndexesToRender.includes(i)
-        ) {
+        if (itemIndexesToRender.includes(i)) {
           return (
             <MediaSlide
-              changeItemHandler={(newIndex, scrollOptions) => {
-                scrollToIndex(newIndex, scrollOptions);
-                setCurrentIndex(newIndex);
-              }}
-              currentIndex={currentIndex}
+              changeItemHandler={changeItemHandler}
+              isCurrentVideo={i === currentIndex}
               index={i}
               key={hashObject([mediaItem.id, scenePreviewOnly, markerPreviewOnly])}
               mediaItem={mediaItem}
-              style={style}
+              style={mediaSlidePositioningStyles[i]}
               currentlyScrolling={rowVirtualizer.isScrolling}
             />
           );
-        } else return <div key={mediaItem.id} className="dummy-video-item" style={style} />;
+        }
+        return (
+          <div
+            key={mediaItem.id}
+            className="dummy-video-item"
+            style={mediaSlidePositioningStyles[i]}
+          />
+        );
       })}
     </div>
   );
-};
+});
+
+VideoScroller.displayName = "VideoScroller";
 
 export default VideoScroller;

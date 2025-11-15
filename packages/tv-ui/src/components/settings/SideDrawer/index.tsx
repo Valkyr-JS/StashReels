@@ -1,11 +1,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
-import React, { useEffect, useRef } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useSpring, animated, config } from "@react-spring/web";
 import "./SideDrawer.scss";
 import { useAppStateStore } from "../../../store/appStateStore";
 import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
+
+const AnimatedDivPure = memo(animated.div);
 
 type Props = {
   children?: React.ReactNode,
@@ -81,7 +83,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
     })
   }
 
-  const close = ({ immediate }: { immediate?: boolean } = { immediate: false }) => {
+  const close = useCallback(({ immediate }: { immediate?: boolean } = { immediate: false }) => {
     if (closeDisabled) {
       open();
       return;
@@ -92,7 +94,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       config: { ...config.stiff },
       onRest: () => setAppSetting("showSettings", false)
     })
-  }
+  }, [api, closeDisabled]);
 
 
   const overlayOpacity = x.to((px) => Math.min(sidebarWidth, (px / sidebarWidth)))
@@ -122,17 +124,17 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   /* -------------------------------- Component ------------------------------- */
 
   return <>
-    <animated.div
+    <AnimatedDivPure
       className="settings-overlay"
-      style={{ display: overlayDisplay, opacity: overlayOpacity }}
-      onClick={() => close()}
+      style={useMemo(() => ({ display: overlayDisplay, opacity: overlayOpacity }), [overlayDisplay.get(), overlayOpacity.get()])}
+      onClick={useCallback(() => close(), [])}
       ref={overlayRef}
     />
-    <animated.div
+    <AnimatedDivPure
       className={cx("SideDrawer", className)}
       data-testid="SideDrawer"
       ref={ref}
-      style={{ right: x.to(px => `calc(100% - ${px}px)`) }}
+      style={useMemo(() => ({ right: x.to(px => `calc(100% - ${px}px)`) }), [x.get()])}
     >
       <div className="content">
         <div className={cx("body", bodyScrollClasses)} ref={bodyRef}>
@@ -144,6 +146,6 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
           {closeButton}
         </div>
       </div>
-    </animated.div>
+    </AnimatedDivPure>
   </>;
 };

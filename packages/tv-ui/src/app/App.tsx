@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import FeedPage from "../pages/Feed";
 import { useAppStateStore } from "../store/appStateStore";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
@@ -28,14 +28,17 @@ const App = () => {
   // We only support English for now but we have to load IntlProvider so we don't break
   // components imported from stash-ui that rely on it.
   const defaultLocale = "en-GB";
-  const messages = flattenMessages((englishMessages as unknown) as Record<string, string>);
+  const messages = useMemo(
+    () => flattenMessages((englishMessages as unknown) as Record<string, string>),
+    [englishMessages]
+  );
   const language =
     stashConfig.data?.configuration?.interface?.language ?? defaultLocale;
-  const intlFormats: CustomFormats = {
+  const intlFormats: CustomFormats = useMemo(() => ({
     date: {
       long: { year: "numeric", month: "long", day: "numeric" },
     },
-  };
+  }), []);
 
   return (
     <IntlProvider

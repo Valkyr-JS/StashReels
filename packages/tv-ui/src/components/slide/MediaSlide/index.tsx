@@ -32,7 +32,7 @@ const noAnimateDurationThreshold = 30;
 export interface MediaSlideProps {
   mediaItem: MediaItem;
   changeItemHandler: ((newIndex: number | ((currentIndex: number) => number), scrollOptions?: ScrollToIndexOptions) => void);
-  currentIndex: number;
+  isCurrentVideo: boolean;
   index: number;
   style?: React.CSSProperties | undefined;
   className?: string;
@@ -42,6 +42,7 @@ export interface MediaSlideProps {
 const mountCount = new Map<string, number>();
 
 const MediaSlide: React.FC<MediaSlideProps> = (props) => {
+  const { isCurrentVideo } = props;
   const {
     letterboxing,
     forceLandscape,
@@ -98,8 +99,6 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       setLoadingDeferred(props.currentlyScrolling);
     }
   }, [loadingDeferred, props.currentlyScrolling]);
-
-  const isCurrentVideo = props.index === props.currentIndex;
 
   // Currently hardcoded but could be made configurable later
   const autoplay = globalAutoPlay && isCurrentVideo && !showGuideOverlay;
@@ -177,13 +176,13 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   useEffect(() => {
     // Play/pause the video based only on viewport
     if (!videojsPlayerRef.current) return;
-    if (props.index === props.currentIndex) {
+    if (isCurrentVideo) {
       if (!autoplay) return;
       videojsPlayerRef.current?.play();
     } else {
       videojsPlayerRef.current?.pause();
     }
-  }, [props.index, props.currentIndex, autoplay]);
+  }, [isCurrentVideo, autoplay]);
 
   // Handle clicks and gestures on the video element
   const handlePointerUp = useCallback((event: PointerEvent) => {
