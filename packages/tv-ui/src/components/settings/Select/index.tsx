@@ -1,9 +1,10 @@
-import React, { ComponentProps } from "react";
+import React, { ComponentProps, JSXElementConstructor } from "react";
 import RSSelect from "react-select";
 import { useMedia } from "react-use";
 import cx from "classnames";
 import "./Select.css"
 
+// @ts-expect-error -- why-did-you-render doesn't type this properly but it does consume this
 RSSelect.whyDidYouRender = {
   customName: 'ReactSelect'
 }
