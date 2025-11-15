@@ -245,5 +245,6 @@ export function useMediaItems() {
     mediaItemsError,
     mediaItemsLoading,
     mediaItemsNeverLoaded: neverLoaded,
+    waitingForMediaItemsFilter: !lastLoadedCurrentMediaItemFilter,
   }
 }

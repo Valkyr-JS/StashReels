@@ -2,7 +2,6 @@ import React, { useRef } from "react";
 import {
   faExpand,
   faRepeat,
-  faGear,
   faStar,
   faVolumeHigh as faVolume,
   faEllipsisVertical,
@@ -19,7 +18,6 @@ import CoverOutlineIcon from '../../../assets/cover-outline.svg?react';
 import PortraitOutlineIcon from '../../../assets/portrait-rotation-outline.svg?react';
 import LandscapeIcon from '../../../assets/landscape-rotation.svg?react';
 import LoopOutlineIcon from '../../../assets/loop-outline.svg?react';
-import CogOutlineIcon from '../../../assets/cog-outline.svg?react';
 import InfoOutlineIcon from '../../../assets/info-outline.svg?react';
 import StarOutlineIcon from '../../../assets/star-outline.svg?react';
 import SplashIcon from '../../../assets/splash.svg?react';
@@ -38,6 +36,7 @@ import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
 import { RatingSystem } from "stash-ui/wrappers/components/shared/RatingSystem";
 import { useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { SettingsButton } from "tv-ui/src/components/slide/SettingsButton";
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
@@ -142,16 +141,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
       data-testid="MediaSlide--toggleableUi"
     >
       <div className={cx("stack hide-on-ui-hide", ...stackScrollClasses)} ref={stackElmRef}>
-        <ActionButton
-          className="settings"
-          active={showSettings}
-          activeIcon={faGear}
-          activeText="Close settings"
-          data-testid="MediaSlide--settingsButton"
-          inactiveIcon={CogOutlineIcon}
-          inactiveText="Show settings"
-          onClick={() => setAppSetting("showSettings", (prev) => !prev)}
-        />
+        <SettingsButton />
 
         {sceneInfoDataAvailable && <ActionButton
           className="show-scene-info"

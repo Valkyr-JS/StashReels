@@ -1,1 +1,27 @@
+.FeedPage {
+  &:has(.status-info) {
+    min-height: calc(var(--y-unit-small) * 100);
+    min-width: calc(var(--x-unit-small) * 95); // No quite full width to account for scrollbar
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
+    .status-info {
+      // Make it optically centred
+      translate: 0 calc(
+        ( (var(--y-unit-small) * 100) - 100% ) * -0.05
+      );
+
+      .LoadingIndicator {
+        padding-top: 0;
+      }
+    }
+
+    > .ActionButton.settings {
+      position: absolute;
+      bottom: 3em;
+      right: 1em;
+    }
+  }
+}
