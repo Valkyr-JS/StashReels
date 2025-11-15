@@ -45,14 +45,12 @@ export type SearchableMediaItemFilter = {
 type EntityType = SearchableMediaItemFilter["entityType"]
 
 const useGlobalFilterState = create<{
-  neverLoaded: boolean,
   loadingResponsibilityClaimed: boolean,
   currentSavedFilter: SavedMediaItemFilter | undefined,
   loading: boolean,
   error: unknown,
   randomSeed?: number,
 }>(() => ({
-  neverLoaded: true,
   loadingResponsibilityClaimed: false,
   currentSavedFilter: undefined,
   loading: false,
@@ -62,7 +60,6 @@ const useGlobalFilterState = create<{
 
 export function useMediaItemFilters() {
   const {
-    neverLoaded,
     currentSavedFilter,
     loading: mediaItemFiltersLoading,
     error: mediaItemFiltersError,
@@ -93,7 +90,7 @@ export function useMediaItemFilters() {
 
   const { data: { defaultFilterId: stashTvDefaultFilterId} } = useStashTvConfig()
 
-  const stashDataLoading = stashConfigurationLoading || loadingAvailableSavedSceneFilters || loadingAvailableSavedMarkerFilters;
+  const loadingDataRequiredBeforeLoadingCurrentFilter = stashConfigurationLoading || loadingAvailableSavedSceneFilters || loadingAvailableSavedMarkerFilters;
 
   const { isRandomised, onlyShowMatchingOrientation } = useAppStateStore();
   const { orientation } = useWindowSize()
@@ -110,12 +107,12 @@ export function useMediaItemFilters() {
   const lastLoadedCurrentMediaItemFilter = useConditionalMemo(
     () => currentSearchableFilter,
     [currentSearchableFilter],
-    !mediaItemFiltersLoading
+    !loadingDataRequiredBeforeLoadingCurrentFilter && !mediaItemFiltersLoading
   )
 
   // Load default filter on initial load.
   useEffect(() => {
-    if (useGlobalFilterState.getState().loadingResponsibilityClaimed || stashDataLoading) return;
+    if (useGlobalFilterState.getState().loadingResponsibilityClaimed || loadingDataRequiredBeforeLoadingCurrentFilter) return;
     useGlobalFilterState.setState({ loadingResponsibilityClaimed: true, loading: true });
     // Place most of the logic into a separate function so we can use async/await
     async function setCurrentMediaItemFilterOnInitialLoad() {
@@ -148,7 +145,7 @@ export function useMediaItemFilters() {
       useGlobalFilterState.setState({ loading: false });
     }
     setCurrentMediaItemFilterOnInitialLoad()
-  }, [neverLoaded, stashDataLoading, stashTvDefaultFilterId, stashDefaultScenesFilter]);
+  }, [loadingDataRequiredBeforeLoadingCurrentFilter, stashTvDefaultFilterId, stashDefaultScenesFilter]);
 
   async function setCurrentMediaItemFilterById(id: string) {
     useGlobalFilterState.setState({ loading: true });
@@ -284,8 +281,7 @@ export function useMediaItemFilters() {
   );
 
   return {
-    mediaItemFiltersLoading: mediaItemFiltersLoading,
-    mediaItemFiltersNeverLoaded: neverLoaded,
+    mediaItemFiltersLoading: loadingDataRequiredBeforeLoadingCurrentFilter || mediaItemFiltersLoading,
     mediaItemFiltersError,
     currentMediaItemFilter: currentSearchableFilter,
     lastLoadedCurrentMediaItemFilter,
