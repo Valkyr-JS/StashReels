@@ -35,8 +35,7 @@ import useStashTvConfig from "../../../hooks/useStashTvConfig";
 import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
 import { defaultRatingSystemOptions, RatingSystemType } from "stash-ui/dist/src/utils/rating";
 import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
-import { RatingSystem } from "stash-ui/dist/src/components/Shared/Rating/RatingSystem";
-import "stash-ui/dist/src/components/Shared/Rating/styles.css";
+import { RatingSystem } from "stash-ui/wrappers/components/shared/RatingSystem";
 import { useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 

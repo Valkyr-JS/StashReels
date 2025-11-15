@@ -1,5 +1,4 @@
-import ScenePlayerOriginal from "stash-ui/dist/src/components/ScenePlayer/ScenePlayer"
-import "stash-ui/dist/src/components/ScenePlayer/styles.css"
+import ScenePlayerOriginal from "stash-ui/wrappers/components/ScenePlayer";
 import "./ScenePlayer.scss";
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUID } from 'react-uid';
