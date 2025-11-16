@@ -13,9 +13,42 @@ import 'videojs-offset'
 const videoJsOptionsOverride: Record<string, VideoJsPlayerOptions> = {}
 const videoJsSetupCallbacks: Record<string, (player: VideoJsPlayer) => void> = {}
 
+type FunctionKeys<T> = {
+  [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never
+}[keyof T];
+
+function wrapPlayerFunction<FunctionName extends FunctionKeys<VideoJsPlayer>>(
+  player: VideoJsPlayer,
+  functionName: FunctionName,
+  wrapper: (callback: VideoJsPlayer[FunctionName], ...args: Parameters<VideoJsPlayer[FunctionName]>) => ReturnType<VideoJsPlayer[FunctionName]>
+) {
+    const originalFunction = player[functionName].bind(player) as VideoJsPlayer[FunctionName];
+    player[functionName] = ((...args: Parameters<VideoJsPlayer[FunctionName]>) => {
+        return wrapper.call(player, originalFunction, ...args);
+    }) as VideoJsPlayer[FunctionName];
+}
+
 videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
     player.focus = () => {}
+
+    wrapPlayerFunction(player, 'currentTime', ((originalDurationFunction: VideoJsPlayer['currentTime'], ...args: Parameters<VideoJsPlayer['currentTime']>) => {
+      if (args.length) {
+        // If we attempt to set the time before metadata is loaded then it seem to work but with the negative side
+        // effect that .played() will report the starting time as 0 even if we set currentTime to something else. To
+        // avoid this we delay setting currentTime until after metadata has loaded if it hasn't already.
+        if (player.readyState() >= 1) {
+          return originalDurationFunction(...args)
+        } else {
+          player.one('loadedmetadata', () => {
+            originalDurationFunction(...args)
+          });
+          return
+        }
+      } else {
+        return originalDurationFunction(...args);
+      }
+    }) as {(originalDurationFunction: VideoJsPlayer['currentTime'], seconds: number): void; (originalDurationFunction: VideoJsPlayer['currentTime'], ): number;} )
 
     // There seem's to be a bug with videojs where if multiple videos are loaded at the same time then the duration of
     // the one player can be set to that of another.
