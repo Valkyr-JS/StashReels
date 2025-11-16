@@ -96,6 +96,11 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   );
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  // Even if we don't use metadataLoaded state setting it means we can make sure a render occurs right after the player has
+  // a duration which is important for certain elements that use the duration when rendering like the end timestamp
+  // indicator
+  const [metadataLoaded, setMetadataLoaded] = useState(false);
+
   const [loadingDeferred, setLoadingDeferred] = useState(props.currentlyScrolling);
   useEffect(() => {
     if (loadingDeferred) {
@@ -124,6 +129,9 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     });
 
     updatePlayableClass()
+    player.one('loadedmetadata', () => {
+      setMetadataLoaded(true);
+    });
   }
 
   // To avoid accidentally calling next several times we track if there's already a pending change
