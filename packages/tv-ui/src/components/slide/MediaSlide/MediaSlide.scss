@@ -134,7 +134,12 @@
       height: var(--size);
       border-radius: var(--size);
       margin: calc(var(--size)/2 * -1) 0 0 calc(var(--size)/2 * -1);
-      opacity: 0.3;
+    }
+    &.vjs-seeking .vjs-loading-spinner,
+    &.vjs-waiting .vjs-loading-spinner {
+      animation:
+        vjs-spinner-show 0s linear 0.3s forwards, // This is in the default video.js styles
+        media-slide-fade-in 2s ease-in 1s both; // We add this to more gently fade in the spinner
     }
   }
 
@@ -238,5 +243,15 @@
       opacity var(--ui-toggle-transition-duration) ease-in-out,
       visibility 0s linear 0s, /* immediate visibility */
       var(--additional-transitions, --dummy-fallback-var-to-stop-it-braking);
+  }
+}
+
+@keyframes media-slide-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.5;
   }
 }

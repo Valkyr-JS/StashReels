@@ -1,50 +1,53 @@
-video-js:not(.vjs-playing) .vjs-big-play-button {
-    display: block;
-}
-
-html:has(dialog[open]) .video-js .vjs-big-play-button {
-    display: none;
-}
-
-.vjs-big-play-centered .vjs-big-play-button {
+/* element and class are used to help increase specificity so these styles override the default video.js big play button styles */
+video-js.video-js {
+  /* We apply these to both normal and hover state to override any existing hover styles that we don't want */
+  & .vjs-big-play-button,
+  &:hover .vjs-big-play-button {
     height: 100%;
     width: 33.3%;
     margin: 0;
     transform: translate(-50%, -50%);
-}
-
-.video-js .vjs-big-play-button, .video-js:hover .vjs-big-play-button {
     font-size: 8em;
-    transition: all 0.2s !important;
     filter: drop-shadow(0 0 0.4em rgba(0, 0, 0, 1));
+    display: none;
 
     &:hover {
-        font-size: 9em;
+      font-size: 9em;
     }
 
     svg {
-        /* Slightly move the play icon to the right to better center it visually with the loading spinner */
-        translate: 0.1em;
+      /* Slightly move the play icon to the right to better center it visually with the loading spinner */
+      translate: 0.1em;
     }
-}
+  }
 
-/* The poster will play the video when clicked on but we want only the middle to play so we stop it handling clicks */
-.vjs-poster {
+  &.vjs-paused.playable .vjs-big-play-button {
+    /* The default video.js styles only show the button when paused and never played but we want to show it whenever it's paused */
+    display: block;
+  }
+
+  /* The poster will play the video when clicked on but we want only the middle area to trigger a play so we stop it handling clicks */
+  .vjs-poster {
     pointer-events: none;
     cursor: initial;
+  }
+
+  /* Stop control bar from hiding after timeout */
+  .vjs-control-bar.d-none {
+    display: flex !important;
+  }
+
+  &.vjs-has-started.vjs-user-inactive.vjs-playing .vjs-control-bar {
+    opacity: 0.5;
+  }
+
+  /* Hide play button of the original video.js big play button that we're extending as it may be displayed briefly
+    before this plugin loads */
+  .vjs-icon-placeholder {
+    display: none;
+  }
 }
 
-.video-js {
-    /* Stop control bar from hiding after timeout */
-    .vjs-control-bar.d-none {
-      display: flex !important;
-    }
-    &.vjs-has-started.vjs-user-inactive.vjs-playing .vjs-control-bar {
-      opacity: 0.5;
-    }
-    /* Hide play button of the original video.js big play button that we're extending as it may be displayed briefly
-    before this plugin loads */
-    .vjs-icon-placeholder {
-        display: none;
-    }
+html:has(dialog[open]) .video-js .vjs-big-play-button {
+  display: none;
 }

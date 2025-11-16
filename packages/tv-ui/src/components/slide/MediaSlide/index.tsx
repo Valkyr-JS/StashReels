@@ -122,6 +122,8 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       // trying to seek
       event.stopPropagation();
     });
+
+    updatePlayableClass()
   }
 
   // To avoid accidentally calling next several times we track if there's already a pending change
@@ -337,6 +339,31 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     videojsPlayerRef.current?.play()
   }
 
+  // These classes allow us to better control when the big play button shows to avoid showing it if we're likely to
+  // immediately hide it again such as when auto-playing
+  const updatePlayableClass = useCallback(() => {
+    const className = "playable"
+    let timeoutId: NodeJS.Timeout;
+    if (globalAutoPlay) {
+      // We slightly delay this to give the player a moment to start playing so we don't flash the play button
+      // unnecessarily
+      timeoutId = setTimeout(() => {
+        if (isCurrentVideo) {
+          videojsPlayerRef.current?.addClass(className);
+        } else {
+          videojsPlayerRef.current?.removeClass(className);
+        }
+      }, 100);
+    } else {
+      videojsPlayerRef.current?.addClass(className)
+    }
+    // Cleanup function for useEffect usage
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+  }, [isCurrentVideo, globalAutoPlay]);
+  useEffect(updatePlayableClass, [updatePlayableClass]);
+
   /* ------------------------------ On end event ------------------------------ */
 
   const itemRef = useRef<HTMLDivElement>(null);
@@ -476,8 +503,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     if (currentTime === undefined) return;
     if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3)) {
       logger.debug(`End timestamp reached at ${currentTime}s (end: ${endTimestamp}s)`);
-      videojsPlayerRef.current?.pause();
-      goToItem('next');
+      videojsPlayerRef.current?.one('ended', () => {
+        videojsPlayerRef.current?.pause();
+      });
+      videojsPlayerRef.current?.trigger('ended');
     }
     const markers = findCurrentlyPlayingMarkers(currentTime);
     if (markers.length === currentlyPlayingMarkers.length && markers.every(marker => currentlyPlayingMarkers.includes(marker))) return
