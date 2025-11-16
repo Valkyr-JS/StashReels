@@ -23,6 +23,7 @@ import "./video-js-plugins/styled-big-play-button.css";
 import { type ScrollToIndexOptions } from "../../VideoScroller";
 import { ActionButtons } from "../ActionButtons";
 import SceneInfo from "../SceneInfo";
+import { getLogger } from "@logtape/logtape";
 
 videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
@@ -65,6 +66,8 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     uiVisible,
     set: setAppSetting,
   } = useAppStateStore();
+
+  const logger = getLogger(["stash-tv", "MediaSlide", props.mediaItem.id]);
 
   useMemo(() => {
     if (!enableRenderDebugging) return
@@ -462,13 +465,13 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     if (currentTime === undefined) return;
     if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3)) {
-      debugMode && console.log(`End timestamp reached at ${currentTime}s (end: ${endTimestamp}s)`);
+      logger.debug(`End timestamp reached at ${currentTime}s (end: ${endTimestamp}s)`);
       videojsPlayerRef.current?.pause();
       goToItem('next');
     }
     const markers = findCurrentlyPlayingMarkers(currentTime);
     if (markers.length === currentlyPlayingMarkers.length && markers.every(marker => currentlyPlayingMarkers.includes(marker))) return
-    debugMode && console.log(`Marker playback update - now playing markers `, markers ? `id=${markers.map(({title}) => title).join(", ")}` : "none", {currentTime, markers});
+    logger.debug(`Marker playback update{*}`, {currentTime, markers});
     setCurrentlyPlayingMarkers(markers)
   }
 

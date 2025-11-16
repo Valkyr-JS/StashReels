@@ -9,6 +9,8 @@ import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { getPlayerIdForVideoJsPlayer } from "../../helpers";
 import { useAppStateStore } from "../../store/appStateStore";
 import 'videojs-offset'
+import { getLogger } from "@logtape/logtape";
+const mountCount = new Map<string, number>();
 
 const videoJsOptionsOverride: Record<string, VideoJsPlayerOptions> = {}
 const videoJsSetupCallbacks: Record<string, (player: VideoJsPlayer) => void> = {}
@@ -186,6 +188,18 @@ const ScenePlayer = forwardRef<
     initialTimestamp,
     ...otherProps
 }: ScenePlayerProps, ref) => {
+    const logger = getLogger(["stash-tv", "ScenePlayer", otherProps.scene.id]);
+
+    const { debugMode, videoJsEventsToLog, enableRenderDebugging } = useAppStateStore();
+
+    useMemo(() => {
+      if (!enableRenderDebugging) return
+      const timesMounted = mountCount.get(otherProps.scene.id) || 0;
+      logger.debug(`🔜 ScenePlayer mounting${timesMounted ? ` (count: ${timesMounted})` : ""}`)
+      mountCount.set(otherProps.scene.id, timesMounted + 1);
+    }, [])
+    useEffect(() => () => { enableRenderDebugging && logger.debug(`🔚 ScenePlayer unmounting`) }, [])
+
     // We don't use `ref` directly on our root element since `ref` since we also need access to the root element in this
     // file and if we use `ref` it might be a function which once set we don't have access to it's contents. Therefore
     // we use containerRef as an intermediary.
@@ -206,8 +220,6 @@ const ScenePlayer = forwardRef<
             }
         }
     }, []);
-
-    const { debugMode, videoJsEventsToLog } = useAppStateStore();
 
     useEffect(() => {
         debugMode && console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);

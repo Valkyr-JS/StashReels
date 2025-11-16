@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import FeedPage from "../pages/Feed";
 import { useAppStateStore } from "../store/appStateStore";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
@@ -8,9 +8,15 @@ import { ErrorBoundary } from "stash-ui/dist/src/components/ErrorBoundary";
 import { IntlProvider, CustomFormats } from "react-intl";
 import englishMessages from "stash-ui/dist/src/locales/en-GB.json";
 import flattenMessages from "stash-ui/dist/src/utils/flattenMessages";
+import {setupLogging} from "../helpers/logging";
+
+await setupLogging()
 
 const App = () => {
-  const { forceLandscape  } = useAppStateStore()
+  const { forceLandscape, debugMode } = useAppStateStore()
+  useEffect(() => {
+    setupLogging({debugMode});
+  }, [debugMode]);
 
   const stashConfig = GQL.useConfigurationQuery();
 

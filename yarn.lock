@@ -707,6 +707,11 @@
   resolved "https://registry.npmjs.org/@juggle/resize-observer/-/resize-observer-3.4.0.tgz"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
 
+"@logtape/logtape@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.2.0.tgz#f77a1b5b57f479294ff3708c55050aa2ba5edcec"
+  integrity sha512-L7aXBYrxpSUQcsZm/hCuh5REN+dckxmPmH7x7eCROiLAHUSPzc7AhbsxsZLDsXMM4ggtbmS3sUQVa+blfF4sZA==
+
 "@mapbox/hast-util-table-cell-style@^0.2.0":
   version "0.2.1"
   resolved "https://registry.npmjs.org/@mapbox/hast-util-table-cell-style/-/hast-util-table-cell-style-0.2.1.tgz"
