@@ -124,7 +124,15 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     });
   }
 
-  function goToItem(direction: 'next' | 'previous') {
+  // To avoid accidentally calling next several times we track if there's already a pending change
+  const currentMediaItemPendingChangeRef = useRef<"next" | "previous">();
+  useEffect(() => {
+    currentMediaItemPendingChangeRef.current = undefined;
+  }, [isCurrentVideo]);
+
+  const goToItem = useCallback((direction: 'next' | 'previous') => {
+    if (!isCurrentVideo || currentMediaItemPendingChangeRef.current === direction) return;
+    currentMediaItemPendingChangeRef.current = direction;
     const played = videojsPlayerRef.current?.played()
     let totalPlayedLength = 0;
     if (played) {
@@ -133,12 +141,14 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       }
     }
 
+    logger.debug(`Going to ${direction} item from index ${props.index} {*}`, {totalPlayedLength, noAnimateDurationThreshold, isCurrentVideo});
+
     const shouldSkipAnimation = totalPlayedLength < noAnimateDurationThreshold
     props.changeItemHandler(
       (currentIndex) => Math.max(currentIndex + (direction === 'next' ? 1 : -1), 0),
       { ...(shouldSkipAnimation ? { behavior: 'instant' } : {}) }
     );
-  }
+  }, [debugMode, noAnimateDurationThreshold, props.changeItemHandler, props.index, isCurrentVideo]);
 
   useEffect(() => {
     if (!showDevOptions || !isCurrentVideo || !videojsPlayerRef.current) return;
@@ -461,7 +471,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     },
     [currentlyPlayingMarkers]
   );
-  const handleOnTimeUpdate = (event: Event) => {
+  const handleOnTimeUpdate = useCallback(() => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     if (currentTime === undefined) return;
     if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3)) {
@@ -473,7 +483,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     if (markers.length === currentlyPlayingMarkers.length && markers.every(marker => currentlyPlayingMarkers.includes(marker))) return
     logger.debug(`Marker playback update{*}`, {currentTime, markers});
     setCurrentlyPlayingMarkers(markers)
-  }
+  }, [endTimestamp, currentlyPlayingMarkers, debugMode, goToItem]);
 
   /* -------------------------------- Component ------------------------------- */
 
