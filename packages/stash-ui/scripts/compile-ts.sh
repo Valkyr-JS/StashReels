@@ -19,11 +19,11 @@ mkdir -p "$BUILD_DIR"
     yarn run tsc --outDir "$BUILD_DIR" --noEmit false --declaration true --rootDir "."
 };
 
-# Run tsc-alias to replace path aliases
+# Run tsc-alias to replace path aliases and copy in CSS + custom declaration files
 {
     cd "$SCRIPT_DIR/.."
     yarn run tsc-alias --project "$STASH_DIR/tsconfig.json" --outDir "$BUILD_DIR"
     # Some files import CSS files so we need to copy those over too. For example:
     # packages/stash-ui/stash/ui/v2.5/src/components/ScenePlayer/markers.ts
-    yarn run copyfiles --up 3 "stash/ui/v2.5/src/**/*.css" "$BUILD_DIR"
+    yarn run copyfiles --soft --up 3 "stash/ui/v2.5/src/**/*.css" "stash/ui/v2.5/src/**/*.d.ts" "$BUILD_DIR"
 };

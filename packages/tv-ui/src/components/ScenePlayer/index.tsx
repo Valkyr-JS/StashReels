@@ -19,7 +19,7 @@ type FunctionKeys<T> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never
 }[keyof T];
 
-function wrapPlayerFunction<FunctionName extends FunctionKeys<VideoJsPlayer>>(
+function wrapPlayerFunction<FunctionName extends Exclude<FunctionKeys<VideoJsPlayer>, undefined>>(
   player: VideoJsPlayer,
   functionName: FunctionName,
   wrapper: (callback: VideoJsPlayer[FunctionName], ...args: Parameters<VideoJsPlayer[FunctionName]>) => ReturnType<VideoJsPlayer[FunctionName]>

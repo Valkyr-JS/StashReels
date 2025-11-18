@@ -24,6 +24,7 @@ import { type ScrollToIndexOptions } from "../../VideoScroller";
 import { ActionButtons } from "../ActionButtons";
 import SceneInfo from "../SceneInfo";
 import { getLogger } from "@logtape/logtape";
+import abLoopPlugin from "videojs-abloop";
 
 videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
@@ -92,6 +93,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   // a duration which is important for certain elements that use the duration when rendering like the end timestamp
   // indicator
   const [metadataLoaded, setMetadataLoaded] = useState(false);
+  const [playerReady, setPlayerReady] = useState(false);
 
   const [loadingDeferred, setLoadingDeferred] = useState(props.currentlyScrolling);
   useEffect(() => {
@@ -124,6 +126,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     player.one('loadedmetadata', () => {
       setMetadataLoaded(true);
     });
+    setPlayerReady(true);
   }
 
   // To avoid accidentally calling next several times we track if there's already a pending change
@@ -450,6 +453,22 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     return undefined;
   }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration(), scenePreviewOnly]);
 
+  useEffect(() => {
+    if (!playerReady) return;
+    let options: abLoopPlugin.Options = {
+      loopIfBeforeStart: true,
+      loopIfAfterEnd: true,
+      pauseAfterLooping: false,
+      pauseBeforeLooping: false,
+      ...videojsPlayerRef.current?.abLoopPlugin.getOptions(),
+      enabled: looping,
+      start: initialTimestamp ?? false,
+      end: endTimestamp ?? false,
+    }
+    logger.debug(`Setting AB loop plugin options{*}`, {options});
+    videojsPlayerRef.current?.abLoopPlugin.setOptions(options);
+  }, [looping, playerReady, initialTimestamp, endTimestamp])
+
   // Track what marker (if any) is currently playing
   const findCurrentlyPlayingMarkers = (currentTime: number) => {
     if (props.mediaItem.entityType === "marker") {
@@ -577,7 +596,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
                   // true so we handle that ourselves in an onEnded handler
                   restart_beginning: true
                 }
-              } : {})
+              } : {}),
+              abLoopPlugin: {
+                createButtons: false,
+              },
             }
           }}
         />}
