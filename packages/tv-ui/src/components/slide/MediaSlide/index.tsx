@@ -300,15 +300,14 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     const nextSkipAheadTime = currentTime + skipAmount
     logger.debug("Seeking forwards{*}", {skipAmount, duration, nextSkipAheadTime})
-    // Go to next item if the next jump goes to or past the end of the video
-    if (nextSkipAheadTime > duration) {
-      goToItem('next')
-      return
-    }
-    // Go to next item if we'd be jumping over the end timestamp
-    if (endTimestamp !== undefined && currentTime <= endTimestamp && nextSkipAheadTime >= endTimestamp) {
-      videojsPlayerRef.current?.pause();
-      goToItem('next')
+    if (
+      // Go to next item if the next jump goes to or past the end of the entire video
+      (nextSkipAheadTime > duration)
+      ||
+      // Go to next item if we'd be jumping over the end timestamp
+      (endTimestamp !== undefined && currentTime <= endTimestamp && nextSkipAheadTime >= endTimestamp)
+    ){
+      videojsPlayerRef.current?.trigger('ended');
       return
     }
     videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
@@ -371,7 +370,12 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   /** Handle the event fired at the end of video playback. */
   const handleOnEnded = () => {
     // If not looping on end, scroll to the next item.
-    if (!looping && isCurrentVideo) goToItem('next');
+    if (looping) return
+    videojsPlayerRef.current?.pause()
+    if (isCurrentVideo) {
+      videojsPlayerRef.current?.currentTime(initialTimestamp || 0);
+      goToItem('next');
+    }
   };
 
   /* ------------------------------- Scene info ------------------------------- */
@@ -503,9 +507,6 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     if (currentTime === undefined) return;
     if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3)) {
       logger.debug(`End timestamp reached at ${currentTime}s (end: ${endTimestamp}s)`);
-      videojsPlayerRef.current?.one('ended', () => {
-        videojsPlayerRef.current?.pause();
-      });
       videojsPlayerRef.current?.trigger('ended');
     }
     const markers = findCurrentlyPlayingMarkers(currentTime);
