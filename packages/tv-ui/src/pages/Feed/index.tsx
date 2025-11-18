@@ -19,7 +19,7 @@ interface FeedPageProps {
 }
 
 const FeedPage: React.FC<FeedPageProps> = memo(({className}) => {
-  const { showSettings, fullscreen, debugMode, showGuideOverlay, set: setAppSetting } = useAppStateStore();
+  const { showSettings, fullscreen, showDebuggingInfo, showGuideOverlay, set: setAppSetting } = useAppStateStore();
   const {
     currentMediaItemFilter,
     mediaItemFiltersLoading,
@@ -109,7 +109,7 @@ const FeedPage: React.FC<FeedPageProps> = memo(({className}) => {
       ? <>
         <div className="status-info">
           {statusInfo()}
-          {debugMode && <pre>
+          {showDebuggingInfo.includes("onscreen-info") && <pre>
             {JSON.stringify({
               mediaItemFilters: {
                 loading: mediaItemFiltersLoading,

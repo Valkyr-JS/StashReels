@@ -54,8 +54,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     scenePreviewOnly,
     markerPreviewOnly,
     showDevOptions,
-    debugMode,
-    enableRenderDebugging,
+    showDebuggingInfo,
     autoPlay: globalAutoPlay,
     startPosition,
     endPosition,
@@ -70,21 +69,14 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   const logger = getLogger(["stash-tv", "MediaSlide", props.mediaItem.id]);
 
   useMemo(() => {
-    if (!enableRenderDebugging) return
+    if (!showDebuggingInfo.includes("render-debugging")) return
     const timesMounted = mountCount.get(props.mediaItem.id) || 0;
-    console.log("🔜 MediaSlide mounting:", props.mediaItem.id, ...(timesMounted ? [`(count: ${timesMounted})`] : []))
+    console.log(`🔜 MediaSlide (media id ${props.mediaItem.id}) mounting${timesMounted ? ` (count: ${timesMounted})` : ""}`)
     mountCount.set(props.mediaItem.id, timesMounted + 1);
   }, [])
-  useEffect(() => () => { enableRenderDebugging && console.log("🔚 MediaSlide unmount:", props.mediaItem.id) }, [])
+  useEffect(() => () => { showDebuggingInfo.includes("render-debugging") && console.log(`🔚 MediaSlide (media id ${props.mediaItem.id}) unmounting`) }, [])
 
   const scene = props.mediaItem.entityType === "scene" ? props.mediaItem.entity : props.mediaItem.entity.scene;
-
-  useEffect(() => {
-    debugMode && console.log(`Mounted MediaSlide index=${props.index} sceneId=${scene.id}`);
-    return () => {
-      debugMode && console.log(`Unmounted MediaSlide index=${props.index} sceneId=${scene.id}`)
-    };
-  }, []);
 
   const getMediaItemDuration = () => props.mediaItem.entityType === "marker" ? props.mediaItem.entity.duration : props.mediaItem.entity.files[0]?.duration;
 
@@ -114,11 +106,11 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
-      debugMode && console.log(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
+      logger.debug(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
       setAppSetting("audioMuted", player.muted());
     });
     if (audioMuted !== player.muted()) {
-      debugMode && console.log(`Video.js player loaded - player ${player.muted() ? "" : "not"} muted`);
+      logger.debug(`Video.js player loaded - player ${player.muted() ? "" : "not"} muted`);
       setAppSetting("audioMuted", player.muted());
     }
     // We resort to `any` here because the types for videojs are incomplete
@@ -158,7 +150,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       (currentIndex) => Math.max(currentIndex + (direction === 'next' ? 1 : -1), 0),
       { ...(shouldSkipAnimation ? { behavior: 'instant' } : {}) }
     );
-  }, [debugMode, noAnimateDurationThreshold, props.changeItemHandler, props.index, isCurrentVideo]);
+  }, [noAnimateDurationThreshold, props.changeItemHandler, props.index, isCurrentVideo]);
 
   useEffect(() => {
     if (!showDevOptions || !isCurrentVideo || !videojsPlayerRef.current) return;
@@ -213,7 +205,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     if (!(videoElm instanceof HTMLVideoElement)) return;
 
     const videoElmWidth = videoElm.clientWidth
-    if (debugMode) console.log(`Pointer up at X=${event.clientX} (video width: ${videoElmWidth})`, videoElm);
+    logger.debug(`Pointer up at X=${event.clientX} (video width: ${videoElmWidth}){*}`);
     if (event.clientX < (videoElmWidth / 3)) {
       seekBackwards()
     } else if (event.clientX < ((videoElmWidth / 3) * 2)) {
@@ -225,15 +217,15 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     } else {
       seekForwards()
     }
-  }, [debugMode])
+  }, [])
 
   useEffect(() => {
     if (!isCurrentVideo) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
       const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
-      debugMode && (e.key === seekBackwardsKey || e.key === seekForwardsKey) &&
-        console.log(`MediaSlide ${props.index} Keydown`, e.key, {seekBackwardsKey, seekForwardsKey});
+      (e.key === seekBackwardsKey || e.key === seekForwardsKey) &&
+        logger.debug(`MediaSlide ${props.index} Keydown; key=${e.key}; backKey=${seekBackwardsKey}; forwardKey=${seekForwardsKey}`);
       if (e.key === seekBackwardsKey) {
         seekBackwards()
         e.preventDefault()
@@ -291,7 +283,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       marker.seconds <= markerSearchEndTime
     );
     if (marker) {
-      debugMode && console.log(`Skipping to marker ${marker.title ?? marker.primary_tag.name} at ${marker.seconds}s`, {marker, markersToSearch});
+      logger.debug(`Skipping to marker ${marker.title ?? marker.primary_tag.name} at ${marker.seconds}s{*}`, {marker, markersToSearch});
       skipTimeAmount = Math.abs(marker.seconds - currentTime)
     }
     return skipTimeAmount
@@ -307,7 +299,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     }
     const currentTime = videojsPlayerRef.current?.currentTime();
     const nextSkipAheadTime = currentTime + skipAmount
-    debugMode && console.log("Seeking forwards", {skipAmount, duration, nextSkipAheadTime})
+    logger.debug("Seeking forwards{*}", {skipAmount, duration, nextSkipAheadTime})
     // Go to next item if the next jump goes to or past the end of the video
     if (nextSkipAheadTime > duration) {
       goToItem('next')
@@ -332,7 +324,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       return null
     }
     let nextSkipBackTime = videojsPlayerRef.current?.currentTime() - skipAmount
-    debugMode && console.log("Seeking backwards", {skipAmount, duration, nextSkipBackTime})
+    logger.debug("Seeking backwards{*}", {skipAmount, duration, nextSkipBackTime})
     if (nextSkipBackTime <= 0) {
       if (props.index === 0) {
         // There's no previous video to go back to so just go to the very start of this one
@@ -520,7 +512,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     if (markers.length === currentlyPlayingMarkers.length && markers.every(marker => currentlyPlayingMarkers.includes(marker))) return
     logger.debug(`Marker playback update{*}`, {currentTime, markers});
     setCurrentlyPlayingMarkers(markers)
-  }, [endTimestamp, currentlyPlayingMarkers, debugMode, goToItem]);
+  }, [endTimestamp, currentlyPlayingMarkers, goToItem]);
 
   /* -------------------------------- Component ------------------------------- */
 
@@ -537,11 +529,13 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       style={props.style}
     >
       <CrtEffect enabled={crtEffect}>
-        {debugMode && <div className="debugStats">
-          {props.index} - {scene.id} {loadingDeferred ? "(Loading deferred)" : ""}
-          {" "}{props.mediaItem.entityType === "marker" ? `(Marker: ${props.mediaItem.entity.primary_tag.name})` : ""}
-        </div>}
-        {debugMode && <div className="loadingDeferredDebugBackground" />}
+        {showDebuggingInfo.includes("onscreen-info") && <>
+          <div className="debugStats">
+            {props.index} - {scene.id} {loadingDeferred ? "(Loading deferred)" : ""}
+            {" "}{props.mediaItem.entityType === "marker" ? `(Marker: ${props.mediaItem.entity.primary_tag.name})` : ""}
+          </div>
+          <div className="loadingDeferredDebugBackground" />
+        </>}
         {loadingDeferred && scene.paths.screenshot && <img className="loadingDeferredPreview" src={scene.paths.screenshot} />}
         {!loadingDeferred && <ScenePlayer
           id={`scene-player-${props.mediaItem.id}`}

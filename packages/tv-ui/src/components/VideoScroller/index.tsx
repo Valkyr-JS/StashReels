@@ -9,6 +9,7 @@ import { clamp } from "../../helpers";
 import { useMediaItems } from "../../hooks/useMediaItems";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import hashObject from 'object-hash';
+import { getLogger } from "@logtape/logtape";
 
 interface VideoScrollerProps {}
 
@@ -23,17 +24,17 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
   const {
     forceLandscape: isForceLandscape,
     onlyShowMatchingOrientation,
-    debugMode,
-    enableRenderDebugging,
+    showDebuggingInfo,
     scenePreviewOnly,
     markerPreviewOnly,
     set: setAppSetting
   } = useAppStateStore();
   const { orientation } = useWindowSize()
   const rootElmRef = useRef<HTMLDivElement | null>(null);
+  const logger = getLogger(["stash-tv", "VideoScroller"]);
 
-  useMemo(() => enableRenderDebugging && console.log("🔜 VideoScroller mounting"), [])
-  useEffect(() => () => { enableRenderDebugging && console.log("🔚 VideoScroller unmounting") }, [])
+  useMemo(() => showDebuggingInfo.includes("render-debugging") && console.log("🔜 VideoScroller mounting"), [])
+  useEffect(() => () => { showDebuggingInfo.includes("render-debugging") && console.log("🔚 VideoScroller unmounting") }, [])
 
   /* ------------------------ Handle loading new videos ----------------------- */
 
@@ -65,7 +66,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
       }
 
       const itemHeight = estimateSizeTesterElement.current.offsetHeight;
-      debugMode && console.log("Estimated item height:", itemHeight)
+      logger.debug(`Estimated item height: ${itemHeight}`)
 
       return itemHeight;
     },
@@ -75,7 +76,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
     ...sharedOptions,
     enabled: !isForceLandscape,
     scrollToFn: (...args) => {
-      debugMode && console.log("Window virtualizer scrolling to height:", args[0])
+      logger.debug(`Window virtualizer scrolling to height: ${args[0]}`)
       return windowScroll(...args);
     }
   });
@@ -84,7 +85,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
     enabled: isForceLandscape,
     getScrollElement: () => document.querySelector('body'),
     scrollToFn: (...args) => {
-      debugMode && console.log("Element virtualizer scrolling to height:", args[0])
+      logger.debug(`Element virtualizer scrolling to height: ${args[0]}`)
       return elementScroll(...args);
     }
   });
@@ -112,7 +113,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
   const setCurrentIndex = useMemo(
     () => {
       const throttledSetCurrentIndex = throttle((newIndex: number) => {
-        debugMode && console.log("setCurrentIndex received:", newIndex)
+        logger.debug(`setCurrentIndex received: ${newIndex}`)
         _setCurrentIndex(newIndex)
       }, 100)
       return ((newIndex: React.SetStateAction<number>) => {
@@ -148,7 +149,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
       getScrollSnappingReenableHandler(),
       scrollSnappingReenableTimeoutMs
     );
-    debugMode && console.log('Temporarily disabling scroll snapping');
+    logger.debug('Temporarily disabling scroll snapping');
     rootElmRef.current?.classList.remove('scrollSnappingEnabled');
   }
 
@@ -177,14 +178,14 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
       const itemHeight = rowVirtualizer.getVirtualItems()[0]?.size || 0;
       const newScrollTop = index * itemHeight
       temporarilyDisableScrollSnapping();
-      debugMode && console.log(`Scrolling to index ${index} at height ${newScrollTop}`);
+      logger.debug(`Scrolling to index ${index} at height ${newScrollTop}`);
       rowVirtualizer.scrollElement?.scrollTo({ top: newScrollTop, behavior: "smooth", ...options });
     },
     [rowVirtualizer]
   );
 
   useEffect(() => {
-    debugMode && console.log("currentIndex changed to", currentIndex);
+    logger.debug(`currentIndex changed to ${currentIndex}`);
     if (currentIndex >= mediaItems.length - 5) {
       loadMoreMediaItems();
     }
@@ -194,8 +195,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const nextKey = isForceLandscape ? "ArrowRight" : "ArrowDown";
       const previousKey = isForceLandscape ? "ArrowLeft" : "ArrowUp";
-      debugMode && (e.key === previousKey || e.key === nextKey) &&
-        console.log("VideoScroller Keydown", e.key, {nextKey, previousKey});
+      logger.debug(`VideoScroller Keydown; key=${e.key} nextKey=${nextKey} previousKey=${previousKey}`);
       if (e.key === previousKey) {
         // Go to the previous item
         const newIndex = (prevIndex: number) => prevIndex - 1
@@ -387,13 +387,13 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
         width: '100%',
         height: mediaSlideHeight,
         transform: `translateY(calc(${mediaSlideHeight} * ${i}))`,
-        ...(debugMode ? {
+        ...(showDebuggingInfo.includes("onscreen-info") ? {
           "backgroundColor": `hsl(${i * 37  % 360}, 70%, 50%)`,
           border: `10px ${i === currentIndex ? 'black' : 'transparent'} dashed`,
         } : {})
       } as const
     }),
-    [mediaItems, mediaSlideHeight, debugMode]
+    [mediaItems, mediaSlideHeight, showDebuggingInfo.includes("onscreen-info")]
   );
 
   /* -------------------------------- Component ------------------------------- */
@@ -407,7 +407,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
       ref={rootElmRef}
       style={{ height: rowVirtualizer.getTotalSize() }}
     >
-      {debugMode && <div className="debugStats">
+      {showDebuggingInfo.includes("onscreen-info") && <div className="debugStats">
         {rowVirtualizer.isScrolling ? "Scrolling" : "Not Scrolling"}
         {" "}({mediaItems.length} media loaded)
         {onlyShowMatchingOrientation && ` limiting to ${orientation} orientation`}

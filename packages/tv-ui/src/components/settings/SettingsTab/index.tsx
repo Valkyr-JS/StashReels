@@ -5,7 +5,7 @@ import React, { memo, useContext, useEffect, useMemo } from "react";
 import Select from "../Select";
 import { components } from "react-select";
 import "./SettingsTab.scss";
-import { useAppStateStore } from "../../../store/appStateStore";
+import { DebuggingInfo, useAppStateStore } from "../../../store/appStateStore";
 import SideDrawer from "../SideDrawer";
 import Switch from "../Switch";
 import { useMediaItems } from "../../../hooks/useMediaItems";
@@ -15,6 +15,7 @@ import { AccordionContext } from "react-bootstrap";
 import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
 import { NumberField } from "stash-ui/dist/src/utils/form";
+import { LogLevel } from "@logtape/logtape";
 
 const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -34,7 +35,8 @@ const SettingsTab = memo(() => {
     onlyShowMatchingOrientation,
     showDevOptions,
     videoJsEventsToLog,
-    debugMode,
+    logLevel,
+    showDebuggingInfo,
     autoPlay,
     startPosition,
     endPosition,
@@ -149,6 +151,34 @@ const SettingsTab = memo(() => {
     { value: 'fixed-length', label: 'After a fixed length of time' },
     { value: 'random-length', label: 'After a random length of time' },
   ] as const
+
+  const logLevelOptions = useMemo(() => (
+    Object.entries(
+      {
+        "trace": "Trace (most verbose)",
+        "debug": "Debug",
+        "info": "Info",
+        "warning": "Warning",
+        "error": "Error",
+        "fatal": "Fatal (least verbose)",
+      } satisfies { [K in LogLevel]: string; }
+    ).map(([value, label]) => ({
+      value: value as LogLevel,
+      label,
+    }))
+  ), []);
+
+  const showDebuggingInfoOptions = useMemo(() => (
+    Object.entries(
+      {
+        "render-debugging": "Render Debugging",
+        "onscreen-info": "On-screen Info",
+      } satisfies { [K in DebuggingInfo]: string; }
+    ).map(([value, label]) => ({
+      value: value as DebuggingInfo,
+      label,
+    }))
+  ), []);
 
   /* -------------------------------- Component ------------------------------- */
   return <SideDrawer
@@ -463,26 +493,25 @@ const SettingsTab = memo(() => {
             </Form.Group>
 
             <Form.Group>
-              <Switch
-                id="debug-mode"
-                label="Debug Mode"
-                checked={debugMode}
-                onChange={event => setAppSetting("debugMode", event.target.checked)}
+              <Select
+                inputId="log-level"
+                value={logLevelOptions.find(option => option.value === logLevel) ?? null}
+                onChange={(newValue) => newValue?.value && setAppSetting("logLevel", newValue.value)}
+                options={logLevelOptions}
               />
-              <Form.Text className="text-muted">Enable debug mode for additional logging and information.</Form.Text>
+              <Form.Text className="text-muted">The level of logging detail.</Form.Text>
             </Form.Group>
 
             <Form.Group>
-              <Switch
-                id="enable-render-debugging"
-                label="Enable Render Debugging"
-                checked={JSON.parse(localStorage.getItem("enableRenderDebugging") || "false")}
-                onChange={event => {
-                  localStorage.setItem("enableRenderDebugging", JSON.stringify(event.target.checked))
-                  window.location.reload()
-                }}
+              <Select
+                inputId="show-debugging-info"
+                value={showDebuggingInfoOptions.filter(option => showDebuggingInfo.includes(option.value))}
+                onChange={(newValues) => setAppSetting("showDebuggingInfo", newValues.map(option => option.value))}
+                options={showDebuggingInfoOptions}
+                isMulti={true}
+                closeMenuOnSelect={false}
               />
-              <Form.Text className="text-muted">Enable render debugging.</Form.Text>
+              <Form.Text className="text-muted">Additional debugging information.</Form.Text>
             </Form.Group>
 
             <Form.Group>

@@ -13,10 +13,10 @@ import {setupLogging} from "../helpers/logging";
 await setupLogging()
 
 const App = () => {
-  const { forceLandscape, debugMode } = useAppStateStore()
+  const { forceLandscape, logLevel } = useAppStateStore()
   useEffect(() => {
-    setupLogging({debugMode});
-  }, [debugMode]);
+    setupLogging({logLevel});
+  }, [logLevel]);
 
   const stashConfig = GQL.useConfigurationQuery();
 

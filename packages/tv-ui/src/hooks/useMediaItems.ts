@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getMediaItemIdForVideoJsPlayer } from "../helpers";
 import { useAppStateStore } from "../store/appStateStore";
 import hashObject from 'object-hash';
+import { getLogger } from "@logtape/logtape";
 
 export const mediaItemsPerPage = 20
 
@@ -25,8 +26,9 @@ export type MediaItem = {
 export const defaultMarkerLength = 20;
 
 export function useMediaItems() {
+  const logger = getLogger(["stash-tv", "useMediaItems"]);
   const { lastLoadedCurrentMediaItemFilter } = useMediaItemFilters()
-  const { debugMode, maxMedia, scenePreviewOnly, markerPreviewOnly } = useAppStateStore()
+  const { maxMedia, scenePreviewOnly, markerPreviewOnly } = useAppStateStore()
   const previewOnly = (lastLoadedCurrentMediaItemFilter?.entityType === "scene" && scenePreviewOnly)
     || (lastLoadedCurrentMediaItemFilter?.entityType === "marker" && markerPreviewOnly)
 
@@ -86,11 +88,11 @@ export function useMediaItems() {
     )
     response = markersResponse
   } else {
-    console.info("lastLoadedCurrentMediaItemFilter:", lastLoadedCurrentMediaItemFilter)
+    logger.debug("lastLoadedCurrentMediaItemFilter:", lastLoadedCurrentMediaItemFilter)
     throw new Error("Unsupported media item filter entity type")
   }
   useEffect(() => {
-    useAppStateStore.getState().debugMode && console.log("lastLoadedCurrentMediaItemFilter changed, resetting media items", lastLoadedCurrentMediaItemFilter)
+    logger.debug("lastLoadedCurrentMediaItemFilter changed, resetting media items{*}", lastLoadedCurrentMediaItemFilter)
   }, [lastLoadedCurrentMediaItemFilter])
 
 
@@ -114,7 +116,7 @@ export function useMediaItems() {
       const videoElm = event.target
       try {
         const mediaItemId = getMediaItemIdForVideoJsPlayer(videoElm);
-        debugMode && console.log("Saving preview length for media item", mediaItemId, "duration", videoElm.duration)
+        logger.debug("Saving preview length for media item {*}", {mediaItemId, duration: videoElm.duration})
         setPreviewLengths(
           prev => ({
             ...prev,
@@ -156,7 +158,7 @@ export function useMediaItems() {
     } else {
       estimatedDuration = Math.min(9.2, scene.files[0].duration)
     }
-    debugMode && mediaItem.id in previewLengths && console.log("Duration cached", mediaItem.id, previewLengths[mediaItem.id])
+    mediaItem.id in previewLengths && logger.debug("Duration cached for media item {*}", {mediaItemId: mediaItem.id, duration: previewLengths[mediaItem.id]})
     const duration = mediaItem.id in previewLengths
       ? previewLengths[mediaItem.id]
       // Estimate the video duration if we don't know it yet
@@ -221,7 +223,7 @@ export function useMediaItems() {
     mediaItems,
     loadMoreMediaItems: () => {
       const nextPage = mediaItems.length ? Math.ceil(mediaItems.length / mediaItemsPerPage) + 1 : 1
-      debugMode && console.log("Fetch next media page:", nextPage)
+      logger.debug("Fetch next media page: {*}", {nextPage})
       let entityFilterKey: string
       if (lastLoadedCurrentMediaItemFilter?.entityType === "scene") {
         entityFilterKey = "scene_filter"

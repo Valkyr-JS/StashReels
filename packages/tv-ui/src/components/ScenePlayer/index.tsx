@@ -190,15 +190,15 @@ const ScenePlayer = forwardRef<
 }: ScenePlayerProps, ref) => {
     const logger = getLogger(["stash-tv", "ScenePlayer", otherProps.scene.id]);
 
-    const { debugMode, videoJsEventsToLog, enableRenderDebugging } = useAppStateStore();
+    const { videoJsEventsToLog, showDebuggingInfo } = useAppStateStore();
 
     useMemo(() => {
-      if (!enableRenderDebugging) return
+      if (!showDebuggingInfo.includes("render-debugging")) return
       const timesMounted = mountCount.get(otherProps.scene.id) || 0;
-      logger.debug(`🔜 ScenePlayer mounting${timesMounted ? ` (count: ${timesMounted})` : ""}`)
+      console.log(`🔜 ScenePlayer (scene id ${otherProps.scene.id}) mounting${timesMounted ? ` (count: ${timesMounted})` : ""}`)
       mountCount.set(otherProps.scene.id, timesMounted + 1);
     }, [])
-    useEffect(() => () => { enableRenderDebugging && logger.debug(`🔚 ScenePlayer unmounting`) }, [])
+    useEffect(() => () => { showDebuggingInfo.includes("render-debugging") && console.log(`🔚 ScenePlayer (scene id ${otherProps.scene.id}) unmounting`) }, [])
 
     // We don't use `ref` directly on our root element since `ref` since we also need access to the root element in this
     // file and if we use `ref` it might be a function which once set we don't have access to it's contents. Therefore
@@ -220,13 +220,6 @@ const ScenePlayer = forwardRef<
             }
         }
     }, []);
-
-    useEffect(() => {
-        debugMode && console.log(`Mounted ScenePlayer sceneId=${otherProps.scene.id}`);
-        return () => {
-            debugMode && console.log(`Unmounted ScenePlayer sceneId=${otherProps.scene.id}`);
-        }
-    },[]);
 
     const videoJsEventsToLogAttached = useRef<Record<string, boolean>>({});
     const logVideoJsEvent = useCallback((event: Event) =>{
