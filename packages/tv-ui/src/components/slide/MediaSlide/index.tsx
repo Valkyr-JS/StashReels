@@ -298,7 +298,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     logger.info("Seeking forwards{*}", {skipAmount, duration, nextSkipAheadTime})
     if (
       // Go to next item if the next jump goes to or past the end of the entire video
-      (nextSkipAheadTime > duration)
+      (nextSkipAheadTime >= duration)
       ||
       // Go to next item if we'd be jumping over the end timestamp
       (endTimestamp !== undefined && currentTime <= endTimestamp && nextSkipAheadTime >= endTimestamp)
@@ -323,16 +323,30 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     if (skipAmount === null || typeof duration !== 'number') {
       return null
     }
-    let nextSkipBackTime = videojsPlayerRef.current?.currentTime() - skipAmount
+    const currentTime = videojsPlayerRef.current?.currentTime();
+    let nextSkipBackTime = currentTime - skipAmount
     logger.info("Seeking backwards{*}", {skipAmount, duration, nextSkipBackTime})
-    if (nextSkipBackTime <= 0) {
-      if (looping || props.index === 0) {
-        // If we're not looping then there's no previous video to go back to so just go to the start of this one
-        nextSkipBackTime = 0
+    if (
+      // Go to next item if the next jump goes to or past the end of the entire video
+      (nextSkipBackTime < 0)
+      ||
+      // Go to next item if we'd be jumping over the end timestamp
+      (initialTimestamp !== undefined && currentTime >= initialTimestamp && nextSkipBackTime < initialTimestamp)
+    ){
+      // If looping or not already at the start (with 2 second grace period to avoid play immediately moving beyond the
+      // start and thus preventing us from ever going back further) then go to the start
+      if (looping || currentTime > ((initialTimestamp ?? 0) + 2)) {
+        nextSkipBackTime = initialTimestamp || 0
       } else {
-        goToItem('previous')
-        return
+        if (props.index === 0) {
+          // If we're not looping then there's no previous video to go back to so just go to the start of this one
+          nextSkipBackTime = 0
+        } else {
+          goToItem('previous')
+          return
+        }
       }
+
     }
     videojsPlayerRef.current?.currentTime(nextSkipBackTime)
     setCurrentlyPlayingMarkers(findCurrentlyPlayingMarkers(nextSkipBackTime))
