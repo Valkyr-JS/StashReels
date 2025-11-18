@@ -203,56 +203,48 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     }
   }, [isCurrentVideo, autoplay]);
 
-  // Handle clicks and gestures on the video element
-  const handlePointerUp = useCallback((event: PointerEvent) => {
-    const {target: videoElm} = event;
-    if (!(videoElm instanceof HTMLVideoElement)) return;
-
-    const videoElmWidth = videoElm.clientWidth
-    logger.debug(`Pointer up at X=${event.clientX} (video width: ${videoElmWidth}){*}`);
-    if (event.clientX < (videoElmWidth / 3)) {
-      seekBackwards()
-    } else if (event.clientX < ((videoElmWidth / 3) * 2)) {
-      if (videojsPlayerRef.current?.paused()) {
-        videojsPlayerRef.current?.play()
-      } else {
-        videojsPlayerRef.current?.pause()
-      }
-    } else {
-      seekForwards()
+  const initialTimestamp = useMemo(() => {
+    if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
+      return undefined
+    } else if (startPosition === 'random') {
+      return getRandomPointInScene(scene)
     }
-  }, [])
+    return props.mediaItem.entity.resume_time ?? undefined;
+  }, [props.mediaItem.entityType === "marker" || startPosition, getMediaItemDuration()]);
 
-  useEffect(() => {
-    if (!isCurrentVideo) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
-      const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
-      (e.key === seekBackwardsKey || e.key === seekForwardsKey) &&
-        logger.debug(`MediaSlide ${props.index} Keydown; key=${e.key}; backKey=${seekBackwardsKey}; forwardKey=${seekForwardsKey}`);
-      if (e.key === seekBackwardsKey) {
-        seekBackwards()
-        e.preventDefault()
-        e.stopPropagation() // Stops video.js handling the event
-      } else if (e.key === seekForwardsKey) {
-        seekForwards()
-        e.preventDefault()
-        e.stopPropagation() // Stops video.js handling the event
-      }
+  const endTimestamp = useMemo(() => {
+    if (props.mediaItem.entityType === "marker" || (props.mediaItem.entityType === "scene" && scenePreviewOnly)) return undefined;
+    const duration = props.mediaItem.entity.files[0]?.duration;
+    const lengthRemaining = duration - (initialTimestamp ?? 0);
+    if (endPosition === 'fixed-length') {
+      return Math.min(
+        (initialTimestamp || 0) + (playLength ?? Infinity),
+        duration
+      )
+    } else if (endPosition === 'random-length') {
+      const effectiveMinPlayLength = Math.min(
+        minPlayLength ?? 1,
+        lengthRemaining
+      );
+      const effectiveMaxPlayLength = Math.max(
+        effectiveMinPlayLength,
+        Math.min(
+          maxPlayLength ?? Infinity,
+          lengthRemaining
+        )
+      );
+
+      return (initialTimestamp || 0) + Math.floor(Math.random() * (effectiveMaxPlayLength - effectiveMinPlayLength + 1)) + effectiveMinPlayLength
     }
-    // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
-    window.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown, { capture: true });
-    };
-  }, [forceLandscape, isCurrentVideo]);
+    return undefined;
+  }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration(), scenePreviewOnly]);
 
   useEffect(() => {
     if (!showGuideOverlay) return;
     videojsPlayerRef.current?.pause();
   }, [showGuideOverlay]);
 
-  function getSkipTime(direction: 'forwards' | 'backwards') {
+  const getSkipTime = useCallback((direction: 'forwards' | 'backwards') => {
     const duration = videojsPlayerRef.current?.duration();
     const currentTime = videojsPlayerRef.current?.currentTime();
     if (!duration || currentTime === undefined) {
@@ -291,9 +283,9 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       skipTimeAmount = Math.abs(marker.seconds - currentTime)
     }
     return skipTimeAmount
-  }
+  }, [scene.scene_markers]);
 
-  function seekForwards() {
+  const seekForwards = useCallback(() => {
     if (!videojsPlayerRef.current) return null;
     const duration = videojsPlayerRef.current?.duration();
     if (duration === undefined) return;
@@ -302,8 +294,8 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       return null
     }
     const currentTime = videojsPlayerRef.current?.currentTime();
-    const nextSkipAheadTime = currentTime + skipAmount
-    logger.debug("Seeking forwards{*}", {skipAmount, duration, nextSkipAheadTime})
+    let nextSkipAheadTime = currentTime + skipAmount
+    logger.info("Seeking forwards{*}", {skipAmount, duration, nextSkipAheadTime})
     if (
       // Go to next item if the next jump goes to or past the end of the entire video
       (nextSkipAheadTime > duration)
@@ -311,15 +303,20 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       // Go to next item if we'd be jumping over the end timestamp
       (endTimestamp !== undefined && currentTime <= endTimestamp && nextSkipAheadTime >= endTimestamp)
     ){
-      videojsPlayerRef.current?.trigger('ended');
-      return
+      if (looping) {
+        // If looping then just go back to the initial timestamp or start since going to the end would do that anyway
+        nextSkipAheadTime = initialTimestamp || 0
+      } else {
+        videojsPlayerRef.current?.trigger('ended');
+        return
+      }
     }
     videojsPlayerRef.current?.currentTime(nextSkipAheadTime)
     setCurrentlyPlayingMarkers(findCurrentlyPlayingMarkers(nextSkipAheadTime))
     videojsPlayerRef.current?.play()
-  }
+  }, [getSkipTime, initialTimestamp, endTimestamp, looping]);
 
-  function seekBackwards() {
+  const seekBackwards = useCallback(() => {
     if (!videojsPlayerRef.current) return null;
     const duration = videojsPlayerRef.current?.duration();
     const skipAmount = getSkipTime('backwards')
@@ -327,10 +324,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       return null
     }
     let nextSkipBackTime = videojsPlayerRef.current?.currentTime() - skipAmount
-    logger.debug("Seeking backwards{*}", {skipAmount, duration, nextSkipBackTime})
+    logger.info("Seeking backwards{*}", {skipAmount, duration, nextSkipBackTime})
     if (nextSkipBackTime <= 0) {
-      if (props.index === 0) {
-        // There's no previous video to go back to so just go to the very start of this one
+      if (looping || props.index === 0) {
+        // If we're not looping then there's no previous video to go back to so just go to the start of this one
         nextSkipBackTime = 0
       } else {
         goToItem('previous')
@@ -340,7 +337,51 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     videojsPlayerRef.current?.currentTime(nextSkipBackTime)
     setCurrentlyPlayingMarkers(findCurrentlyPlayingMarkers(nextSkipBackTime))
     videojsPlayerRef.current?.play()
-  }
+  }, [getSkipTime, props.index, goToItem, looping]);
+
+  // Handle clicks and gestures on the video element
+  const handlePointerUp = useCallback((event: PointerEvent) => {
+    const {target: videoElm} = event;
+    if (!(videoElm instanceof HTMLVideoElement)) return;
+
+    const videoElmWidth = videoElm.clientWidth
+    logger.debug(`Pointer up at X=${event.clientX} (video width: ${videoElmWidth}){*}`);
+    if (event.clientX < (videoElmWidth / 3)) {
+      seekBackwards()
+    } else if (event.clientX < ((videoElmWidth / 3) * 2)) {
+      if (videojsPlayerRef.current?.paused()) {
+        videojsPlayerRef.current?.play()
+      } else {
+        videojsPlayerRef.current?.pause()
+      }
+    } else {
+      seekForwards()
+    }
+  }, [seekBackwards, seekForwards]);
+
+  useEffect(() => {
+    if (!isCurrentVideo) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
+      const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
+      (e.key === seekBackwardsKey || e.key === seekForwardsKey) &&
+        logger.debug(`MediaSlide ${props.index} Keydown; key=${e.key}; backKey=${seekBackwardsKey}; forwardKey=${seekForwardsKey}`);
+      if (e.key === seekBackwardsKey) {
+        seekBackwards()
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      } else if (e.key === seekForwardsKey) {
+        seekForwards()
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      }
+    }
+    // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+    };
+  }, [forceLandscape, isCurrentVideo, seekBackwards, seekForwards, props.index]);
 
   // These classes allow us to better control when the big play button shows to avoid showing it if we're likely to
   // immediately hide it again such as when auto-playing
@@ -417,42 +458,6 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     return Math.floor(randomPoint)
   }
 
-
-  const initialTimestamp = useMemo(() => {
-    if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
-      return undefined
-    } else if (startPosition === 'random') {
-      return getRandomPointInScene(scene)
-    }
-    return props.mediaItem.entity.resume_time ?? undefined;
-  }, [props.mediaItem.entityType === "marker" || startPosition, getMediaItemDuration()]);
-
-  const endTimestamp = useMemo(() => {
-    if (props.mediaItem.entityType === "marker" || (props.mediaItem.entityType === "scene" && scenePreviewOnly)) return undefined;
-    const duration = props.mediaItem.entity.files[0]?.duration;
-    const lengthRemaining = duration - (initialTimestamp ?? 0);
-    if (endPosition === 'fixed-length') {
-      return Math.min(
-        (initialTimestamp || 0) + (playLength ?? Infinity),
-        duration
-      )
-    } else if (endPosition === 'random-length') {
-      const effectiveMinPlayLength = Math.min(
-        minPlayLength ?? 1,
-        lengthRemaining
-      );
-      const effectiveMaxPlayLength = Math.max(
-        effectiveMinPlayLength,
-        Math.min(
-          maxPlayLength ?? Infinity,
-          lengthRemaining
-        )
-      );
-
-      return (initialTimestamp || 0) + Math.floor(Math.random() * (effectiveMaxPlayLength - effectiveMinPlayLength + 1)) + effectiveMinPlayLength
-    }
-    return undefined;
-  }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration(), scenePreviewOnly]);
 
   useEffect(() => {
     if (!playerReady) return;
