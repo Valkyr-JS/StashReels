@@ -341,7 +341,6 @@ const ScenePlayer = forwardRef<
         onVideojsPlayerReady?.(player);
         videojsPlayerRef.current = player;
         setVideojsPlayer(player);
-        handleInitialTimestamp();
 
         const videoElm = player.el()?.querySelector('video')
         if (!videoElm) {
@@ -357,9 +356,10 @@ const ScenePlayer = forwardRef<
     ScenePlayer and handle starting at the initialTimestamp ourselves once the Video.js player has been created.
     */
     function handleInitialTimestamp() {
-        if (!initialTimestamp) return;
+        if (initialTimestamp === undefined) return;
         videojsPlayerRef.current?.currentTime(initialTimestamp);
     }
+    useEffect(handleInitialTimestamp, [initialTimestamp]);
 
     // Options to inject into wrapped ScenePlayer's Video.js instance when it's being created
     videoJsOptionsOverride[playerId] = {

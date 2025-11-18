@@ -25,6 +25,7 @@ import { ActionButtons } from "../ActionButtons";
 import SceneInfo from "../SceneInfo";
 import { getLogger } from "@logtape/logtape";
 import abLoopPlugin from "videojs-abloop";
+import ClipTimestamp from "../ClipTimestamp";
 
 videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
@@ -419,7 +420,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   const initialTimestamp = useMemo(() => {
     if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
-      return 0
+      return undefined
     } else if (startPosition === 'random') {
       return getRandomPointInScene(scene)
     }
@@ -610,13 +611,12 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           </>,
           videoJsControlBarElm
         )}
-        {endTimestamp !== undefined && videoJsProgressControlElm && createPortal(
-          <>
-            <div
-              className="vjs-control end-timestamp"
-              style={{left: `${(endTimestamp / (videojsPlayerRef.current?.duration() || 1)) * 100}%`}}
-            ></div>
-          </>,
+        {initialTimestamp && videoJsProgressControlElm && createPortal(
+          <ClipTimestamp type="start" progressPercentage={(initialTimestamp / (videojsPlayerRef.current?.duration() || 1)) * 100} />,
+          videoJsProgressControlElm
+        )}
+        {endTimestamp !== undefined && endTimestamp < (videojsPlayerRef.current?.duration() || 1) && videoJsProgressControlElm && createPortal(
+          <ClipTimestamp type="end" progressPercentage={(endTimestamp / (videojsPlayerRef.current?.duration() || 1)) * 100} />,
           videoJsProgressControlElm
         )}
         <SceneInfo

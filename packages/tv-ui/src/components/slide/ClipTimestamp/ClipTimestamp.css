@@ -1,0 +1,26 @@
+/* Nest in .video-js to increase specificity */
+.video-js {
+  .ClipTimestamp {
+    position: absolute;
+    top: 50%;
+    opacity: 0.8;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+    height: auto;
+
+    &::after {
+      display: block;
+      content: "";
+      height: 1em;
+      width: 2px;
+    }
+
+    &.start-timestamp {
+      background: var(--green);
+    }
+
+    &.end-timestamp {
+      background: var(--red);
+    }
+  }
+}
