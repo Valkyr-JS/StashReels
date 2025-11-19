@@ -16,6 +16,7 @@ import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
 import { NumberField } from "stash-ui/dist/src/utils/form";
 import { LogLevel } from "@logtape/logtape";
+import { getLoggers } from "../../../helpers/logging";
 
 const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -36,6 +37,8 @@ const SettingsTab = memo(() => {
     showDevOptions,
     videoJsEventsToLog,
     logLevel,
+    loggersToShow,
+    loggersToHide,
     showDebuggingInfo,
     autoPlay,
     startPosition,
@@ -167,6 +170,32 @@ const SettingsTab = memo(() => {
       label,
     }))
   ), []);
+
+  const [loggers, setLoggers] = React.useState(getLoggers());
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newLoggers = getLoggers();
+      setLoggers([
+        ...loggers,
+        ...newLoggers.filter(newLogger => !loggers.includes(newLogger))
+      ]);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [loggers]);
+
+  const loggerOptions = useMemo(() => loggers
+    .map(logger => logger.category)
+    .filter(category =>
+      category.length // Exclude root logger
+      && category[0] !== "logtape" // Exclude logtape internal loggers
+      && (category.length !== 1 || category[0] !== "stash-tv") // Exclude root stash-tv logger
+    )
+    .map(category => ({
+      value: category,
+      label: category.join(" / ").replace(/^stash-tv \/ /, ""),
+    }))
+    .toSorted((a, b) => a.label.localeCompare(b.label))
+  , [loggers]);
 
   const showDebuggingInfoOptions = useMemo(() => (
     Object.entries(
@@ -493,6 +522,9 @@ const SettingsTab = memo(() => {
             </Form.Group>
 
             <Form.Group>
+              <label htmlFor="log-level">
+                Log Level to Show
+              </label>
               <Select
                 inputId="log-level"
                 value={logLevelOptions.find(option => option.value === logLevel) ?? null}
@@ -503,6 +535,53 @@ const SettingsTab = memo(() => {
             </Form.Group>
 
             <Form.Group>
+              <label htmlFor="loggers-to-show">
+                Loggers to Show
+              </label>
+              <Select
+                inputId="loggers-to-show"
+                expandWidthToFit={true}
+                options={loggerOptions}
+                value={loggerOptions.filter(
+                  ({value: category}) => loggersToShow.some(
+                    shownCategory => (category.length === shownCategory.length) && category.every(
+                      (part, index) => part === shownCategory[index]
+                    )
+                  )
+                )}
+                onChange={(newValues) => setAppSetting("loggersToShow", newValues.map(option => option.value))}
+                isMulti={true}
+                closeMenuOnSelect={false}
+              />
+              <Form.Text className="text-muted">Loggers to show logs from. An empty list will show any that aren't otherwise hidden.</Form.Text>
+            </Form.Group>
+
+            <Form.Group>
+              <label htmlFor="loggers-to-hide">
+                Loggers to Hide
+              </label>
+              <Select
+                inputId="loggers-to-hide"
+                options={loggerOptions}
+                value={loggerOptions.filter(
+                  ({value: category}) => loggersToHide.some(
+                    hiddenCategory => (category.length === hiddenCategory.length) && category.every(
+                      (part, index) => part === hiddenCategory[index]
+                    )
+                  )
+                )}
+                placeholder="All loggers"
+                onChange={(newValues) => setAppSetting("loggersToHide", newValues.map(option => option.value))}
+                isMulti={true}
+                closeMenuOnSelect={false}
+              />
+              <Form.Text className="text-muted">Loggers to hide logs from.</Form.Text>
+            </Form.Group>
+
+            <Form.Group>
+              <label htmlFor="show-debugging-info">
+                Additional Debugging Info
+              </label>
               <Select
                 inputId="show-debugging-info"
                 value={showDebuggingInfoOptions.filter(option => showDebuggingInfo.includes(option.value))}

@@ -13,10 +13,10 @@ import {setupLogging} from "../helpers/logging";
 await setupLogging()
 
 const App = () => {
-  const { forceLandscape, logLevel } = useAppStateStore()
+  const { forceLandscape, logLevel, loggersToShow, loggersToHide } = useAppStateStore()
   useEffect(() => {
-    setupLogging({logLevel});
-  }, [logLevel]);
+    setupLogging({logLevel, logCategoriesToShow: loggersToShow, logCategoriesToHide: loggersToHide});
+  }, [logLevel, loggersToShow, loggersToHide]);
 
   const stashConfig = GQL.useConfigurationQuery();
 

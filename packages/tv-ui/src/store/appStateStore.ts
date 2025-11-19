@@ -31,6 +31,8 @@ type AppState = {
   // Developer options
   showDevOptions: boolean;
   logLevel: LogLevel;
+  loggersToShow: (readonly string[])[];
+  loggersToHide: (readonly string[])[];
   showDebuggingInfo: (DebuggingInfo)[];
   videoJsEventsToLog: readonly string[];
 }
@@ -65,6 +67,8 @@ export const useAppStateStore = create<AppState & AppAction>()(
       showGuideOverlay: true,
       showDevOptions: false,
       logLevel: defaultLogLevel,
+      loggersToShow: [],
+      loggersToHide: [],
       showDebuggingInfo: [],
       videoJsEventsToLog: [],
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
