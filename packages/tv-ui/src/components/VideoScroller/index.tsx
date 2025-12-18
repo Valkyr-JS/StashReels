@@ -13,12 +13,12 @@ import { getLogger } from "@logtape/logtape";
 
 interface VideoScrollerProps {}
 
-const mediaSlideHeight = "calc(var(--y-unit-small) * 100)"
+const mediaSlideHeight = "calc(var(--y-unit-large) * 100)"
 
 export type ScrollToIndexOptions = { behavior?: ScrollBehavior }
 
 /** The number of items to fetch data for. */
-export const itemBufferEitherSide = 1 as const;
+export const itemBufferEitherSide = 2 as const;
 
 const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
   const {

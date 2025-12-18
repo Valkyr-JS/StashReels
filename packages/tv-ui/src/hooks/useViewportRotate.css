@@ -6,8 +6,6 @@ html {
   --x-unit-dynamic: 1dvw;
   --y-unit-dynamic: 1dvh;
   --y-dynamic-diff: calc((100 * var(--y-unit-large)) - (100 * var(--y-unit-dynamic)));
-  /* This is disabled until it becomes possible to have 100lvh stretch across the whole screen again on iOS */
-  --y-dynamic-diff: 0px;
   --safe-inset-top: env(safe-area-inset-top, 0);
   --safe-inset-right: env(safe-area-inset-right, 0);
   --safe-inset-bottom: env(safe-area-inset-bottom, 0);
