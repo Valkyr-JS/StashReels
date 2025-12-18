@@ -9,6 +9,7 @@ import { IntlProvider, CustomFormats } from "react-intl";
 import englishMessages from "stash-ui/dist/src/locales/en-GB.json";
 import flattenMessages from "stash-ui/dist/src/utils/flattenMessages";
 import {setupLogging} from "../helpers/logging";
+import FeedbackOverlay from "../components/FeedbackOverlay";
 
 await setupLogging()
 
@@ -58,6 +59,7 @@ const App = () => {
           configuration={modifiedStashConfig}
           loading={stashConfig.loading}
         >
+          <FeedbackOverlay />
           <FeedPage />
         </ConfigurationProvider>
       </ErrorBoundary>

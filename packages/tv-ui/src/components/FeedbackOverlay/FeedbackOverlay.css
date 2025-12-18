@@ -1,0 +1,43 @@
+.FeedbackOverlay {
+  position: fixed;
+  top: 5vh;
+  left: 50%;
+  pointer-events: none;
+  z-index: 1000;
+  background: rgb(from var(--body-bg) r g b / 70%);
+  text-shadow: var(--body-bg) 1px 1px 20px;
+  transform: translate(-50%);
+  border-radius: 1rem;
+  padding: calc(0.7em - 0.17lh) clamp(1em, 1.5vw, 2em) calc(0.7em - 0.13lh);
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  opacity: 0.9;
+  text-align: center;
+  width: max-content;
+  max-width: calc(100% - 2em);
+  min-height: 1.5lh;
+
+  &.fade-out {
+    animation: feedback-overlay-fade-out 2s forwards;
+  }
+
+  > .contents-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    justify-content: center;
+    align-items: center;
+    min-height: 1.2lh;
+  }
+}
+
+@starting-style {
+  .FeedbackOverlay {
+    opacity: 0;
+  }
+}
+
+@keyframes feedback-overlay-fade-out {
+  100% {
+    opacity: 0;
+  }
+}
