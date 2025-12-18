@@ -51,6 +51,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
     }
   }, []);
 
+  const previousEstimatedSizeRef = useRef<number | null>(null);
 
   const sharedOptions = {
     count: mediaItems.length,
@@ -66,7 +67,10 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
       }
 
       const itemHeight = estimateSizeTesterElement.current.offsetHeight;
-      logger.debug(`Estimated item height: ${itemHeight}`)
+      if (previousEstimatedSizeRef.current !== itemHeight) {
+        logger.debug(`Updated estimated item height from ${previousEstimatedSizeRef.current} to ${itemHeight}`);
+        previousEstimatedSizeRef.current = itemHeight;
+      }
 
       return itemHeight;
     },
