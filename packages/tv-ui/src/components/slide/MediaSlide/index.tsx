@@ -338,7 +338,11 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       nextSkipBackTime = initialTimestamp || 0
     // Go to previous item if the next jump goes to or past the start of the video
     } else if (nextSkipBackTime < 0) {
-      if (props.index === 0) {
+      // If looping or not already at the start (with 2 second grace period to avoid play immediately moving beyond the
+      // start and thus preventing us from ever going back further) then go to the start
+      if (looping || currentTime > 2) {
+        nextSkipBackTime = 0
+      } else if (props.index === 0) {
         // If there's no previous video to go back to just go to the start of this one
         nextSkipBackTime = 0
       } else {
