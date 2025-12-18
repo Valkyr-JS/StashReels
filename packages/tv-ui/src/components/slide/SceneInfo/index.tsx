@@ -10,9 +10,10 @@ export type Props = {
   style?: React.CSSProperties;
   scene: GQL.TvSceneDataFragment;
   className?: string;
+  onExternalLinkClick?: () => void;
 }
 
-const SceneInfo = forwardRef(({scene, className, style}: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
+const SceneInfo = forwardRef(({scene, className, style, onExternalLinkClick}: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
     /* ---------------------------------- Date ---------------------------------- */
 
     const date = scene.date ? (
@@ -79,7 +80,7 @@ const SceneInfo = forwardRef(({scene, className, style}: Props, ref: React.Forwa
         }}
       >
         {studio}
-        <a href={sceneUrl || ""} target="_blank">{title}</a>
+        <a href={sceneUrl || ""} target="_blank" onClick={onExternalLinkClick}>{title}</a>
         {performers}
         {date}
       </div>

@@ -709,6 +709,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           ref={sceneInfoPanelRef}
           scene={scene}
           className={cx({active: sceneInfoOpen})}
+          onExternalLinkClick={() => videojsPlayerRef.current?.pause()}
         />
         <ActionButtons scene={scene} sceneInfoOpen={sceneInfoOpen} setSceneInfoOpen={setSceneInfoOpen} />
       </CrtEffect>
