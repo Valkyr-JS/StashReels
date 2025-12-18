@@ -14,7 +14,6 @@ import { Button, Form, Accordion } from "react-bootstrap";
 import { AccordionContext } from "react-bootstrap";
 import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
-import { NumberField } from "stash-ui/dist/src/utils/form";
 import { LogLevel } from "@logtape/logtape";
 import { getLoggers } from "../../../helpers/logging";
 
@@ -174,10 +173,11 @@ const SettingsTab = memo(() => {
   const [loggers, setLoggers] = React.useState(getLoggers());
   useEffect(() => {
     const interval = setInterval(() => {
-      const newLoggers = getLoggers();
+      const newLoggers = getLoggers().filter(newLogger => !loggers.includes(newLogger))
+      if (newLoggers.length === 0) return;
       setLoggers([
         ...loggers,
-        ...newLoggers.filter(newLogger => !loggers.includes(newLogger))
+        ...newLoggers
       ]);
     }, 1000);
     return () => clearInterval(interval);
@@ -389,7 +389,8 @@ const SettingsTab = memo(() => {
                 <label htmlFor="play-length">
                   Play Length (Seconds)
                 </label>
-                <NumberField
+                <Form.Control
+                  type="number"
                   id="play-length"
                   className="text-input"
                   value={playLength ?? ""}
@@ -415,7 +416,8 @@ const SettingsTab = memo(() => {
                   <label htmlFor="min-play-length" className="sr-only">
                     Random Length Minimum
                   </label>
-                  <NumberField
+                  <Form.Control
+                    type="number"
                     id="min-play-length"
                     className="text-input"
                     placeholder="Min"
@@ -432,7 +434,8 @@ const SettingsTab = memo(() => {
                   <label htmlFor="max-play-length" className="sr-only">
                     Random Length Maximum
                   </label>
-                  <NumberField
+                  <Form.Control
+                    type="number"
                     id="max-play-length"
                     className="text-input"
                     value={maxPlayLength ?? ""}
@@ -597,7 +600,8 @@ const SettingsTab = memo(() => {
               <label htmlFor="max-media">
                 Media Limit
               </label>
-              <NumberField
+              <Form.Control
+                type="number"
                 id="max-media"
                 className="text-input"
                 value={maxMedia ?? ""}

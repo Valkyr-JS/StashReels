@@ -23,6 +23,7 @@ const reactFiberTags = {
 declare global {
   interface Window {
     whyDidYouRender: typeof import('@welldone-software/why-did-you-render').default;
+    renderComponentTree: () => void;
   }
 }
 
@@ -227,7 +228,7 @@ if (import.meta.env.DEV && JSON.parse(localStorage.getItem("enableRenderDebuggin
 
     for (let i = 0; i < processedTree.length; i++) {
       const {nameDetails: {fullName}, fibers} = processedTree[i];
-      console.groupCollapsed(" ".repeat(i * 2) + fullName);
+      console.groupCollapsed(" ".repeat(i * 2) + fullName, ...fibers.map(fiber => fiber.stateNode).filter(Boolean));
       console.log(...fibers);
       console.groupEnd();
     }
@@ -360,4 +361,5 @@ if (import.meta.env.DEV && JSON.parse(localStorage.getItem("enableRenderDebuggin
   }
 
   window.whyDidYouRender = whyDidYouRender;
+  window.renderComponentTree = renderComponentTree
 }
