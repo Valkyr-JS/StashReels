@@ -5,7 +5,7 @@
   pointer-events: none;
   z-index: 1000;
   background: rgb(from var(--body-bg) r g b / 70%);
-  text-shadow: var(--body-bg) 1px 1px 20px;
+  text-shadow: var(--body-bg) 0 0 10px;
   transform: translate(-50%);
   border-radius: 1rem;
   padding: calc(0.7em - 0.17lh) clamp(1em, 1.5vw, 2em) calc(0.7em - 0.13lh);
@@ -15,6 +15,24 @@
   width: max-content;
   max-width: calc(100% - 2em);
   min-height: 1.5lh;
+
+  &.muted {
+    background: transparent;
+    opacity: 0.5;
+    text-shadow:
+      rgba(from var(--body-bg) r g b / 25%) 1px  -1px 5px,
+      rgba(from var(--body-bg) r g b / 25%) 1px  1px  5px,
+      rgba(from var(--body-bg) r g b / 25%) -1px -1px 5px,
+      rgba(from var(--body-bg) r g b / 25%) -1px 1px  5px;
+  }
+
+  svg {
+    filter:
+      drop-shadow(rgba(from var(--body-bg) r g b / 12%) 1px -1px  5px)
+      drop-shadow(rgba(from var(--body-bg) r g b / 12%) 1px  1px  5px)
+      drop-shadow(rgba(from var(--body-bg) r g b / 12%) -1px -1px 5px)
+      drop-shadow(rgba(from var(--body-bg) r g b / 12%) -1px  1px 5px);
+  }
 
   &.fade-out {
     animation: feedback-overlay-fade-out 2s forwards;
