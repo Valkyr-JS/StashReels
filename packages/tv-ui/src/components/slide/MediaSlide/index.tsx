@@ -205,7 +205,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   const initialTimestamp = useMemo(() => {
     if (props.mediaItem.entityType === "marker" || startPosition === 'beginning') {
-      return undefined
+      return 0
     } else if (startPosition === 'random') {
       return getRandomPointInScene(scene)
     }
@@ -235,9 +235,13 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       );
 
       return (initialTimestamp || 0) + Math.floor(Math.random() * (effectiveMaxPlayLength - effectiveMinPlayLength + 1)) + effectiveMinPlayLength
+    } else if (endPosition === 'video-end') {
+      return looping ? duration : undefined;
+    } else {
+      endPosition satisfies never
+      return undefined;
     }
-    return undefined;
-  }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration(), scenePreviewOnly]);
+  }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration(), scenePreviewOnly, looping]);
 
   useEffect(() => {
     if (!showGuideOverlay) return;
@@ -326,27 +330,18 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     let nextSkipBackTime = currentTime - skipAmount
     logger.info("Seeking backwards{*}", {skipAmount, duration, nextSkipBackTime})
-    if (
-      // Go to next item if the next jump goes to or past the end of the entire video
-      (nextSkipBackTime < 0)
-      ||
-      // Go to next item if we'd be jumping over the end timestamp
-      (initialTimestamp !== undefined && currentTime >= initialTimestamp && nextSkipBackTime < initialTimestamp)
-    ){
-      // If looping or not already at the start (with 2 second grace period to avoid play immediately moving beyond the
-      // start and thus preventing us from ever going back further) then go to the start
-      if (looping || currentTime > ((initialTimestamp ?? 0) + 2)) {
-        nextSkipBackTime = initialTimestamp || 0
+    // If looping and we'd be going before the initial timestamp go to the initial timestamp
+    if (looping && initialTimestamp !== undefined && currentTime >= initialTimestamp && nextSkipBackTime < initialTimestamp) {
+      nextSkipBackTime = initialTimestamp || 0
+    // Go to previous item if the next jump goes to or past the start of the video
+    } else if (nextSkipBackTime < 0) {
+      if (props.index === 0) {
+        // If there's no previous video to go back to just go to the start of this one
+        nextSkipBackTime = 0
       } else {
-        if (props.index === 0) {
-          // If we're not looping then there's no previous video to go back to so just go to the start of this one
-          nextSkipBackTime = 0
-        } else {
-          goToItem('previous')
-          return
-        }
+        goToItem('previous')
+        return
       }
-
     }
     videojsPlayerRef.current?.currentTime(nextSkipBackTime)
     setCurrentlyPlayingMarkers(findCurrentlyPlayingMarkers(nextSkipBackTime))
@@ -544,7 +539,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   const handleOnTimeUpdate = useCallback(() => {
     const currentTime = videojsPlayerRef.current?.currentTime();
     if (currentTime === undefined) return;
-    if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3)) {
+    if (endTimestamp !== undefined && currentTime >= endTimestamp && currentTime <= (endTimestamp + 3) && !videojsPlayerRef.current?.scrubbing()) {
       logger.debug(`End timestamp reached at ${currentTime}s (end: ${endTimestamp}s)`);
       videojsPlayerRef.current?.trigger('ended');
     }
@@ -630,11 +625,11 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           </>,
           videoJsControlBarElm
         )}
-        {initialTimestamp && videoJsProgressControlElm && createPortal(
+        {looping && initialTimestamp !== undefined && videoJsProgressControlElm && createPortal(
           <ClipTimestamp type="start" progressPercentage={(initialTimestamp / (videojsPlayerRef.current?.duration() || 1)) * 100} />,
           videoJsProgressControlElm
         )}
-        {endTimestamp !== undefined && endTimestamp < (videojsPlayerRef.current?.duration() || 1) && videoJsProgressControlElm && createPortal(
+        {endTimestamp !== undefined && videoJsProgressControlElm && createPortal(
           <ClipTimestamp type="end" progressPercentage={(endTimestamp / (videojsPlayerRef.current?.duration() || 1)) * 100} />,
           videoJsProgressControlElm
         )}

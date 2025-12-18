@@ -11,15 +11,17 @@
     &::after {
       display: block;
       content: "";
-      height: 1em;
-      width: 2px;
+      height: 0.8em;
+      width: 1px;
     }
 
     &.start-timestamp {
+      outline: oklab(from var(--green) calc(l * 1.5) a b) 1px solid;
       background: var(--green);
     }
 
     &.end-timestamp {
+      outline: oklab(from var(--red) calc(l * 1.5) a b) 1px solid;
       background: var(--red);
     }
   }

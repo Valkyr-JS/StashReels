@@ -403,7 +403,7 @@ const SettingsTab = memo(() => {
                   }
                 />
                 <Form.Text className="text-muted">
-                  The length to play the scene for. Will play the full scene if not set.
+                  The length to play the scene for after the start point. Will play the full scene if not set.
                 </Form.Text>
               </Form.Group>}
 

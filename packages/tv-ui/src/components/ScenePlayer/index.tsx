@@ -356,7 +356,7 @@ const ScenePlayer = forwardRef<
     ScenePlayer and handle starting at the initialTimestamp ourselves once the Video.js player has been created.
     */
     function handleInitialTimestamp() {
-        if (initialTimestamp === undefined) return;
+        if (!initialTimestamp) return;
         videojsPlayerRef.current?.currentTime(initialTimestamp);
     }
     useEffect(handleInitialTimestamp, [initialTimestamp]);
@@ -453,10 +453,10 @@ const ScenePlayer = forwardRef<
         let scene = JSON.parse(JSON.stringify(otherProps.scene));
 
         // Wrapped ScenePlayer will start playback from resume_time even if initialTimestamp is set when it's set to 0.
-        // By making resume_time at least as long as duration we short circuit some of it's logic and cause it to
+        // By making resume_time at least as long as duration we short circuit some of it's logic and cause it to use
         // initialTimestamp.
         if (initialTimestamp !== undefined) {
-            scene.resume_time = otherProps.scene.files?.[0]?.duration;
+            scene.resume_time = Infinity;
         }
 
         // Wrapped ScenePlayer only needs a subset of SceneDataFragment so to reduce network request
