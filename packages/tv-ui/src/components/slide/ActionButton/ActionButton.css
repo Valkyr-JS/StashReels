@@ -39,14 +39,21 @@
 
     svg {
       height: 28px;
-      width: auto;
+      width: 100%;
       /* Buttons will flex shrink as needed up to the size of the svg + any svg margin. We add a bit of margin to ensure
       they don't get too close to each other. */
       --flex-margin: 7px;
       margin-top: var(--flex-margin);
       margin-bottom: var(--flex-margin);
-      --shadow-layer-opacity: 0.1;
-      filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(5px -5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity))) drop-shadow(-5px 5px 10px rgba(0, 0, 0, var(--shadow-layer-opacity)));
+      --shadow-layer-opacity: 0.2;
+      --shadow-offset: 4px;
+      --shadow-blur: 4px;
+      filter:
+        drop-shadow(calc(var(--shadow-offset) * 1)  calc(var(--shadow-offset) * 1)  var(--shadow-blur) rgba(0, 0, 0, var(--shadow-layer-opacity)))
+        drop-shadow(calc(var(--shadow-offset) * -1) calc(var(--shadow-offset) * -1) var(--shadow-blur) rgba(0, 0, 0, var(--shadow-layer-opacity)))
+        drop-shadow(calc(var(--shadow-offset) * 1)  calc(var(--shadow-offset) * -1) var(--shadow-blur) rgba(0, 0, 0, var(--shadow-layer-opacity)))
+        drop-shadow(calc(var(--shadow-offset) * -1) calc(var(--shadow-offset) * 1)  var(--shadow-blur) rgba(0, 0, 0,
+        var(--shadow-layer-opacity)));
 
       path {
         stroke: white;
@@ -83,6 +90,7 @@
   border: 0;
   border-radius: 0.5em;
   font-size: unset;
+  translate: calc(var(--safe-inset-right) * -1) 0 !important;
 
   > .arrow::after {
     border-left-color: var(--body-bg);

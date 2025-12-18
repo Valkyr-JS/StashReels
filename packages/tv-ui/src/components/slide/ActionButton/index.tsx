@@ -82,7 +82,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
           {'icon' in Icon ? (
             <FontAwesomeIcon icon={Icon} />
           ) : (
-            <Icon className="icon" />
+            <Icon className={cx("icon", `icon-${className}`)} />
           )}
           <span className="sr-only">
             {active ? activeText : inactiveText}

@@ -13,7 +13,7 @@
   z-index: 3;
   max-height: calc(var(--y-unit-small) * 100 - var(--bottom-offset));
 
-  .stack, .stack-inner {
+  .stack {
     position: relative;
     display: flex;
     padding-top: 10px;
@@ -23,7 +23,11 @@
     /* Firefox will automatically make overflow-x visible if overflow-y is set to auto even if we try to explicitly set
 overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appearing. */
     overflow-x: hidden;
-    overscroll-behavior: contain;
+
+    /* To avoid the drop shadows of the buttons being clipped we add some padding */
+    min-width: calc(40px + (0.6em * 3)); /* Button width + padding on either side + extra for scroll bar */
+    padding-right: 0.6em;
+    translate: 0.6em 0;
 
     --additional-transitions: var(--overflow-indicators-transition);
   }
@@ -60,7 +64,11 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
       }
 
       &.fa-ellipsis-vertical {
-        --shadow-layer-opacity: 0.26;
+        --shadow-layer-opacity: 0.15;
+      }
+
+      &.icon-fullscreen {
+        --shadow-layer-opacity: 0.3;
       }
     }
   }
