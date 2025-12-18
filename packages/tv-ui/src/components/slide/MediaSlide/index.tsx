@@ -23,9 +23,15 @@ import "./video-js-plugins/styled-big-play-button.css";
 import { type ScrollToIndexOptions } from "../../VideoScroller";
 import { ActionButtons } from "../ActionButtons";
 import SceneInfo from "../SceneInfo";
-import { getLogger } from "@logtape/logtape";
+import { getLogger, type Logger } from "@logtape/logtape";
 import abLoopPlugin from "videojs-abloop";
 import ClipTimestamp from "../ClipTimestamp";
+import { SharedGestureState, useGesture } from "@use-gesture/react";
+import { useFeedback } from "../../FeedbackOverlay";
+import { clamp, roundTo, roundToNearest } from "../../../helpers";
+import UAParser from "ua-parser-js";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPause, faPlay, faForward, faBackward } from "@fortawesome/free-solid-svg-icons";
 
 videojs.registerPlugin('styledBigPlayButton', styledBigPlayButton);
 
@@ -109,11 +115,11 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   function handleVideojsPlayerReady(player: VideoJsPlayer) {
     videojsPlayerRef.current = player;
     player.on("volumechange", () => {
-      logger.debug(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
+      logger.info(`Video.js player volumechange event - player ${player.muted() ? "" : "not"} muted`);
       setAppSetting("audioMuted", player.muted());
     });
     if (audioMuted !== player.muted()) {
-      logger.debug(`Video.js player loaded - player ${player.muted() ? "" : "not"} muted`);
+      logger.info(`Video.js player loaded - volume player ${player.muted() ? "" : "not"} muted`);
       setAppSetting("audioMuted", player.muted());
     }
     // We resort to `any` here because the types for videojs are incomplete
@@ -157,13 +163,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }, [noAnimateDurationThreshold, props.changeItemHandler, props.index, isCurrentVideo]);
 
   useEffect(() => {
-    if (!showDevOptions || !isCurrentVideo || !videojsPlayerRef.current) return;
-
-    // @ts-expect-error - This is for debugging purposes so we don't worry about typing it properly
-    window.tvCurrentPlayer = videojsPlayerRef.current;
-    // @ts-expect-error
-    window.tvCurrentMediaItem = props.mediaItem;
-  }, [isCurrentVideo, showDevOptions])
+    if (!isCurrentVideo || !videojsPlayerRef.current) return;
+    window.tvCurrentPlayer = showDevOptions ? videojsPlayerRef.current : undefined;
+    window.tvCurrentMediaItem = showDevOptions ? props.mediaItem : undefined;
+  }, [isCurrentVideo, showDevOptions, playerReady])
 
   // If duration changes (such as when scenePreviewOnly is toggled) we manually update the player since the
   // progress bar doesn't seem to update otherwise
@@ -348,25 +351,16 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     videojsPlayerRef.current?.play()
   }, [getSkipTime, props.index, goToItem, looping]);
 
-  // Handle clicks and gestures on the video element
-  const handlePointerUp = useCallback((event: PointerEvent) => {
-    const {target: videoElm} = event;
-    if (!(videoElm instanceof HTMLVideoElement)) return;
-
-    const videoElmWidth = videoElm.clientWidth
-    logger.debug(`Pointer up at X=${event.clientX} (video width: ${videoElmWidth}){*}`);
-    if (event.clientX < (videoElmWidth / 3)) {
-      seekBackwards()
-    } else if (event.clientX < ((videoElmWidth / 3) * 2)) {
-      if (videojsPlayerRef.current?.paused()) {
-        videojsPlayerRef.current?.play()
-      } else {
-        videojsPlayerRef.current?.pause()
-      }
-    } else {
-      seekForwards()
-    }
-  }, [seekBackwards, seekForwards]);
+  const {textSelectionWorkaroundElm} = useGestureControls({
+    videoRef,
+    videojsPlayerRef,
+    seekForwards,
+    seekBackwards,
+    logger,
+    looping,
+    initialTimestamp,
+    endTimestamp,
+  })
 
   useEffect(() => {
     if (!isCurrentVideo) return;
@@ -595,7 +589,6 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           onPrevious={() => {}}
           refVideo={videoRef}
           onEnded={handleOnEnded}
-          onPointerUp={handlePointerUp}
           onVideojsPlayerReady={handleVideojsPlayerReady}
           trackActivity={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
           scrubberThumbnail={!scenePreviewOnly && props.mediaItem.entityType !== "marker"}
@@ -625,6 +618,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           </>,
           videoJsControlBarElm
         )}
+        {videojsPlayerRef.current?.el() && createPortal(
+          textSelectionWorkaroundElm,
+          videojsPlayerRef.current?.el()
+        )}
         {looping && initialTimestamp !== undefined && videoJsProgressControlElm && createPortal(
           <ClipTimestamp type="start" progressPercentage={(initialTimestamp / (videojsPlayerRef.current?.duration() || 1)) * 100} />,
           videoJsProgressControlElm
@@ -645,3 +642,540 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 };
 
 export default React.memo(MediaSlide);
+
+function useGestureControls(
+  { videoRef, videojsPlayerRef, seekForwards, seekBackwards, logger, looping, initialTimestamp, endTimestamp }: {
+    videoRef: React.RefObject<HTMLVideoElement | null>,
+    videojsPlayerRef: React.RefObject<VideoJsPlayer | null>,
+    seekForwards: () => void,
+    seekBackwards: () => void,
+    logger: Logger,
+    looping: boolean,
+    initialTimestamp: number | undefined,
+    endTimestamp: number | undefined,
+  }
+) {
+  logger = logger.getChild("useGestureControls");
+
+  const { setFeedback } = useFeedback();
+
+  const waitForClickTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const gestureStateRef = useRef<{
+    clickArea: "left" | "middle" | "right",
+    elementWidth: number,
+    ffOrRewind: {
+      type: "playback-rate",
+      discretePlaybackRate: number,
+    } | {
+      type: "time-skip",
+      discretePlaybackRate: number,
+      seekTimeout: NodeJS.Timeout | null,
+      desiredTimeDelta: number,
+    } | null
+    initialMuteState: boolean,
+    initialPausedState: boolean,
+    thumbnailTimeUpdateHandler: (() => void) | null,
+  } | null>(null);
+
+  function showThumbnail() {
+    const vttThumbnails = videojsPlayerRef.current?.vttThumbnails()
+    if (!vttThumbnails) return;
+    videojsPlayerRef.current?.userActive(true)
+    // @ts-expect-error -- This is a private function but we have no other way to show the thumbnail
+    vttThumbnails.showThumbnailHolder();
+    const duration = videojsPlayerRef.current?.duration();
+    const currentTime = videojsPlayerRef.current?.currentTime();
+    const progressBarWidth = videojsPlayerRef.current?.getChild('ControlBar')?.getChild('ProgressControl')?.el().clientWidth
+    if (!videojsPlayerRef.current || !duration || currentTime === undefined || !progressBarWidth) return;
+    // @ts-expect-error -- This is a private function but we have no other way to update the thumbnail position
+    vttThumbnails.updateThumbnailStyle(
+      currentTime / duration,
+      progressBarWidth
+    );
+  }
+
+  function hideThumbnail() {
+    const vttThumbnails = videojsPlayerRef.current?.vttThumbnails()
+    if (!vttThumbnails) return;
+    // @ts-expect-error -- This is a private function but we have no other way to hide the thumbnail
+    vttThumbnails.hideThumbnailHolder();
+  }
+
+  function setupThumbnailUpdate() {
+    if (!gestureStateRef.current) return;
+    gestureStateRef.current.thumbnailTimeUpdateHandler = showThumbnail
+    videojsPlayerRef.current?.on('timeupdate', showThumbnail);
+    videojsPlayerRef.current?.on('seeking', showThumbnail);
+    videojsPlayerRef.current?.on('progress', showThumbnail);
+    videojsPlayerRef.current?.on('durationchange', showThumbnail);
+  }
+
+  function teardownThumbnailUpdate() {
+    if (!gestureStateRef.current) return;
+    if (!gestureStateRef.current.thumbnailTimeUpdateHandler) return;
+    videojsPlayerRef.current?.off('timeupdate', gestureStateRef.current.thumbnailTimeUpdateHandler);
+    videojsPlayerRef.current?.off('seeking', gestureStateRef.current.thumbnailTimeUpdateHandler);
+    videojsPlayerRef.current?.off('progress', gestureStateRef.current.thumbnailTimeUpdateHandler);
+    videojsPlayerRef.current?.off('durationchange', gestureStateRef.current.thumbnailTimeUpdateHandler);
+    gestureStateRef.current.thumbnailTimeUpdateHandler = null;
+    hideThumbnail();
+  }
+
+  // iOS has an annoying behaviour where text selection can't seem to be disabled on a video.js video element using
+  // "user-select: none". We can disable it on a standard div however so as a workaround we create one in front of the
+  // video and use that for gesture detection instead.
+  let textSelectionWorkaroundElmRef: React.RefObject<HTMLDivElement> | null = null;
+  let textSelectionWorkaroundElm: React.ReactNode = null
+  if (UAParser().os.name?.includes("iOS")) {
+    textSelectionWorkaroundElmRef = useRef<HTMLDivElement>(null);
+    textSelectionWorkaroundElm = (
+      <div
+        ref={textSelectionWorkaroundElmRef}
+        className="text-selection-on-gesture-workaround"
+      />
+    )
+  }
+
+  const gestureElmRef = textSelectionWorkaroundElmRef ?? videoRef;
+
+  const blockOutsideMuteChangeFunction = useRef<((event: Event) => void) | null>(null);
+  const lockedMuteState = useRef<boolean | null>(null);
+
+  // We only want to temporarily mute at some points during the drag so we suppress any related events or attempt to
+  // change it back so that the user's mute setting doesn't get changed.
+  function mute(mute: boolean, {hold}: {hold?: boolean} = {}) {
+    const muteLogger = logger.getChild("mute");
+    if (!videoRef.current) return;
+    if (hold) {
+      lockedMuteState.current = mute
+    }
+    if (hold && !blockOutsideMuteChangeFunction.current) {
+      muteLogger.debug("Adding mute change block")
+      const handler = (event: Event) => {
+        if (videoRef.current && videoRef.current.muted !== lockedMuteState.current) {
+          muteLogger.debug("Mute change blocked")
+        }
+        event.stopPropagation();
+      }
+      videoRef.current?.addEventListener("volumechange", handler, { capture: true });
+      blockOutsideMuteChangeFunction.current = handler
+    }
+    if (videoRef.current.muted !== mute) {
+      muteLogger.debug(`${mute ? "Muting" : "Unmuting"} media`)
+      videoRef.current.muted = mute
+    }
+    if (!hold && blockOutsideMuteChangeFunction.current) {
+      muteLogger.debug("Removing mute change block")
+      videoRef.current?.removeEventListener("volumechange", blockOutsideMuteChangeFunction.current, { capture: true });
+      blockOutsideMuteChangeFunction.current = null
+    }
+  }
+
+  const blockOutsidePausedChange = useRef<((event: Event) => void) | null>(null);
+  const lockedPausedState = useRef<boolean | null>(null);
+
+  // Similar to mute above we want to temporarily pause during drag without affecting the user's desired play/pause state
+  function pause(pause: boolean, {hold}: {hold?: boolean} = {}) {
+    const pauseLogger = logger.getChild("pause");
+    if (!videoRef.current) return;
+    if (hold) {
+      lockedPausedState.current = pause
+    }
+    if (hold && !blockOutsidePausedChange.current) {
+      const handler = (event: Event) => {
+        if (videoRef.current && videoRef.current.paused !== lockedPausedState.current) {
+          pauseLogger.debug("Pause change blocked")
+          if (lockedPausedState.current) {
+            videoRef.current.pause()
+          } else {
+            videoRef.current.play()
+          }
+        }
+        event.stopPropagation();
+      }
+      videoRef.current?.addEventListener("pause", handler, { capture: true });
+      blockOutsidePausedChange.current = handler
+    }
+    if (videoRef.current.paused !== pause) {
+      if (pause) {
+        pauseLogger.debug(`Pausing media`)
+        videoRef.current.pause()
+      } else {
+        pauseLogger.debug(`Playing media`)
+        videoRef.current.play()
+      }
+    }
+    if (!hold && blockOutsidePausedChange.current) {
+      pauseLogger.debug("Removing pause block")
+      videoRef.current?.removeEventListener("pause", blockOutsidePausedChange.current, { capture: true });
+      blockOutsidePausedChange.current = null
+      // Ensure videojs restore's the play/pause state correctly
+      if (pause) {
+        // @ts-expect-error -- Private function but can't think of a better way to do this
+        videojsPlayerRef.current?.handleTechPause_()
+      } else {
+        // @ts-expect-error -- Private function but can't think of a better way to do this
+        videojsPlayerRef.current?.handleTechPlay_()
+      }
+    }
+  }
+
+  function getClickArea(event: PointerEvent | MouseEvent | TouchEvent): {area: "left" | "middle" | "right", elementWidth: number} {
+    if (!(event.target instanceof HTMLElement)) {
+      throw new Error("No event target");
+    }
+    let x
+    if (event instanceof PointerEvent || event instanceof MouseEvent) {
+      x = event.offsetX;
+    } else if (event instanceof TouchEvent) {
+      const touch = event.touches[0];
+      const rect = event.target.getBoundingClientRect();
+      x = touch.pageX - (rect.left + window.scrollX);
+    } else {
+      event satisfies never
+      throw new Error("Unknown event type");
+    }
+    const elementWidth = event.target.clientWidth;
+    if ((x / elementWidth) < (1 / 3)) {
+      return {area: "left", elementWidth};
+    } else if ((x / elementWidth) > (2 / 3)) {
+      return {area: "right", elementWidth};
+    } else {
+      return {area: "middle", elementWidth};
+    }
+  }
+
+  function handleDrag({offsetX}: {offsetX: number}) {
+    if (!gestureElmRef.current) {
+      logger.warn("No gesture element ref");
+      return;
+    }
+    if (!gestureStateRef.current) {
+      logger.warn("Not setup correctly");
+      return;
+    }
+
+    if (!videojsPlayerRef.current?.scrubbing()) {
+      videojsPlayerRef.current?.scrubbing(true);
+    }
+
+    const {clickArea, elementWidth} = gestureStateRef.current;
+    let initialRate
+    switch (clickArea) {
+      case "left":
+        // Rewind if clicking on the left third
+        initialRate = -1.5
+        break;
+      case "right":
+        // Fast-forward if clicking on the right third
+        initialRate = 1.5
+        break;
+      case "middle":
+        // No initial rate if dragging from the middle
+        initialRate = 0;
+    }
+    // Limit to max of 1 third of the videos length
+    const playbackRateDragAdjustment = clamp(
+      (videojsPlayerRef.current?.duration() ?? 0) / -3,
+      ((offsetX / elementWidth) * 10) ** 6 * (offsetX > 0 ? 1 : -1),
+      (videojsPlayerRef.current?.duration() ?? 0) / 3
+    )
+    const playbackRate = initialRate + playbackRateDragAdjustment
+    let discretePlaybackRate
+    if (Math.abs(playbackRate) > 120) {
+      discretePlaybackRate = roundToNearest(playbackRate, 60)
+    } else if (Math.abs(playbackRate) > 60) {
+      discretePlaybackRate = roundToNearest(playbackRate, 30)
+    } else if (Math.abs(playbackRate) > 15) {
+      discretePlaybackRate = roundToNearest(playbackRate, 15)
+    } else if (Math.abs(playbackRate) > 5) {
+      discretePlaybackRate = roundToNearest(playbackRate, 5)
+    } else if (playbackRate > 2 || playbackRate < -1) {
+      discretePlaybackRate = roundTo(playbackRate, 0)
+    } else if (playbackRate > 0 && playbackRate <= 0.1) {
+      discretePlaybackRate = 0
+    } else {
+      discretePlaybackRate = roundTo(playbackRate, 1)
+    }
+    if (gestureStateRef.current.ffOrRewind?.discretePlaybackRate === discretePlaybackRate) {
+      // No change
+      return;
+    }
+    const shouldShowThumbnail = discretePlaybackRate > 5 || discretePlaybackRate < -2;
+    if (shouldShowThumbnail && !gestureStateRef.current.thumbnailTimeUpdateHandler) {
+      setupThumbnailUpdate()
+    } else if (!shouldShowThumbnail && gestureStateRef.current.thumbnailTimeUpdateHandler) {
+      teardownThumbnailUpdate()
+    }
+    const maxRate = 5
+    if (gestureStateRef.current.ffOrRewind) {
+      gestureStateRef.current.ffOrRewind.discretePlaybackRate = discretePlaybackRate
+    }
+    if (discretePlaybackRate >= 0.1 && discretePlaybackRate < maxRate) {
+      const { ffOrRewind } = gestureStateRef.current;
+      if (ffOrRewind?.type !== "playback-rate") {
+        if (ffOrRewind) {
+          logger.info(`Switching to playback rate-based approach`)
+        }
+
+        gestureStateRef.current.ffOrRewind = {
+          type: "playback-rate",
+          discretePlaybackRate: discretePlaybackRate,
+        }
+      }
+      if (discretePlaybackRate) {
+        setFeedback(
+          `${discretePlaybackRate}x`,
+          {hold: true, icon: <FontAwesomeIcon icon={faPlay} />}
+        );
+      } else {
+        setFeedback(null);
+      }
+      if (discretePlaybackRate) {
+        videojsPlayerRef.current?.playbackRate(discretePlaybackRate);
+        pause(false, {hold: true});
+      } else {
+        pause(true, {hold: true});
+      }
+    } else {
+      let ffOrRewind
+      if (gestureStateRef.current.ffOrRewind?.type !== "time-skip") {
+        if (ffOrRewind) {
+          logger.info(`Switching to seek-based approach`)
+        }
+        ffOrRewind = {
+          type: "time-skip" as const,
+          discretePlaybackRate: discretePlaybackRate,
+          seekTimeout: null,
+          desiredTimeDelta: 0,
+        }
+        gestureStateRef.current.ffOrRewind = ffOrRewind
+      } else {
+        ffOrRewind = gestureStateRef.current.ffOrRewind
+      }
+
+      pause(true, {hold: true});
+      if (videojsPlayerRef.current && videojsPlayerRef.current.playbackRate() !== 1) {
+        videojsPlayerRef.current?.playbackRate(1);
+      }
+
+      const currentTime = videojsPlayerRef.current?.currentTime()
+      if (currentTime !== undefined) {
+        const hitTimeBounds = (discretePlaybackRate < 0 && (currentTime <= (initialTimestamp || 0)))
+        || (discretePlaybackRate > 0 && (currentTime >= (endTimestamp ?? Infinity)))
+        // If we are looping and have hit the bounds then we set the feedback in the tick function instead
+        if (!looping || !hitTimeBounds ) {
+          if (discretePlaybackRate) {
+            const minutes = Math.floor(Math.abs(discretePlaybackRate) / 60);
+            const seconds = Math.abs(discretePlaybackRate) % 60;
+            setFeedback(
+              [minutes && `${minutes}m`, seconds && `${seconds}s`].filter(Boolean).join(" "),
+              {
+                hold: true,
+                icon: <FontAwesomeIcon icon={discretePlaybackRate > 0 ? faForward : faBackward} />
+              }
+            );
+          } else {
+            setFeedback(<></>, {hold: true, icon: <FontAwesomeIcon icon={faPause} />});
+          }
+        }
+      }
+
+      const updateFrequency = 100 // In ms
+      if (!ffOrRewind.seekTimeout) {
+        const tick = () => {
+          if (!gestureStateRef.current) {
+            return
+          }
+          const { ffOrRewind } = gestureStateRef.current;
+          if (!ffOrRewind || ffOrRewind.type !== "time-skip") {
+            return
+          }
+          let desiredTimeDelta = ffOrRewind.desiredTimeDelta
+          // If the video hasn't managed to update the current time yet we accumulate the changes to currentTime until either the
+          // video is ready and we can apply them until we reach a max threshold so as to avoid us surprising the user
+          // by jumping too far ahead after having frozen for a bit.
+          const maxAccumulatedTimeDelta = Math.abs(ffOrRewind.discretePlaybackRate) * 2;
+          if (Math.abs(desiredTimeDelta) < maxAccumulatedTimeDelta) {
+            desiredTimeDelta += ffOrRewind.discretePlaybackRate * (updateFrequency / 1000);
+          }
+          const currentTime = videojsPlayerRef.current?.currentTime()
+          if (currentTime !== undefined) {
+            const newTime = currentTime + desiredTimeDelta
+            if (looping && newTime < currentTime && (newTime <= (initialTimestamp || 0))) {
+              setFeedback(
+                "Start of loop reached",
+                {hold: true}
+              );
+              videojsPlayerRef.current?.currentTime(initialTimestamp || 0)
+            } else if (looping && newTime > currentTime && (newTime >= (endTimestamp ?? Infinity))) {
+              setFeedback(
+                "End of loop reached",
+                {hold: true}
+              );
+              videojsPlayerRef.current?.currentTime(endTimestamp ?? Infinity)
+
+            } else if (desiredTimeDelta) {
+              videojsPlayerRef.current?.currentTime(newTime)
+              ffOrRewind.desiredTimeDelta = 0;
+            } else {
+              ffOrRewind.desiredTimeDelta = desiredTimeDelta;
+            }
+          }
+          ffOrRewind.seekTimeout = setTimeout(tick, updateFrequency);
+        }
+        ffOrRewind.seekTimeout = setTimeout(tick, updateFrequency);
+      }
+    }
+  };
+  useGesture({
+    onPointerDown: (state) => {
+      logger.debug("⬇️ Pointer down")
+
+      const {area, elementWidth} = getClickArea(state.event)
+      const initialMuteState = videojsPlayerRef.current?.muted()
+      const initialPausedState = videojsPlayerRef.current?.paused()
+      logger.debug(`Initial mute state: ${initialMuteState}, initial paused state: ${initialPausedState}`)
+      if (initialMuteState === undefined || initialPausedState === undefined) {
+        logger.warn("Failed to get video state");
+        return;
+      }
+      if (gestureStateRef.current !== null) {
+        logger.warn("Gesture state not cleaned up properly before new gesture");
+      }
+      gestureStateRef.current = {
+        clickArea: area,
+        elementWidth,
+        ffOrRewind: null,
+        initialMuteState,
+        initialPausedState,
+        thumbnailTimeUpdateHandler: () => {},
+      };
+
+      waitForClickTimeoutRef.current = setTimeout(() => {
+        logger.debug("Holding down{*}", state)
+        handleDrag({offsetX: 0})
+        waitForClickTimeoutRef.current = undefined
+      }, 250);
+    },
+    // Video.js disables click events from firing on touch devices so we listen to pointerup to detect a click instead
+    onPointerUp: useCallback((state: SharedGestureState & { event: PointerEvent }) => {
+      logger.debug("⬆️ Pointer up")
+      // Ignore clicks if it's been long enough that we're treating it as a drag
+      if (!waitForClickTimeoutRef.current) return;
+
+      clearTimeout(waitForClickTimeoutRef.current);
+      waitForClickTimeoutRef.current = undefined;
+      logger.debug("Pointer up - treating as click")
+
+      if (!gestureStateRef.current) {
+        logger.warn("Not setup correctly");
+        return
+      }
+
+      const { clickArea } = gestureStateRef.current
+
+      switch (clickArea) {
+        case "left":
+          seekBackwards()
+          break;
+        case "middle":
+          if (videojsPlayerRef.current?.paused()) {
+            videojsPlayerRef.current?.play()
+          } else {
+            videojsPlayerRef.current?.pause()
+          }
+          break;
+        case "right":
+          seekForwards()
+          break;
+      }
+      gestureStateRef.current = null
+    }, [seekBackwards, seekForwards]),
+    onDrag: (state) => {
+      // Ignore drags if we're not sure if it's a click yet
+      if (waitForClickTimeoutRef.current) return;
+
+      if (!gestureStateRef.current) {
+        logger.warn("Not setup correctly");
+        return
+      }
+
+      // Not sure why by a few values including last don't seem to be set if the first call is also the last call
+      const last = state.last ?? true;
+      const first = state.first ?? true;
+
+      if (first) logger.debug("Drag started")
+
+      const {offset: [offsetX]} = state;
+      if (!last) {
+        handleDrag({offsetX})
+      } else {
+        handleDragEnd()
+      }
+    },
+    onPointerOut: (state: SharedGestureState & { event: PointerEvent }) => {
+      if (state.event.target !== gestureElmRef.current) return;
+      logger.debug("↗️ Pointer out")
+      handleDragEnd();
+    }
+  }, {
+    target: gestureElmRef,
+    drag: {
+      from: [0, 0], // Reset offset to 0 on each gesture start
+      filterTaps: true,
+      preventScroll: true,
+      pointer: {
+        keys: false // The drag event can be trigger by a keyboard but that doesn't make sense for our use case
+        // since we care about the area of the video that user clicks on.
+      }
+    }
+  })
+  // A workaround for https://github.com/pmndrs/use-gesture/issues/593
+  useEffect(() => {
+    window.addEventListener("click", (event) => {
+      Object.defineProperty(event, 'detail', { value: 0, writable: true });
+    }, { capture: true });
+  }, [])
+
+  useEffect(() => {
+    const handler = () => {
+      // Cancel any gesture if we're scrolling
+      clearTimeout(waitForClickTimeoutRef.current);
+      waitForClickTimeoutRef.current = undefined;
+    }
+    window.addEventListener("scroll", handler, { capture: true });
+    return () => {
+      window.removeEventListener("scroll", handler, { capture: true });
+    };
+  }, []);
+
+  function handleDragEnd() {
+    if (!gestureStateRef.current) {
+      return
+    }
+    logger.info("Drag ended, cleaning up")
+    videojsPlayerRef.current?.playbackRate(1);
+    videojsPlayerRef.current?.scrubbing(false);
+    setFeedback(null, {fade: false});
+
+    teardownThumbnailUpdate()
+
+    const { initialMuteState, initialPausedState } = gestureStateRef.current
+    mute(initialMuteState);
+    pause(initialPausedState);
+    logger.debug(`Reset mute state to ${initialMuteState} and restored paused state to ${initialPausedState}`)
+    gestureStateRef.current = null
+  }
+
+  return {
+    textSelectionWorkaroundElm
+  }
+}
+
+declare global {
+  interface Window {
+    tvCurrentPlayer?: VideoJsPlayer,
+    tvCurrentMediaItem?: MediaItem,
+  }
+}

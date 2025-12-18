@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   padding: 1em 5em 1em 3em;
-  z-index: 1;
+  z-index: 3; /* Make sure it's above .text-selection-on-gesture-workaround if present */
 
   align-self: flex-end;
   background-color: rgba(0, 0, 0, 0.7);

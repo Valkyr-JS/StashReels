@@ -92,7 +92,7 @@ export function useMediaItems() {
     throw new Error("Unsupported media item filter entity type")
   }
   useEffect(() => {
-    logger.debug("lastLoadedCurrentMediaItemFilter changed, resetting media items{*}", lastLoadedCurrentMediaItemFilter)
+    logger.debug(`lastLoadedCurrentMediaItemFilter changed to "${lastLoadedCurrentMediaItemFilter?.savedFilter?.name}", resetting media items`)
   }, [lastLoadedCurrentMediaItemFilter])
 
 

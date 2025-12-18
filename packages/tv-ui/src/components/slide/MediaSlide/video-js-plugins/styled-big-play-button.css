@@ -19,6 +19,12 @@ video-js.video-js {
       /* Slightly move the play icon to the right to better center it visually with the loading spinner */
       translate: 0.1em;
     }
+
+    /* Hide play button of the original video.js big play button that we're extending as it may be displayed briefly
+      before this plugin loads */
+    .vjs-icon-placeholder {
+      display: none;
+    }
   }
 
   &.vjs-paused.playable .vjs-big-play-button {
@@ -39,12 +45,6 @@ video-js.video-js {
 
   &.vjs-has-started.vjs-user-inactive.vjs-playing .vjs-control-bar {
     opacity: 0.5;
-  }
-
-  /* Hide play button of the original video.js big play button that we're extending as it may be displayed briefly
-    before this plugin loads */
-  .vjs-icon-placeholder {
-    display: none;
   }
 }
 

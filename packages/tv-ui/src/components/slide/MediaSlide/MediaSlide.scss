@@ -232,6 +232,27 @@
       visibility 0s linear 0s, /* immediate visibility */
       var(--additional-transitions, --dummy-fallback-var-to-stop-it-braking);
   }
+
+  video,
+  .video-js .text-selection-on-gesture-workaround {
+    user-select: none;
+  }
+  .video-js {
+    video {
+      z-index: 1;
+    }
+    .text-selection-on-gesture-workaround {
+      z-index: 2;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    > *:not(video):not(.text-selection-on-gesture-workaround) {
+      z-index: 3;
+    }
+  }
 }
 
 @keyframes media-slide-fade-in {

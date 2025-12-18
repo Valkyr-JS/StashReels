@@ -89,3 +89,12 @@ export function getPlayerIdForVideoJsPlayer(videoElm: Element): string {
   }
   throw new Error("Could not find playerId for Video.js player");
 }
+
+export function roundTo(num: number, decimals = 0) {
+  const factor = Math.pow(10, decimals);
+  return Math.round(num * factor) / factor;
+}
+
+export function roundToNearest(num: number, nearest = 1) {
+  return Math.round(num / nearest) * nearest;
+}

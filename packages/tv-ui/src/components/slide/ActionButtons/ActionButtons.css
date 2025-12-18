@@ -10,10 +10,10 @@
   flex-direction: column;
   justify-content: end;
   align-items: end;
-  z-index: 2;
+  z-index: 3;
   max-height: calc(var(--y-unit-small) * 100 - var(--bottom-offset));
 
-  .stack {
+  .stack, .stack-inner {
     position: relative;
     display: flex;
     padding-top: 10px;
