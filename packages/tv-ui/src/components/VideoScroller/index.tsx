@@ -195,18 +195,23 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
     }
   }, [currentIndex, mediaItems.length]);
 
+  const [keysDown] = useState<Set<string>>(new Set());
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      keysDown.add(e.key);
       const nextKey = isForceLandscape ? "ArrowRight" : "ArrowDown";
       const previousKey = isForceLandscape ? "ArrowLeft" : "ArrowUp";
+      const leftKey = isForceLandscape ? "ArrowUp" : "ArrowLeft";
+      const rightKey = isForceLandscape ? "ArrowDown" : "ArrowRight";
       logger.debug(`VideoScroller Keydown; key=${e.key} nextKey=${nextKey} previousKey=${previousKey}`);
-      if (e.key === previousKey) {
+      const leftOrRightKeyPressed = keysDown.has(leftKey) || keysDown.has(rightKey);
+      if (e.key === previousKey && !leftOrRightKeyPressed) {
         // Go to the previous item
         const newIndex = (prevIndex: number) => prevIndex - 1
         scrollToIndex(newIndex, { behavior: "instant" });
         setCurrentIndex(newIndex);
         e.preventDefault();
-      } else if (e.key === nextKey) {
+      } else if (e.key === nextKey && !leftOrRightKeyPressed) {
         // Go to the next item
         const newIndex = (prevIndex: number) => prevIndex + 1
         scrollToIndex(newIndex, { behavior: "instant" });
@@ -214,10 +219,15 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
         e.preventDefault();
       }
     }
+    const handleKeyUp = (e: KeyboardEvent) => {
+      keysDown.delete(e.key);
+    }
     // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
     window.addEventListener("keydown", handleKeyDown, {capture: true});
+    window.addEventListener("keyup", handleKeyUp, {capture: true});
     return () => {
       window.removeEventListener("keydown", handleKeyDown, {capture: true});
+      window.removeEventListener("keyup", handleKeyUp, {capture: true});
     };
   }, [isForceLandscape, setCurrentIndex]);
 

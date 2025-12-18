@@ -156,6 +156,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     logger.debug(`Going to ${direction} item from index ${props.index} {*}`, {totalPlayedLength, noAnimateDurationThreshold, isCurrentVideo});
 
     const shouldSkipAnimation = totalPlayedLength < noAnimateDurationThreshold
+    seek(null)
     props.changeItemHandler(
       (currentIndex) => Math.max(currentIndex + (direction === 'next' ? 1 : -1), 0),
       { ...(shouldSkipAnimation ? { behavior: 'instant' } : {}) }
@@ -188,6 +189,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       videojsPlayerRef.current?.one('loadstart', () => {
         videojsPlayerRef.current?.play();
       });
+      seek(null)
     }
     videojsPlayerRef.current?.on('ended', handleEnded);
     return () => { videojsPlayerRef.current?.off('ended', handleEnded) };
@@ -355,7 +357,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     videojsPlayerRef.current?.play()
   }, [getSkipTime, props.index, goToItem, looping]);
 
-  const {textSelectionWorkaroundElm} = useGestureControls({
+  const {textSelectionWorkaroundElm, seek, toDiscreteSeekSpeed} = useGestureControls({
     videoRef,
     videojsPlayerRef,
     seekForwards,
@@ -368,16 +370,83 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   useEffect(() => {
     if (!isCurrentVideo) return;
+    let keyHoldTimer: NodeJS.Timeout | null = null;
+    let seekSpeed: number | null = null;
+    const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
+    const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
+    const seekSpeedUpKey = forceLandscape ? "ArrowLeft" : "ArrowUp";
+    const seekSlowDownKey = forceLandscape ? "ArrowRight" : "ArrowDown";
     const handleKeyDown = (e: KeyboardEvent) => {
-      const seekBackwardsKey = forceLandscape ? "ArrowDown" : "ArrowLeft";
-      const seekForwardsKey = forceLandscape ? "ArrowUp" : "ArrowRight";
-      (e.key === seekBackwardsKey || e.key === seekForwardsKey) &&
-        logger.debug(`MediaSlide ${props.index} Keydown; key=${e.key}; backKey=${seekBackwardsKey}; forwardKey=${seekForwardsKey}`);
+      if (e.key === seekBackwardsKey || e.key === seekForwardsKey) {
+        if (keyHoldTimer) {
+          clearInterval(keyHoldTimer)
+          keyHoldTimer = null
+        }
+      }
       if (e.key === seekBackwardsKey) {
+        if (!e.repeat) {
+          keyHoldTimer = setTimeout(() => {
+            keyHoldTimer = null
+            seekSpeed = -2
+            seek(seekSpeed)
+          }, 300)
+        }
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      } else if (e.key === seekForwardsKey) {
+        if (!e.repeat) {
+          keyHoldTimer = setTimeout(() => {
+            keyHoldTimer = null
+            seekSpeed = 2
+            seek(seekSpeed)
+          }, 300)
+        };
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      } else if (e.key === seekSpeedUpKey && seekSpeed !== null) {
+        if (e.repeat) {
+          seekSpeed += 1
+        } else {
+          seekSpeed = toDiscreteSeekSpeed(seekSpeed).faster
+        }
+        seek(seekSpeed)
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      } else if (e.key === seekSlowDownKey && seekSpeed !== null) {
+        if (e.repeat) {
+          seekSpeed -= 1
+        } else {
+          seekSpeed = toDiscreteSeekSpeed(seekSpeed).slower
+        }
+        seek(seekSpeed)
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      } else if (e.key === " " || e.key === "Spacebar") {
+        // Needed because video.js doesn't seem to play via the space bar when playing for the first time
+        videojsPlayerRef.current?.paused() ? videojsPlayerRef.current?.play() : videojsPlayerRef.current?.pause();
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      }
+    }
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!keyHoldTimer && (e.key === seekBackwardsKey || e.key === seekForwardsKey)) {
+        seekSpeed = null
+        seek(seekSpeed)
+        e.preventDefault()
+        e.stopPropagation() // Stops video.js handling the event
+      } else if (e.key === seekBackwardsKey) {
+        if (keyHoldTimer) {
+          clearInterval(keyHoldTimer)
+          keyHoldTimer = null
+        }
         seekBackwards()
         e.preventDefault()
         e.stopPropagation() // Stops video.js handling the event
       } else if (e.key === seekForwardsKey) {
+        if (keyHoldTimer) {
+          clearInterval(keyHoldTimer)
+          keyHoldTimer = null
+        }
         seekForwards()
         e.preventDefault()
         e.stopPropagation() // Stops video.js handling the event
@@ -385,8 +454,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     }
     // We use capture so we can stop it propagating to the video player which treats arrow keys as seek commands
     window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener("keyup", handleKeyUp, { capture: true });
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
+      window.removeEventListener("keyup", handleKeyUp, { capture: true });
     };
   }, [forceLandscape, isCurrentVideo, seekBackwards, seekForwards, props.index]);
 
@@ -667,15 +738,15 @@ function useGestureControls(
   const gestureStateRef = useRef<{
     clickArea: "left" | "middle" | "right",
     elementWidth: number,
-    ffOrRewind: {
-      type: "playback-rate",
-      discretePlaybackRate: number,
-    } | {
-      type: "time-skip",
-      discretePlaybackRate: number,
-      seekTimeout: NodeJS.Timeout | null,
-      desiredTimeDelta: number,
-    } | null
+  } | null>(null);
+  const seekStateRef = useRef<({
+    type: "playback-rate",
+  } | {
+    type: "time-skip",
+    seekTimeout: NodeJS.Timeout | null,
+    desiredTimeDelta: number,
+  }) & {
+    discretePlaybackRate: number,
     initialMuteState: boolean,
     initialPausedState: boolean,
     thumbnailTimeUpdateHandler: (() => void) | null,
@@ -706,8 +777,8 @@ function useGestureControls(
   }
 
   function setupThumbnailUpdate() {
-    if (!gestureStateRef.current) return;
-    gestureStateRef.current.thumbnailTimeUpdateHandler = showThumbnail
+    if (!seekStateRef.current) return;
+    seekStateRef.current.thumbnailTimeUpdateHandler = showThumbnail
     videojsPlayerRef.current?.on('timeupdate', showThumbnail);
     videojsPlayerRef.current?.on('seeking', showThumbnail);
     videojsPlayerRef.current?.on('progress', showThumbnail);
@@ -715,13 +786,12 @@ function useGestureControls(
   }
 
   function teardownThumbnailUpdate() {
-    if (!gestureStateRef.current) return;
-    if (!gestureStateRef.current.thumbnailTimeUpdateHandler) return;
-    videojsPlayerRef.current?.off('timeupdate', gestureStateRef.current.thumbnailTimeUpdateHandler);
-    videojsPlayerRef.current?.off('seeking', gestureStateRef.current.thumbnailTimeUpdateHandler);
-    videojsPlayerRef.current?.off('progress', gestureStateRef.current.thumbnailTimeUpdateHandler);
-    videojsPlayerRef.current?.off('durationchange', gestureStateRef.current.thumbnailTimeUpdateHandler);
-    gestureStateRef.current.thumbnailTimeUpdateHandler = null;
+    if (!seekStateRef.current?.thumbnailTimeUpdateHandler) return;
+    videojsPlayerRef.current?.off('timeupdate', seekStateRef.current.thumbnailTimeUpdateHandler);
+    videojsPlayerRef.current?.off('seeking', seekStateRef.current.thumbnailTimeUpdateHandler);
+    videojsPlayerRef.current?.off('progress', seekStateRef.current.thumbnailTimeUpdateHandler);
+    videojsPlayerRef.current?.off('durationchange', seekStateRef.current.thumbnailTimeUpdateHandler);
+    seekStateRef.current.thumbnailTimeUpdateHandler = null;
     hideThumbnail();
   }
 
@@ -885,48 +955,95 @@ function useGestureControls(
       (videojsPlayerRef.current?.duration() ?? 0) / 3
     )
     const playbackRate = initialRate + playbackRateDragAdjustment
-    let discretePlaybackRate
-    if (Math.abs(playbackRate) > 120) {
-      discretePlaybackRate = roundToNearest(playbackRate, 60)
-    } else if (Math.abs(playbackRate) > 60) {
-      discretePlaybackRate = roundToNearest(playbackRate, 30)
-    } else if (Math.abs(playbackRate) > 15) {
-      discretePlaybackRate = roundToNearest(playbackRate, 15)
-    } else if (Math.abs(playbackRate) > 5) {
-      discretePlaybackRate = roundToNearest(playbackRate, 5)
-    } else if (playbackRate > 2 || playbackRate < -1) {
-      discretePlaybackRate = roundTo(playbackRate, 0)
-    } else if (playbackRate > 0 && playbackRate <= 0.1) {
-      discretePlaybackRate = 0
+    seek(playbackRate);
+  }
+
+  function toDiscreteSeekSpeed(seekSpeed: number): {discrete: number, faster: number, slower: number} {
+    const absSpeed = Math.abs(seekSpeed);
+    const sign = seekSpeed >= 0 ? 1 : -1;
+
+    let discrete: number;
+    let faster: number;
+    let slower: number;
+
+    // Above 120 or below -120
+    if (absSpeed > 120) {
+      discrete = roundToNearest(seekSpeed, 60)
+      faster = discrete + 60
+      slower = discrete - 60
+    // Between 120 to 60 or between -60 to -120
+    } else if (absSpeed > 60) {
+      discrete = roundToNearest(seekSpeed, 30)
+      faster = discrete < 120 ? discrete + 30 : 240
+      slower = discrete > -120 ? discrete - 30 : -240
+    // Between 60 to 15 or between -15 to -60
+    } else if (absSpeed > 15) {
+      discrete = roundToNearest(seekSpeed, 15)
+      faster = discrete < 60 ? discrete + 15 : 120
+      slower = discrete > -60 ? discrete - 15 : -120
+    // Between 15 to 5 or between -5 to -15
+    } else if (absSpeed > 5) {
+      discrete = roundToNearest(seekSpeed, 5)
+      faster = discrete < 15 ? discrete + 5 : 30
+      slower = discrete > -15 ? discrete - 5 : -30
+    // Between 5 to 2 or between -1 to -5
+    } else if (seekSpeed > 2 || seekSpeed < -1) {
+      discrete = roundTo(seekSpeed, 0)
+      faster = discrete < 5 ? discrete + 1 : 10
+      slower = discrete > -5 ? discrete - 1 : -10
+    // Between -1 to 2
     } else {
-      discretePlaybackRate = roundTo(playbackRate, 1)
+      discrete = roundTo(seekSpeed, 1)
+      faster = discrete < 2 ? discrete + 0.1 : 3
+      slower = discrete > -1 ? discrete - 0.1 : -2
     }
-    if (gestureStateRef.current.ffOrRewind?.discretePlaybackRate === discretePlaybackRate) {
+
+    return { discrete, faster, slower };
+  }
+
+  function seek(playbackRate: number | null) {
+    console.log("Seek called with rate:", playbackRate);
+    if (playbackRate === null) {
+      cleanupSeek()
+      return;
+    }
+    const discretePlaybackRate = toDiscreteSeekSpeed(playbackRate).discrete;
+    let seekState = seekStateRef.current;
+    if (seekState?.discretePlaybackRate === discretePlaybackRate) {
       // No change
       return;
     }
-    const shouldShowThumbnail = discretePlaybackRate > 5 || discretePlaybackRate < -2;
-    if (shouldShowThumbnail && !gestureStateRef.current.thumbnailTimeUpdateHandler) {
-      setupThumbnailUpdate()
-    } else if (!shouldShowThumbnail && gestureStateRef.current.thumbnailTimeUpdateHandler) {
-      teardownThumbnailUpdate()
+
+    const initialMuteState = seekState?.initialMuteState ?? videojsPlayerRef.current?.muted()
+    const initialPausedState = seekState?.initialPausedState ?? videojsPlayerRef.current?.paused()
+    if (initialMuteState === undefined || initialPausedState === undefined) {
+      logger.warn("Failed to get video state");
+      return;
     }
+    if (!seekState) {
+      logger.debug(`Initial mute state: ${initialMuteState}, initial paused state: ${initialPausedState}`)
+    }
+
     const maxRate = 5
-    if (gestureStateRef.current.ffOrRewind) {
-      gestureStateRef.current.ffOrRewind.discretePlaybackRate = discretePlaybackRate
+    if (seekState) {
+      seekState.discretePlaybackRate = discretePlaybackRate
     }
     if (discretePlaybackRate >= 0.1 && discretePlaybackRate < maxRate) {
-      const { ffOrRewind } = gestureStateRef.current;
-      if (ffOrRewind?.type !== "playback-rate") {
-        if (ffOrRewind) {
+      if (seekState?.type !== "playback-rate") {
+        if (seekState) {
           logger.info(`Switching to playback rate-based approach`)
         }
 
-        gestureStateRef.current.ffOrRewind = {
+        seekState = {
           type: "playback-rate",
           discretePlaybackRate: discretePlaybackRate,
+          initialMuteState,
+          initialPausedState,
+          thumbnailTimeUpdateHandler: null
         }
+        seekStateRef.current = seekState
       }
+
       if (discretePlaybackRate) {
         setFeedback(
           `${discretePlaybackRate}x`,
@@ -942,20 +1059,20 @@ function useGestureControls(
         pause(true, {hold: true});
       }
     } else {
-      let ffOrRewind
-      if (gestureStateRef.current.ffOrRewind?.type !== "time-skip") {
-        if (ffOrRewind) {
+      if (seekState?.type !== "time-skip") {
+        if (seekState) {
           logger.info(`Switching to seek-based approach`)
         }
-        ffOrRewind = {
-          type: "time-skip" as const,
+        seekState = {
+          type: "time-skip",
           discretePlaybackRate: discretePlaybackRate,
           seekTimeout: null,
           desiredTimeDelta: 0,
+          initialMuteState,
+          initialPausedState,
+          thumbnailTimeUpdateHandler: null,
         }
-        gestureStateRef.current.ffOrRewind = ffOrRewind
-      } else {
-        ffOrRewind = gestureStateRef.current.ffOrRewind
+        seekStateRef.current = seekState
       }
 
       pause(true, {hold: true});
@@ -986,22 +1103,19 @@ function useGestureControls(
       }
 
       const updateFrequency = 100 // In ms
-      if (!ffOrRewind.seekTimeout) {
+      if (!seekState.seekTimeout) {
         const tick = () => {
-          if (!gestureStateRef.current) {
+          const seekState = seekStateRef.current;
+          if (!seekState || seekState.type !== "time-skip") {
             return
           }
-          const { ffOrRewind } = gestureStateRef.current;
-          if (!ffOrRewind || ffOrRewind.type !== "time-skip") {
-            return
-          }
-          let desiredTimeDelta = ffOrRewind.desiredTimeDelta
+          let desiredTimeDelta = seekState.desiredTimeDelta
           // If the video hasn't managed to update the current time yet we accumulate the changes to currentTime until either the
           // video is ready and we can apply them until we reach a max threshold so as to avoid us surprising the user
           // by jumping too far ahead after having frozen for a bit.
-          const maxAccumulatedTimeDelta = Math.abs(ffOrRewind.discretePlaybackRate) * 2;
+          const maxAccumulatedTimeDelta = Math.abs(seekState.discretePlaybackRate) * 2;
           if (Math.abs(desiredTimeDelta) < maxAccumulatedTimeDelta) {
-            desiredTimeDelta += ffOrRewind.discretePlaybackRate * (updateFrequency / 1000);
+            desiredTimeDelta += seekState.discretePlaybackRate * (updateFrequency / 1000);
           }
           const currentTime = videojsPlayerRef.current?.currentTime()
           if (currentTime !== undefined) {
@@ -1021,15 +1135,22 @@ function useGestureControls(
 
             } else if (desiredTimeDelta) {
               videojsPlayerRef.current?.currentTime(newTime)
-              ffOrRewind.desiredTimeDelta = 0;
+              seekState.desiredTimeDelta = 0;
             } else {
-              ffOrRewind.desiredTimeDelta = desiredTimeDelta;
+              seekState.desiredTimeDelta = desiredTimeDelta;
             }
           }
-          ffOrRewind.seekTimeout = setTimeout(tick, updateFrequency);
+          seekState.seekTimeout = setTimeout(tick, updateFrequency);
         }
-        ffOrRewind.seekTimeout = setTimeout(tick, updateFrequency);
+        seekState.seekTimeout = setTimeout(tick, updateFrequency);
       }
+    }
+
+    const shouldShowThumbnail = discretePlaybackRate > 5 || discretePlaybackRate < -2;
+    if (shouldShowThumbnail && !seekState.thumbnailTimeUpdateHandler) {
+      setupThumbnailUpdate()
+    } else if (!shouldShowThumbnail && seekState.thumbnailTimeUpdateHandler) {
+      teardownThumbnailUpdate()
     }
   };
   useGesture({
@@ -1037,23 +1158,12 @@ function useGestureControls(
       logger.debug("⬇️ Pointer down")
 
       const {area, elementWidth} = getClickArea(state.event)
-      const initialMuteState = videojsPlayerRef.current?.muted()
-      const initialPausedState = videojsPlayerRef.current?.paused()
-      logger.debug(`Initial mute state: ${initialMuteState}, initial paused state: ${initialPausedState}`)
-      if (initialMuteState === undefined || initialPausedState === undefined) {
-        logger.warn("Failed to get video state");
-        return;
-      }
       if (gestureStateRef.current !== null) {
         logger.warn("Gesture state not cleaned up properly before new gesture");
       }
       gestureStateRef.current = {
         clickArea: area,
         elementWidth,
-        ffOrRewind: null,
-        initialMuteState,
-        initialPausedState,
-        thumbnailTimeUpdateHandler: () => {},
       };
 
       waitForClickTimeoutRef.current = setTimeout(() => {
@@ -1154,26 +1264,41 @@ function useGestureControls(
     };
   }, []);
 
+
   function handleDragEnd() {
     if (!gestureStateRef.current) {
       return
     }
-    logger.info("Drag ended, cleaning up")
+    logger.info("Drag ended")
+    gestureStateRef.current = null
+    seek(null);
+  }
+
+  function cleanupSeek() {
+    logger.info("Cleaning up seek")
+
+    if (!seekStateRef.current) {
+      logger.warn("Seeking already cleaned up");
+      return;
+    }
+    teardownThumbnailUpdate()
+    const { initialMuteState, initialPausedState } = seekStateRef.current
+    seekStateRef.current = null
+
     videojsPlayerRef.current?.playbackRate(1);
     videojsPlayerRef.current?.scrubbing(false);
     setFeedback(null, {fade: false});
 
-    teardownThumbnailUpdate()
 
-    const { initialMuteState, initialPausedState } = gestureStateRef.current
     mute(initialMuteState);
     pause(initialPausedState);
     logger.debug(`Reset mute state to ${initialMuteState} and restored paused state to ${initialPausedState}`)
-    gestureStateRef.current = null
   }
 
   return {
-    textSelectionWorkaroundElm
+    textSelectionWorkaroundElm,
+    seek,
+    toDiscreteSeekSpeed
   }
 }
 

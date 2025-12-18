@@ -8,7 +8,7 @@
   text-shadow: var(--body-bg) 0 0 10px;
   transform: translate(-50%);
   border-radius: 1rem;
-  padding: calc(0.7em - 0.17lh) clamp(1em, 1.5vw, 2em) calc(0.7em - 0.13lh);
+  padding: calc(0.7em - 0.17lh) clamp(1em, 1.5vw, 1.5em) calc(0.7em - 0.13lh);
   font-size: clamp(1rem, 2vw, 1.5rem);
   opacity: 0.9;
   text-align: center;
