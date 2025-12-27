@@ -16,7 +16,7 @@
     > .ActionButton.settings {
       position: absolute;
       bottom: 4.5em;
-      right: 1em;
+      right: calc(1em + var(--safe-inset-right));
       opacity: 0.5;
     }
   }
