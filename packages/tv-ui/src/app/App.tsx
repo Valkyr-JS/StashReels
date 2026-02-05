@@ -10,8 +10,10 @@ import englishMessages from "stash-ui/dist/src/locales/en-GB.json";
 import flattenMessages from "stash-ui/dist/src/utils/flattenMessages";
 import {setupLogging} from "../helpers/logging";
 import FeedbackOverlay from "../components/FeedbackOverlay";
+import { useDevConsoleHelpers } from "../hooks/useDevConsoleHelpers";
 
 await setupLogging()
+
 
 const App = () => {
   const { forceLandscape, logLevel, loggersToShow, loggersToHide } = useAppStateStore()
@@ -46,6 +48,8 @@ const App = () => {
       long: { year: "numeric", month: "long", day: "numeric" },
     },
   }), []);
+
+  useDevConsoleHelpers()
 
   return (
     <IntlProvider

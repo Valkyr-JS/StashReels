@@ -25,6 +25,7 @@ type AppState = {
   minPlayLength?: number;
   maxPlayLength?: number;
   showGuideOverlay?: boolean;
+  leftHandedUi?: boolean;
   // Non-persistent state
   showSettings: boolean;
   fullscreen: boolean;

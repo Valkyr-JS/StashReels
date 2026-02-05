@@ -6,6 +6,13 @@
   background-color: var(--body-bg);
   max-height: 100%;
 
+  &.left-handed {
+    &::before {
+      right: unset;
+      left: 0;
+    }
+  }
+
   // Extend background out to the top, left and bottom to cover gaps during swipe
   &::before {
     content: "";

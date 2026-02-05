@@ -55,6 +55,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
     looping,
     showSubtitles,
     uiVisible,
+    leftHandedUi,
     set: setAppSetting,
   } = useAppStateStore();
 
@@ -137,7 +138,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
 
   return (
     <div
-      className={cx("ActionButtons", {'active': uiVisible})}
+      className={cx("ActionButtons", {'active': uiVisible, 'left-handed': leftHandedUi})}
       data-testid="MediaSlide--toggleableUi"
     >
       <div className={cx("stack hide-on-ui-hide", ...stackScrollClasses)} ref={stackElmRef}>
@@ -163,7 +164,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
           inactiveIcon={StarOutlineIcon}
           inactiveText="Rate scene"
           sidePanel={
-            <div className={cx("action-button-rating-stars", {'not-set': typeof scene.rating100 !== "number"}, ratingSystemOptions.type.toLowerCase())}>
+            <div className={cx("action-button-rating-stars", {'not-set': typeof scene.rating100 !== "number", 'left-handed': leftHandedUi}, ratingSystemOptions.type.toLowerCase())}>
               <span className="clear star-rating-number">Clear</span>
               <RatingSystem
                 value={scene.rating100}

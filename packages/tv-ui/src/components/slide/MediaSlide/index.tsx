@@ -71,6 +71,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     maxPlayLength,
     showGuideOverlay,
     uiVisible,
+    leftHandedUi,
     set: setAppSetting,
   } = useAppStateStore();
 
@@ -625,7 +626,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   return (
     <div
-      className={cx("MediaSlide", {inViewport: isCurrentVideo, 'cover': !letterboxing, 'hide-controls': !uiVisible}, props.className)}
+      className={cx("MediaSlide", {inViewport: isCurrentVideo, 'cover': !letterboxing, 'hide-controls': !uiVisible, 'left-handed': leftHandedUi}, props.className)}
       data-testid="MediaSlide--container"
       data-index={props.index}
       data-scene-id={scene.id}

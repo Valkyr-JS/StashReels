@@ -13,6 +13,14 @@
   z-index: 3;
   max-height: calc(var(--y-unit-small) * 100 - var(--bottom-offset));
 
+  &.left-handed {
+    right: unset;
+    left: 0.6em;
+    padding-right: unset;
+    padding-left: var(--safe-inset-left);
+    align-items: start;
+  }
+
   .stack {
     position: relative;
     display: flex;
@@ -30,6 +38,12 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
     translate: 0.6em 0;
 
     --additional-transitions: var(--overflow-indicators-transition);
+  }
+
+  &.left-handed .stack {
+    translate: -0.6em 0;
+    padding-right: unset;
+    padding-left: 0.6em;
   }
 
   .toggle-ui {
@@ -99,9 +113,11 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
   }
 
   .star-rating-number {
+    font-size: unset;
+  }
+  &:not(.left-handed) .star-rating-number {
     order: -1;
     margin-left: 0;
-    font-size: unset;
   }
 
   svg {

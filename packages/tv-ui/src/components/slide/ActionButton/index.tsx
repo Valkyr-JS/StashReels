@@ -9,6 +9,7 @@ import "./ActionButton.css";
 import { useUID } from "react-uid";
 import { OverlayTrigger, Popover } from "react-bootstrap";
 import { create } from "zustand";
+import { useAppStateStore } from "../../../store/appStateStore";
 
 const useCurrentOpenPopover = create<null | string>(() => (null))
 
@@ -39,6 +40,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     ...otherProps
   } = props;
   const Icon = active ? activeIcon : inactiveIcon;
+  const { leftHandedUi } = useAppStateStore();
   const SidePanel = ({children}: {children: ComponentProps<typeof OverlayTrigger>['children']}) => {
     if (!sidePanel) return <>{children}</>
     const currentOpenPopover = useCurrentOpenPopover()
@@ -54,7 +56,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     return (
       <OverlayTrigger
         trigger="click"
-        placement="left"
+        placement={leftHandedUi ? "right" : "left"}
         overlay={popover}
         show={id === currentOpenPopover}
         onToggle={() => useCurrentOpenPopover.setState(id === currentOpenPopover ? null : id)}
@@ -66,7 +68,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
 
   return (
     <div
-      className={cx("ActionButton", className, { active })}
+      className={cx("ActionButton", className, { active, 'left-handed': leftHandedUi })}
     >
       {sideInfo && (
         <div className="side-info">

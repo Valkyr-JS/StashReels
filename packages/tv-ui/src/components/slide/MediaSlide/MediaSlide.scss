@@ -46,6 +46,15 @@
     max-width: fit-content;
   }
 
+  &.left-handed {
+    .video-js {
+      .vjs-control-bar {
+        padding-left: calc(var(--safe-inset-right) + 50px);
+        padding-right: unset;
+      }
+    }
+  }
+
   .video-js {
     background-color: unset;
 
@@ -56,6 +65,11 @@
       flex-wrap: wrap;
       column-gap: 1em;
       align-items: center;
+
+      &::before {
+        left: 0;
+        right: 0;
+      }
 
       .vjs-control {
         width: unset;

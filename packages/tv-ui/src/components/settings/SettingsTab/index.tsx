@@ -46,6 +46,7 @@ const SettingsTab = memo(() => {
     minPlayLength,
     maxPlayLength,
     maxMedia,
+    leftHandedUi,
     set: setAppSetting
   } = useAppStateStore();
   const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
@@ -492,9 +493,25 @@ const SettingsTab = memo(() => {
         </>
       </Accordion.Collapse>
       <AccordionToggle eventKey="2">
-        Help
+        Interface
       </AccordionToggle>
       <Accordion.Collapse eventKey="2">
+        <>
+          <Form.Group>
+            <Switch
+              id="left-handed-ui"
+              label="Left-handed UI"
+              checked={leftHandedUi}
+              onChange={event => setAppSetting("leftHandedUi", event.target.checked)}
+            />
+            <Form.Text className="text-muted">Flip the user interface for left-handed use.</Form.Text>
+          </Form.Group>
+        </>
+      </Accordion.Collapse>
+      <AccordionToggle eventKey="3">
+        Help
+      </AccordionToggle>
+      <Accordion.Collapse eventKey="3">
         <>
           <Form.Group className="button-description-inline">
             <Button
@@ -512,10 +529,10 @@ const SettingsTab = memo(() => {
 
 
       {showDevOptions && <>
-        <AccordionToggle eventKey="3">
+        <AccordionToggle eventKey="4">
           Developer Options
         </AccordionToggle>
-        <Accordion.Collapse eventKey="3">
+        <Accordion.Collapse eventKey="4">
           <>
             <Form.Group>
               <Switch
@@ -655,10 +672,6 @@ const SettingsTab = memo(() => {
               >
                 Reload Page
               </Button>
-            </Form.Group>
-
-            <Form.Group>
-              {import.meta.env.VITE_STASH_TV_VERSION}
             </Form.Group>
           </>
         </Accordion.Collapse>

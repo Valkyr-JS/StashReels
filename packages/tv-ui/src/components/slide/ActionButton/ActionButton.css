@@ -6,6 +6,10 @@
   /* Height is defined in root container to allow flex shrinking */
   height: 50px;
 
+  &.left-handed {
+    justify-content: start;
+    flex-direction: row-reverse;
+  }
 
   .side-info {
     transition: opacity 0.2s ease-in-out;

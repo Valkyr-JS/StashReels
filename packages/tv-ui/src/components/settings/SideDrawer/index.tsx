@@ -21,7 +21,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
   const bodyRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const { showSettings, showGuideOverlay, set: setAppSetting } = useAppStateStore();
+  const { showSettings, showGuideOverlay, leftHandedUi, set: setAppSetting } = useAppStateStore();
 
   const [sidebarWidth, setSidebarWidth] = React.useState(window.innerWidth);
   useEffect(() => {
@@ -125,16 +125,16 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
 
   return <>
     <AnimatedDivPure
-      className="settings-overlay"
+      className={cx("settings-overlay")}
       style={useMemo(() => ({ display: overlayDisplay, opacity: overlayOpacity }), [overlayDisplay.get(), overlayOpacity.get()])}
       onClick={useCallback(() => close(), [])}
       ref={overlayRef}
     />
     <AnimatedDivPure
-      className={cx("SideDrawer", className)}
+      className={cx("SideDrawer", className, { 'left-handed': leftHandedUi })}
       data-testid="SideDrawer"
       ref={ref}
-      style={useMemo(() => ({ right: x.to(px => `calc(100% - ${px}px)`) }), [x.get()])}
+      style={useMemo(() => ({ [leftHandedUi ? 'left' : 'right']: x.to(px => `calc(100% - ${px}px)`) }), [x.get(), leftHandedUi])}
     >
       <div className="content">
         <div className={cx("body", bodyScrollClasses)} ref={bodyRef}>
