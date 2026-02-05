@@ -504,6 +504,9 @@ const SettingsTab = memo(() => {
             </Button>
             <Form.Text className="text-muted">Show instructions for using Stash TV.</Form.Text>
           </Form.Group>
+          <Form.Group>
+            <strong>Version:</strong> {import.meta.env.VITE_STASH_TV_VERSION}
+          </Form.Group>
         </>
       </Accordion.Collapse>
 
