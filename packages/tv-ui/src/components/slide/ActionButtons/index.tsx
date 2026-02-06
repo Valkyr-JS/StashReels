@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons";
 
 import { useAppStateStore } from "../../../store/appStateStore";
@@ -12,7 +12,7 @@ import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
 import { defaultRatingSystemOptions, RatingSystemType } from "stash-ui/dist/src/utils/rating";
 import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
 import { RatingSystem } from "stash-ui/wrappers/components/shared/RatingSystem";
-import { useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
+import { queryFindTagsByIDForSelect, useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 
@@ -23,7 +23,7 @@ export type Props = {
 }
 
 export type ActionButtonConfig =
-{id: string; pinned: boolean; hidden: boolean} & (
+{id: string; pinned: boolean} & (
   {type: "ui-visibility"}
     | {type: "settings"}
     | {type: "show-scene-info"}
@@ -35,6 +35,7 @@ export type ActionButtonConfig =
     | {type: "letterboxing"}
     | {type: "loop"}
     | {type: "subtitles"}
+    | {type: "quick-tag"; iconId: string; tagId: string }
   )
 
 
@@ -44,14 +45,6 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
     leftHandedUi,
     actionButtonsConfig,
   } = useAppStateStore();
-
-  const displayedActionButtonsConfig = actionButtonsConfig.filter(config =>
-    // Display if not hidden
-    !config.hidden
-    // or if it's the settings button (so that we can't accidentally hide the settings button and lose access to it)
-    || config.type === "settings"
-    // or if it's the ui-visibility button and the UI is currently hidden (also so we can't loose access to the settings)
-    || (config.type === "ui-visibility" && !uiVisible))
 
   const stackElmRef = useRef<HTMLDivElement>(null);
   const stackScrollClasses = useOverflowIndicators(stackElmRef);
@@ -81,6 +74,8 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
         return <SubtitlesActionButton scene={scene} buttonConfig={buttonConfig} />
       case "ui-visibility":
         return <UiVisibilityActionButton buttonConfig={buttonConfig} />
+      case "quick-tag":
+        return <QuickTagActionButton scene={scene} buttonConfig={buttonConfig} />
       default:
         throw new Error(`Unknown action button type: ${type}`)
     }
@@ -92,17 +87,17 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
       data-testid="MediaSlide--toggleableUi"
     >
       <div className={cx("stack", ...stackScrollClasses)} ref={stackElmRef}>
-        {displayedActionButtonsConfig
+        {actionButtonsConfig
           .filter(config => !config.pinned)
-          .map(config => <React.Fragment key={config.type}>
+          .map(config => <React.Fragment key={config.id}>
             {renderActionButton(config)}
           </React.Fragment>)
         }
       </div>
       <div className="pinned">
-        {displayedActionButtonsConfig
+        {actionButtonsConfig
           .filter(config => config.pinned)
-          .map(config => <React.Fragment key={config.type}>
+          .map(config => <React.Fragment key={config.id}>
             {renderActionButton(config)}
           </React.Fragment>)
         }
@@ -319,5 +314,45 @@ function UiVisibilityActionButton({buttonConfig}: {buttonConfig: ActionButtonCon
     className={cx("toggle-ui", "dim-on-ui-hide", {'active': uiVisible})}
     data-testid="MediaSlide--showActionButton"
     onClick={() => setAppSetting("uiVisible", (prev) => !prev)}
+  />
+}
+
+function QuickTagActionButton({buttonConfig, scene}: {buttonConfig: Extract<ActionButtonConfig, { type: "quick-tag" }>, scene: GQL.TvSceneDataFragment}) {
+  const {tagId} = buttonConfig;
+  const sceneHasTag = useMemo(() => scene.tags.some(t => t.id === tagId), [scene.tags, buttonConfig.tagId])
+  const [updateScene] = useSceneUpdate();
+  function addTag() {
+    if (scene.tags.some(t => t.id === tagId)) return;
+    updateScene({
+      variables: {
+        input: {
+          id: scene.id,
+          tag_ids: [...scene.tags.map(tag => tag.id), tagId]
+        },
+      },
+    });
+  }
+  function removeTag() {
+    if (!scene.tags.some(t => t.id === tagId)) return;
+    updateScene({
+      variables: {
+        input: {
+          id: scene.id,
+          tag_ids: scene.tags.filter(tag => tag.id !== tagId).map(tag => tag.id)
+        },
+      },
+    });
+  }
+  const [tagName, setTagName] = useState<string>(`Tag ID: ${buttonConfig.tagId}`);
+  useEffect(() => {
+    queryFindTagsByIDForSelect([buttonConfig.tagId])
+      .then(result => setTagName(result.data.findTags.tags[0]?.name || tagName))
+  }, [buttonConfig.tagId])
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig, {tagName})}
+    active={sceneHasTag}
+    className={cx("quick-tag", "hide-on-ui-hide")}
+    data-testid="MediaSlide--quickTagButton"
+    onClick={() => sceneHasTag ? removeTag() : addTag()}
   />
 }

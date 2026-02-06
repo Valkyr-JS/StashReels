@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faCirclePlay, faLocationDot, faGripVertical, faThumbtack, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faCirclePlay, faLocationDot, faGripVertical, faThumbtack, faAdd, faTrashCan, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
-import React, { memo, useContext, useEffect, useMemo } from "react";
+import React, { memo, useContext, useEffect, useMemo, useState } from "react";
 import Select from "../Select";
 import { components } from "react-select";
 import "./SettingsTab.scss";
@@ -20,6 +20,10 @@ import DraggableList from "../../DraggableList";
 import { getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 import ActionButton from "../../slide/ActionButton";
 import objectHash from "object-hash";
+import { ActionButtonConfig } from "../../slide/ActionButtons";
+import { ActionButtonSettingsModal } from "../ActionButtonSettingsModal";
+import { queryFindTagsByIDForSelect } from "stash-ui/dist/src/core/StashService";
+import { FindTagsForSelectQuery } from "stash-ui/dist/src/core/generated-graphql";
 
 const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -222,6 +226,33 @@ const SettingsTab = memo(() => {
     }))
   ), []);
 
+  const [actionButtonDraft, setActionButtonDraft] = React.useState<ActionButtonConfig | null>(null);
+
+  const saveActionButtonDraft = (actionButton: ActionButtonConfig) => {
+    const existingButtonIndex = actionButtonsConfig.findIndex(button => button.id === actionButton.id);
+    if (existingButtonIndex !== -1) {
+      setAppSetting(
+        "actionButtonsConfig",
+        actionButtonsConfig.map((button, index) => index === existingButtonIndex ? actionButton : button)
+      );
+    } else {
+      setAppSetting(
+        "actionButtonsConfig",
+        [...actionButtonsConfig, {...actionButton, id: Date.now().toString()}]
+      );
+    }
+  }
+
+
+    const [tags, setTags] = useState<FindTagsForSelectQuery["findTags"]["tags"]>([]);
+    const tagIds = actionButtonsConfig.filter(config => 'tagId' in config)
+        .map(config => config.tagId)
+        .toSorted()
+    useEffect(() => {
+      queryFindTagsByIDForSelect(tagIds)
+        .then(result => setTags(result.data.findTags.tags))
+    }, [tagIds])
+
 
   /* -------------------------------- Component ------------------------------- */
   return <SideDrawer
@@ -229,6 +260,15 @@ const SettingsTab = memo(() => {
     closeDisabled={disableClose}
     className="SettingsTab"
   >
+    {actionButtonDraft && <ActionButtonSettingsModal
+      actionButtonConfig={actionButtonDraft}
+      onUpdate={setActionButtonDraft}
+      onClose={() => setActionButtonDraft(null)}
+      onSave={config => {
+        saveActionButtonDraft(config)
+        setActionButtonDraft(null)
+      }}
+    />}
     <Accordion defaultActiveKey="0">
       <AccordionToggle eventKey="0">
         Media Feed
@@ -520,15 +560,8 @@ const SettingsTab = memo(() => {
             <Form.Text className="text-muted">Flip the user interface for left-handed use.</Form.Text>
           </Form.Group>
           <Form.Group>
-            <div className="inline text">
-              <label>Action Buttons</label>
-              {actionButtonsConfigIsDefault || <Button
-                variant="outline-primary"
-                onClick={() => setDefaultAppSetting('actionButtonsConfig')}
-              >
-                Set to default
-              </Button>}
-            </div>
+            <label>Action Buttons</label>
+
             <DraggableList
               items={actionButtonsConfig.toReversed().toSorted((a, b) => (a.pinned ? 1 : 0) - (b.pinned ? 1 : 0))}
               onItemsOrderChange={(newOrder) => {
@@ -543,8 +576,15 @@ const SettingsTab = memo(() => {
                 )
               }}
               renderItem={(item) => {
-                const details = getActionButtonDetails(item);
-                return <div className={cx("list-item", {muted: item.hidden})}>
+                const details = getActionButtonDetails(
+                  item,
+                  {
+                    tagName: tags.find(
+                      tag => 'tagId' in item ? tag.id === item.tagId : false
+                    )?.name
+                  }
+                );
+                return <div className={cx("list-item")}>
                   <div className="inline">
                     <FontAwesomeIcon icon={faGripVertical} />
                     <ActionButton
@@ -556,15 +596,22 @@ const SettingsTab = memo(() => {
                     {details.inactiveText}
                   </div>
                   <div className="inline">
+                    {["quick-tag"].includes(item.type) && <Button
+                      variant="link"
+                      className={cx("hide-button", "muted")}
+                      onClick={() => setActionButtonDraft(item)}
+                    >
+                      <FontAwesomeIcon icon={faPenToSquare} />
+                    </Button>}
                     {item.type !== "settings" && <Button
                       variant="link"
                       className={cx("hide-button", "muted")}
                       onClick={() => setAppSetting(
                         "actionButtonsConfig",
-                        actionButtonsConfig.map(button => button.id === item.id ? {...button, hidden: !button.hidden} : button)
+                        actionButtonsConfig.filter(button => button.id !== item.id)
                       )}
                     >
-                      <FontAwesomeIcon icon={item.hidden ? faEye : faEyeSlash} />
+                      <FontAwesomeIcon icon={faTrashCan} />
                     </Button>}
                     <Button
                       variant="link"
@@ -581,6 +628,27 @@ const SettingsTab = memo(() => {
               }}
               getItemKey={(item) => item.id}
             />
+            <div className="inline">
+              <Button
+                onClick={() => setActionButtonDraft({
+                  id: "",
+                  type: "quick-tag",
+                  pinned: false,
+                  tagId: "",
+                  iconId: "",
+                })}
+              >
+                <FontAwesomeIcon icon={faAdd} />
+                Add
+              </Button>
+
+              {actionButtonsConfigIsDefault || <Button
+                variant="warning"
+                onClick={() => setDefaultAppSetting('actionButtonsConfig')}
+              >
+                Set to default
+              </Button>}
+            </div>
             <Form.Text className="text-muted">
               Action buttons will overflow off the top of the window if the window is not tall enough to display them
               all at once. The list will become scrollable to allow access to overflowed buttons. Pinned buttons will
