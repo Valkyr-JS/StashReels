@@ -10,7 +10,8 @@ import { useMediaItemFilters } from "../../hooks/useMediaItemFilters";
 import GuideOverlay from "../../components/GuideOverlay";
 import { ErrorMessage } from "stash-ui/dist/src/components/Shared/ErrorMessage";
 import cx from "classnames";
-import { SettingsButton } from "tv-ui/src/components/slide/SettingsButton";
+import ActionButton from "../../components/slide/ActionButton";
+import { getActionButtonDetails } from "../../helpers/getActionButtonDetails";
 
 export type ScenesQueryOptions = Parameters<typeof GQL.useFindScenesForTvQuery>[0]
 
@@ -128,7 +129,13 @@ const FeedPage: React.FC<FeedPageProps> = memo(({className}) => {
             }, null, 2)}
           </pre>}
         </div>
-        <SettingsButton />
+        <ActionButton
+          {...getActionButtonDetails({id: "", type: "settings"})}
+          className="settings"
+          active={showSettings}
+          data-testid="MediaSlide--settingsButton"
+          onClick={() => setAppSetting("showSettings", (prev) => !prev)}
+        />
       </>
       : <VideoScroller />}
     <SettingsTab />

@@ -19,6 +19,7 @@
     "@use-gesture/react": "^10.3.1",
     "classnames": "^2.5.1",
     "escape-string-regexp": "^5.0.0",
+    "framer-motion": "6.5.1",
     "iso-639-1": "^3.1.2",
     "object-hash": "^3.0.0",
     "react": "^17.0.2",

@@ -26,7 +26,6 @@
     appearance: none;
     border: 0;
     padding: 0;
-    cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -35,9 +34,13 @@
     width: 40px;
     transition: scale 0.1s ease-in-out;
 
-    &:hover {
-      svg {
-        scale: 1.1;
+    &:not([disabled]) {
+      cursor: pointer;
+
+      &:hover {
+        svg {
+          scale: 1.1;
+        }
       }
     }
 

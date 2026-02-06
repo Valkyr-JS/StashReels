@@ -53,9 +53,24 @@
     }
   }
 
+  .inline {
+    display: flex;
+    gap: 1em;
+    justify-content: space-between;
+  }
+
   .form-group {
     /* We use gap to space out items rather than margin */
     margin-bottom: 0;
+
+    &.inline {
+      margin-top: 0.5em;
+      align-items: center;
+
+      button {
+        flex: 0 0 auto;
+      }
+    }
   }
 
   label {
@@ -70,19 +85,30 @@
     }
   }
 
-  .inline {
+  .list-item {
     display: flex;
-    gap: 1em;
-  }
-
-  .form-group.button-description-inline {
-    display: flex;
-    gap: 1em;
-    margin-top: 0.5em;
+    gap: 2rem;
+    justify-content: space-between;
     align-items: center;
 
-    button {
-      flex: 0 0 auto;
+    .inline {
+      gap: 0.5em;
+      align-items: center;
+    }
+  }
+
+
+  .pin-button {
+    font-size: 1.5em;
+
+    &:hover {
+      color: var(--link-hover-color);
+    }
+    &.inactive {
+      opacity: 0.5;
+    }
+    &:not(:hover).inactive {
+      color: white;
     }
   }
 

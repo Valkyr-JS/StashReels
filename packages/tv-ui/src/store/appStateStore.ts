@@ -2,6 +2,7 @@ import { LogLevel } from '@logtape/logtape';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
 import { defaultLogLevel } from '../helpers/logging';
+import type { ActionButtonConfig } from '../components/slide/ActionButtons';
 
 export type DebuggingInfo = "render-debugging" | "onscreen-info";
 
@@ -26,6 +27,7 @@ type AppState = {
   maxPlayLength?: number;
   showGuideOverlay?: boolean;
   leftHandedUi?: boolean;
+  actionButtonsConfig: ActionButtonConfig[];
   // Non-persistent state
   showSettings: boolean;
   fullscreen: boolean;
@@ -40,38 +42,53 @@ type AppState = {
 
 type AppAction = {
   set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => void;
+  setDefault: <PropName extends keyof AppState>(propName: PropName) => void;
 }
+
+const defaults = {
+  showSettings: false,
+  audioMuted: true,
+  showSubtitles: false,
+  fullscreen: false,
+  letterboxing: false,
+  forceLandscape: false,
+  looping: false,
+  uiVisible: true,
+  isRandomised: false,
+  crtEffect: false,
+  scenePreviewOnly: false,
+  markerPreviewOnly: false,
+  onlyShowMatchingOrientation: false,
+  maxMedia: undefined,
+  autoPlay: true,
+  startPosition: 'resume',
+  endPosition: 'video-end',
+  showGuideOverlay: true,
+  showDevOptions: false,
+  logLevel: defaultLogLevel,
+  loggersToShow: [],
+  loggersToHide: [],
+  showDebuggingInfo: [],
+  videoJsEventsToLog: [],
+  actionButtonsConfig: [
+    {id: "1", type: "ui-visibility", pinned: true},
+    {id: "2", type: "settings"},
+    {id: "3", type: "show-scene-info"},
+    {id: "4", type: "rate-scene"},
+    {id: "5", type: "o-counter"},
+    {id: "6", type: "force-landscape"},
+    {id: "7", type: "fullscreen"},
+    {id: "8", type: "mute"},
+    {id: "9", type: "letterboxing"},
+    {id: "10", type: "loop"},
+    {id: "11", type: "subtitles"},
+  ],
+} satisfies AppState;
 
 export const useAppStateStore = create<AppState & AppAction>()(
   persist(
     (set, get) => ({
-      selectedSavedFilterId: undefined,
-      sceneFilter: undefined,
-      sceneFilterLoading: true,
-      showSettings: false,
-      audioMuted: true,
-      showSubtitles: false,
-      fullscreen: false,
-      letterboxing: false,
-      forceLandscape: false,
-      looping: false,
-      uiVisible: true,
-      isRandomised: false,
-      crtEffect: false,
-      scenePreviewOnly: false,
-      markerPreviewOnly: false,
-      onlyShowMatchingOrientation: false,
-      maxMedia: undefined,
-      autoPlay: true,
-      startPosition: 'resume',
-      endPosition: 'video-end',
-      showGuideOverlay: true,
-      showDevOptions: false,
-      logLevel: defaultLogLevel,
-      loggersToShow: [],
-      loggersToHide: [],
-      showDebuggingInfo: [],
-      videoJsEventsToLog: [],
+      ...defaults,
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
         set((state) => {
           const resolvedValue = typeof value === "function" ? value(state[propName]) : value
@@ -96,8 +113,15 @@ export const useAppStateStore = create<AppState & AppAction>()(
           };
         });
       },
+      setDefault: <PropName extends keyof typeof defaults>(propName: PropName) => {
+        set((state) => {
+          return {
+            [propName]: defaults[propName],
+          };
+        });
+      },
     }),
-    {
+      {
       name: 'app-state',
       partialize: (state) =>
         Object.fromEntries(

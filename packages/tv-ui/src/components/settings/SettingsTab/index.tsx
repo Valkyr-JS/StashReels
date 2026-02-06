@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faCirclePlay, faLocationDot } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faCirclePlay, faLocationDot, faGripVertical, faThumbtack } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
 import React, { memo, useContext, useEffect, useMemo } from "react";
 import Select from "../Select";
@@ -16,6 +16,9 @@ import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
 import { LogLevel } from "@logtape/logtape";
 import { getLoggers } from "../../../helpers/logging";
+import DraggableList from "../../DraggableList";
+import { getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
+import ActionButton from "../../slide/ActionButton";
 
 const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -47,7 +50,9 @@ const SettingsTab = memo(() => {
     maxPlayLength,
     maxMedia,
     leftHandedUi,
-    set: setAppSetting
+    actionButtonsConfig,
+    set: setAppSetting,
+    setDefault: setDefaultAppSetting,
   } = useAppStateStore();
   const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
 
@@ -209,6 +214,7 @@ const SettingsTab = memo(() => {
       label,
     }))
   ), []);
+
 
   /* -------------------------------- Component ------------------------------- */
   return <SideDrawer
@@ -506,6 +512,64 @@ const SettingsTab = memo(() => {
             />
             <Form.Text className="text-muted">Flip the user interface for left-handed use.</Form.Text>
           </Form.Group>
+          <Form.Group>
+            <div className="inline">
+              <label>Action Buttons</label>
+              <Button
+                onClick={() => setDefaultAppSetting('actionButtonsConfig')}
+              >
+                Set to default
+              </Button>
+            </div>
+            <DraggableList
+              items={actionButtonsConfig.toReversed().toSorted((a, b) => (a.pinned ? 1 : 0) - (b.pinned ? 1 : 0))}
+              onItemsOrderChange={(newOrder) => {
+                const buttons = newOrder.toReversed()
+                const indexOfFirstNonPinned = buttons.findIndex(button => !button.pinned)
+                setAppSetting(
+                  "actionButtonsConfig",
+                  buttons.map((buttonConfig, index) => ({
+                    ...buttonConfig,
+                    pinned: buttonConfig.pinned && index >= indexOfFirstNonPinned ? false : buttonConfig.pinned,
+                  }))
+                )
+              }}
+              renderItem={(item) => {
+                const details = getActionButtonDetails(item);
+                return <div className="list-item">
+                  <div className="inline">
+                    <FontAwesomeIcon icon={faGripVertical} />
+                    <ActionButton
+                      {...details}
+                      active={false}
+                      disabled={true}
+                      key={item.id}
+                    />
+                    {details.inactiveText}
+                  </div>
+                  <div>
+                    <Button
+                      variant="link"
+                      className={cx("pin-button", {inactive: !item.pinned})}
+                      onClick={() => setAppSetting(
+                        "actionButtonsConfig",
+                        actionButtonsConfig.map(button => button.id === item.id ? {...button, pinned: !button.pinned} : button)
+                      )}
+                    >
+                      <FontAwesomeIcon icon={faThumbtack} />
+                    </Button>
+                  </div>
+                </div>
+              }}
+              getItemKey={(item) => item.id}
+            />
+            <Form.Text className="text-muted">
+              Action buttons will overflow off the top of the window if the window is not tall enough to display them
+              all at once. The list will become scrollable to allow access to overflowed buttons. Pinned buttons will
+              never be pushed off screen when scrolling.
+            </Form.Text>
+
+          </Form.Group>
         </>
       </Accordion.Collapse>
       <AccordionToggle eventKey="3">
@@ -513,7 +577,7 @@ const SettingsTab = memo(() => {
       </AccordionToggle>
       <Accordion.Collapse eventKey="3">
         <>
-          <Form.Group className="button-description-inline">
+          <Form.Group className="inline">
             <Button
               onClick={() => setAppSetting('showGuideOverlay', true)}
             >

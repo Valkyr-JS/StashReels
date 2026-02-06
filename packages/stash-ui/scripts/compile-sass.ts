@@ -96,7 +96,10 @@ async function buildAllOtherSassFiles() {
 let _sassThemeVariablesCache: string | null = null;
 async function getSassThemeVariables() {
   if (!_sassThemeVariablesCache) {
-    const file = await fs.readFile(path.join(srcDir, "styles/_theme.scss"), "utf8")
+    let file = await fs.readFile(path.join(srcDir, "styles/_theme.scss"), "utf8")
+    // The link hover colour is currently the same as the standard link colour but it's nice having some feedback when
+    // hovering so we override that.
+    file += ";$link-hover-color: #96d1f6;"
     _sassThemeVariablesCache = file.match( /\$[^;:]*?:[^;]*?;/g )?.join("\n") || null;
   }
   return _sassThemeVariablesCache;

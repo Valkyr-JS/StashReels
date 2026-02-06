@@ -66,6 +66,8 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     )
   }
 
+  const displayText = active ? activeText : inactiveText
+
   return (
     <div
       className={cx("ActionButton", className, { active, 'left-handed': leftHandedUi })}
@@ -87,7 +89,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
             <Icon className={cx("icon", `icon-${className}`)} />
           )}
           <span className="sr-only">
-            {active ? activeText : inactiveText}
+            {displayText}
           </span>
         </button>
       </SidePanel>
