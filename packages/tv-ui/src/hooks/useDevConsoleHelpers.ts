@@ -4,14 +4,21 @@ import { useAppStateStore } from "../store/appStateStore";
 declare global {
   interface Window {
     freeze?: (countdown?: number) => void;
+    showSettings?(): void;
   }
 }
 
 export function useDevConsoleHelpers() {
-  const { showDevOptions } = useAppStateStore()
+  const { showDevOptions, set: setAppState } = useAppStateStore()
   useEffect(() => {
-    window.freeze = showDevOptions ? (countdown = 2) => {
-      setTimeout(() => {debugger}, countdown * 1000);
-    } : undefined;
+    if (showDevOptions) {
+      window.freeze = (countdown = 2) => {
+        setTimeout(() => {debugger}, countdown * 1000);
+      };
+      window.showSettings = () => setAppState("showSettings", true);
+    } else {
+      delete window.freeze;
+      delete window.showSettings;
+    }
   }, [showDevOptions]);
 }

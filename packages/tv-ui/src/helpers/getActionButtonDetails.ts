@@ -96,8 +96,8 @@ export function getActionButtonDetails(config: ActionButtonConfig): ActionButton
       return {
         activeIcon: ContainIcon,
         inactiveIcon: CoverOutlineIcon,
-        activeText: "Fill screen",
-        inactiveText: "Constrain to screen"
+        activeText: "Fit to screen",
+        inactiveText: "Fill screen",
       }
     case "loop":
       return {

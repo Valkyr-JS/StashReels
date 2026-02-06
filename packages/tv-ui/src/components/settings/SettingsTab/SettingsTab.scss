@@ -57,6 +57,11 @@
     display: flex;
     gap: 1em;
     justify-content: space-between;
+    align-items: center;
+
+    &.text {
+      align-items: baseline;
+    }
   }
 
   .form-group {
@@ -65,7 +70,6 @@
 
     &.inline {
       margin-top: 0.5em;
-      align-items: center;
 
       button {
         flex: 0 0 auto;
@@ -91,24 +95,31 @@
     justify-content: space-between;
     align-items: center;
 
+    button {
+      font-size: 1.5em;
+      padding: 0.1em;
+    }
+
     .inline {
       gap: 0.5em;
       align-items: center;
     }
+
+    &.muted {
+      opacity: 0.5;
+    }
   }
 
 
-  .pin-button {
-    font-size: 1.5em;
-
+  button {
     &:hover {
       color: var(--link-hover-color);
     }
-    &.inactive {
+    &.muted {
       opacity: 0.5;
     }
-    &:not(:hover).inactive {
-      color: white;
+    &:not(:hover).muted {
+      color: var(--text-color);
     }
   }
 

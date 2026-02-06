@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faCirclePlay, faLocationDot, faGripVertical, faThumbtack } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faCirclePlay, faLocationDot, faGripVertical, faThumbtack, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import ISO6391 from "iso-639-1";
 import React, { memo, useContext, useEffect, useMemo } from "react";
 import Select from "../Select";
@@ -19,6 +19,7 @@ import { getLoggers } from "../../../helpers/logging";
 import DraggableList from "../../DraggableList";
 import { getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 import ActionButton from "../../slide/ActionButton";
+import objectHash from "object-hash";
 
 const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -53,10 +54,16 @@ const SettingsTab = memo(() => {
     actionButtonsConfig,
     set: setAppSetting,
     setDefault: setDefaultAppSetting,
+    getDefault: getDefaultAppSetting,
   } = useAppStateStore();
   const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
 
   const noMediaItemsAvailable = !mediaItemFiltersLoading && !mediaItemsLoading && mediaItems.length === 0
+
+  const actionButtonsConfigIsDefault = useMemo(() => {
+    const defaultConfig = getDefaultAppSetting("actionButtonsConfig");
+    return objectHash(actionButtonsConfig) === objectHash(defaultConfig)
+  }, [getDefaultAppSetting, actionButtonsConfig])
 
 
   /* ---------------------------------- Forms --------------------------------- */
@@ -513,13 +520,14 @@ const SettingsTab = memo(() => {
             <Form.Text className="text-muted">Flip the user interface for left-handed use.</Form.Text>
           </Form.Group>
           <Form.Group>
-            <div className="inline">
+            <div className="inline text">
               <label>Action Buttons</label>
-              <Button
+              {actionButtonsConfigIsDefault || <Button
+                variant="outline-primary"
                 onClick={() => setDefaultAppSetting('actionButtonsConfig')}
               >
                 Set to default
-              </Button>
+              </Button>}
             </div>
             <DraggableList
               items={actionButtonsConfig.toReversed().toSorted((a, b) => (a.pinned ? 1 : 0) - (b.pinned ? 1 : 0))}
@@ -536,7 +544,7 @@ const SettingsTab = memo(() => {
               }}
               renderItem={(item) => {
                 const details = getActionButtonDetails(item);
-                return <div className="list-item">
+                return <div className={cx("list-item", {muted: item.hidden})}>
                   <div className="inline">
                     <FontAwesomeIcon icon={faGripVertical} />
                     <ActionButton
@@ -547,10 +555,20 @@ const SettingsTab = memo(() => {
                     />
                     {details.inactiveText}
                   </div>
-                  <div>
+                  <div className="inline">
+                    {item.type !== "settings" && <Button
+                      variant="link"
+                      className={cx("hide-button", "muted")}
+                      onClick={() => setAppSetting(
+                        "actionButtonsConfig",
+                        actionButtonsConfig.map(button => button.id === item.id ? {...button, hidden: !button.hidden} : button)
+                      )}
+                    >
+                      <FontAwesomeIcon icon={item.hidden ? faEye : faEyeSlash} />
+                    </Button>}
                     <Button
                       variant="link"
-                      className={cx("pin-button", {inactive: !item.pinned})}
+                      className={cx("pin-button", {muted: !item.pinned})}
                       onClick={() => setAppSetting(
                         "actionButtonsConfig",
                         actionButtonsConfig.map(button => button.id === item.id ? {...button, pinned: !button.pinned} : button)

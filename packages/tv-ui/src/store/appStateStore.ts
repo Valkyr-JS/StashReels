@@ -42,7 +42,8 @@ type AppState = {
 
 type AppAction = {
   set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => void;
-  setDefault: <PropName extends keyof AppState>(propName: PropName) => void;
+  setDefault: <PropName extends keyof typeof defaults>(propName: PropName) => void;
+  getDefault: <PropName extends keyof typeof defaults>(propName: PropName) => typeof defaults[PropName];
 }
 
 const defaults = {
@@ -71,17 +72,17 @@ const defaults = {
   showDebuggingInfo: [],
   videoJsEventsToLog: [],
   actionButtonsConfig: [
-    {id: "1", type: "ui-visibility", pinned: true},
-    {id: "2", type: "settings"},
-    {id: "3", type: "show-scene-info"},
-    {id: "4", type: "rate-scene"},
-    {id: "5", type: "o-counter"},
-    {id: "6", type: "force-landscape"},
-    {id: "7", type: "fullscreen"},
-    {id: "8", type: "mute"},
-    {id: "9", type: "letterboxing"},
-    {id: "10", type: "loop"},
-    {id: "11", type: "subtitles"},
+    {id: "1", type: "ui-visibility", pinned: true, hidden: false},
+    {id: "2", type: "settings", pinned: false, hidden: false},
+    {id: "3", type: "show-scene-info", pinned: false, hidden: false},
+    {id: "4", type: "rate-scene", pinned: false, hidden: false},
+    {id: "5", type: "o-counter", pinned: false, hidden: false},
+    {id: "6", type: "force-landscape", pinned: false, hidden: false},
+    {id: "7", type: "fullscreen", pinned: false, hidden: false},
+    {id: "8", type: "mute", pinned: false, hidden: false},
+    {id: "9", type: "letterboxing", pinned: false, hidden: false},
+    {id: "10", type: "loop", pinned: false, hidden: false},
+    {id: "11", type: "subtitles", pinned: false, hidden: false},
   ],
 } satisfies AppState;
 
@@ -119,6 +120,9 @@ export const useAppStateStore = create<AppState & AppAction>()(
             [propName]: defaults[propName],
           };
         });
+      },
+      getDefault: <PropName extends keyof typeof defaults>(propName: PropName) => {
+        return defaults[propName];
       },
     }),
       {

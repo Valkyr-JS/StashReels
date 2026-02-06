@@ -2,7 +2,7 @@ import { configure, getConsoleSink, Logger, LogLevel } from "@logtape/logtape";
 
 const consoleSink = getConsoleSink()
 
-export const defaultLogLevel: LogLevel = import.meta.env.DEV ? "info" : "warning";
+export const defaultLogLevel = (import.meta.env.DEV ? "info" : "warning") satisfies LogLevel;
 
 export const setupLogging = async (
   {logLevel = defaultLogLevel, logCategoriesToShow = [], logCategoriesToHide = []}:

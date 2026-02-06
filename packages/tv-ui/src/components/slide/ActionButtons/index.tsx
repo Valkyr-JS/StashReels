@@ -23,7 +23,7 @@ export type Props = {
 }
 
 export type ActionButtonConfig =
-{id: string; pinned?: boolean} & (
+{id: string; pinned: boolean; hidden: boolean} & (
   {type: "ui-visibility"}
     | {type: "settings"}
     | {type: "show-scene-info"}
@@ -40,23 +40,18 @@ export type ActionButtonConfig =
 
 export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   const {
-    showSettings,
-    fullscreen,
-    letterboxing,
-    forceLandscape,
-    audioMuted,
-    looping,
-    showSubtitles,
     uiVisible,
     leftHandedUi,
     actionButtonsConfig,
-    set: setAppSetting,
   } = useAppStateStore();
 
-  const { data: { subtitleLanguage } } = useStashTvConfig()
-
-  const { configuration: config } = React.useContext(ConfigurationContext);
-  const [updateScene] = useSceneUpdate();
+  const displayedActionButtonsConfig = actionButtonsConfig.filter(config =>
+    // Display if not hidden
+    !config.hidden
+    // or if it's the settings button (so that we can't accidentally hide the settings button and lose access to it)
+    || config.type === "settings"
+    // or if it's the ui-visibility button and the UI is currently hidden (also so we can't loose access to the settings)
+    || (config.type === "ui-visibility" && !uiVisible))
 
   const stackElmRef = useRef<HTMLDivElement>(null);
   const stackScrollClasses = useOverflowIndicators(stackElmRef);
@@ -65,182 +60,27 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
     const { type } = buttonConfig;
     switch (type) {
       case "settings":
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="settings hide-on-ui-hide"
-          active={showSettings}
-          data-testid="MediaSlide--settingsButton"
-          onClick={() => setAppSetting("showSettings", (prev) => !prev)}
-        />
+        return <SettingsActionButton buttonConfig={buttonConfig} />
       case "show-scene-info":
-        if (
-          scene.performers.length === 0 ||
-          !scene.studio ||
-          !scene.title ||
-          !scene.date
-        ) return null
-        return <ActionButton
-            {...getActionButtonDetails(buttonConfig)}
-            className="show-scene-info hide-on-ui-hide"
-            active={sceneInfoOpen}
-            data-testid="MediaSlide--infoButton"
-            onClick={() => setSceneInfoOpen(!sceneInfoOpen)}
-          />
+        return <ShowSceneInfoActionButton scene={scene} sceneInfoOpen={sceneInfoOpen} setSceneInfoOpen={setSceneInfoOpen} buttonConfig={buttonConfig} />
       case "rate-scene":
-        const ratingSystemOptions =
-          config?.ui.ratingSystemOptions ?? defaultRatingSystemOptions;
-
-        let sceneRatingFormatted
-        if (typeof scene.rating100 === "number") {
-          if (ratingSystemOptions.type === RatingSystemType.Stars) {
-            sceneRatingFormatted = (scene.rating100 / 20).toFixed(1).replace(/\.0$/, ""); // Convert 0-100 to 0-5
-          } else {
-            sceneRatingFormatted = (scene.rating100 / 10).toString();
-          }
-        }
-
-        function setRating(newRating: number | null) {
-          updateScene({
-            variables: {
-              input: {
-                id: scene.id,
-                rating100: newRating,
-              },
-            },
-          });
-        }
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="rate-scene hide-on-ui-hide"
-          active={typeof scene.rating100 === "number"}
-          data-testid="MediaSlide--rateButton"
-          sidePanel={
-            <div className={cx("action-button-rating-stars", {'not-set': typeof scene.rating100 !== "number", 'left-handed': leftHandedUi}, ratingSystemOptions.type.toLowerCase())}>
-              <span className="clear star-rating-number">Clear</span>
-              <RatingSystem
-                value={scene.rating100}
-                onSetRating={setRating}
-                clickToRate
-                withoutContext
-              />
-            </div>
-          }
-          sideInfo={sceneRatingFormatted}
-        />
+        return <RateSceneActionButton scene={scene} buttonConfig={buttonConfig} />
       case "o-counter":
-        const [incrementOCount] = useSceneIncrementO(scene.id);
-        const [removeOCountTime] = useSceneDecrementO(scene.id);
-        const decrementOCount = () => {
-          // o_history appears to already be sorted newest to oldest but we sort anyway to be sure that's always the case
-          const latestOHistoryTime = scene.o_history?.toSorted().reverse()[0]
-          if (latestOHistoryTime) {
-            removeOCountTime({
-              variables: {
-                id: scene.id,
-                times: [latestOHistoryTime],
-              },
-            })
-          }
-        }
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="o-counter hide-on-ui-hide"
-          active={(scene.o_counter ?? 0) > 0}
-          data-testid="MediaSlide--oCounterButton"
-          sidePanel={
-            <div className="action-button-o-counter">
-              <button onClick={() => decrementOCount()} disabled={(scene.o_counter ?? 0) <= 0}>
-                <FontAwesomeIcon icon={faMinus} />
-              </button>
-              {scene.o_counter ?? 0}
-              <button onClick={() => incrementOCount()}>
-                <FontAwesomeIcon icon={faPlus} />
-              </button>
-            </div>
-          }
-          sideInfo={(scene.o_counter ?? 0) > 0 && scene.o_counter}
-        />
+        return <OCounterActionButton scene={scene} buttonConfig={buttonConfig} />
       case "force-landscape":
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="force-landscape hide-on-ui-hide"
-          active={forceLandscape}
-          data-testid="MediaSlide--forceLandscapeButton"
-          onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
-        />
+        return <ForceLandscapeActionButton buttonConfig={buttonConfig} />
       case "fullscreen":
-        if (!('exitFullscreen' in document)) return null
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="fullscreen hide-on-ui-hide"
-          active={fullscreen}
-          data-testid="MediaSlide--fullscreenButton"
-          onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
-        />
+        return <FullscreenActionButton buttonConfig={buttonConfig} />
       case "mute":
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="mute hide-on-ui-hide"
-          active={!audioMuted}
-          data-testid="MediaSlide--muteButton"
-          onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
-        />
+        return <MuteActionButton buttonConfig={buttonConfig} />
       case "letterboxing":
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="letterboxing hide-on-ui-hide"
-          active={letterboxing}
-          data-testid="MediaSlide--letterboxButton"
-          onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
-        />
+        return <LetterboxingActionButton buttonConfig={buttonConfig} />
       case "loop":
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="loop hide-on-ui-hide"
-          active={looping}
-          data-testid="MediaSlide--loopButton"
-          onClick={() => setAppSetting("looping", (prev) => !prev)}
-        />
+        return <LoopActionButton buttonConfig={buttonConfig} />
       case "subtitles":
-        /** Only render captions track if available, and it matches the user's chosen
-        * language. Fails accessibility if missing, but there's no point rendering
-        * an empty track. */
-        const captionSources =
-          scene.captions && subtitleLanguage
-            ? scene.captions
-                .map((cap, i) => {
-                  if (cap.language_code === subtitleLanguage) {
-                    const src = scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
-                    return (
-                      <track
-                        default={subtitleLanguage === cap.language_code}
-                        key={i}
-                        kind="captions"
-                        label={ISO6391.getName(cap.language_code) || "Unknown"}
-                        src={src}
-                        srcLang={cap.language_code}
-                      />
-                    );
-                  }
-                })
-                .find((c) => !!c)
-            : null;
-        if (!captionSources) return null
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          className="subtitles hide-on-ui-hide"
-          active={!!captionSources && showSubtitles}
-          data-testid="MediaSlide--subtitlesButton"
-          onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
-        />
+        return <SubtitlesActionButton scene={scene} buttonConfig={buttonConfig} />
       case "ui-visibility":
-        return <ActionButton
-          {...getActionButtonDetails(buttonConfig)}
-          active={uiVisible}
-          className={cx("toggle-ui", "dim-on-ui-hide", {'active': uiVisible})}
-          data-testid="MediaSlide--showActionButton"
-          onClick={() => setAppSetting("uiVisible", (prev) => !prev)}
-        />
+        return <UiVisibilityActionButton buttonConfig={buttonConfig} />
       default:
         throw new Error(`Unknown action button type: ${type}`)
     }
@@ -252,7 +92,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
       data-testid="MediaSlide--toggleableUi"
     >
       <div className={cx("stack", ...stackScrollClasses)} ref={stackElmRef}>
-        {actionButtonsConfig
+        {displayedActionButtonsConfig
           .filter(config => !config.pinned)
           .map(config => <React.Fragment key={config.type}>
             {renderActionButton(config)}
@@ -260,7 +100,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
         }
       </div>
       <div className="pinned">
-        {actionButtonsConfig
+        {displayedActionButtonsConfig
           .filter(config => config.pinned)
           .map(config => <React.Fragment key={config.type}>
             {renderActionButton(config)}
@@ -269,4 +109,215 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
       </div>
     </div>
   )
+}
+
+function SettingsActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
+  const { showSettings, set: setAppSetting } = useAppStateStore();
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="settings hide-on-ui-hide"
+    active={showSettings}
+    data-testid="MediaSlide--settingsButton"
+    onClick={() => setAppSetting("showSettings", (prev) => !prev)}
+  />
+}
+
+function ShowSceneInfoActionButton({scene, sceneInfoOpen, setSceneInfoOpen, buttonConfig}: {scene: GQL.TvSceneDataFragment, sceneInfoOpen: boolean, setSceneInfoOpen: (open: boolean) => void, buttonConfig: ActionButtonConfig}) {
+  if (
+    scene.performers.length === 0 ||
+    !scene.studio ||
+    !scene.title ||
+    !scene.date
+  ) return null
+  return <ActionButton
+      {...getActionButtonDetails(buttonConfig)}
+      className="show-scene-info hide-on-ui-hide"
+      active={sceneInfoOpen}
+      data-testid="MediaSlide--infoButton"
+      onClick={() => setSceneInfoOpen(!sceneInfoOpen)}
+    />
+}
+
+function RateSceneActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFragment, buttonConfig: ActionButtonConfig}) {
+  const { configuration: config } = React.useContext(ConfigurationContext);
+  const { leftHandedUi } = useAppStateStore();
+  const ratingSystemOptions =
+    config?.ui.ratingSystemOptions ?? defaultRatingSystemOptions;
+
+  let sceneRatingFormatted
+  if (typeof scene.rating100 === "number") {
+    if (ratingSystemOptions.type === RatingSystemType.Stars) {
+      sceneRatingFormatted = (scene.rating100 / 20).toFixed(1).replace(/\.0$/, ""); // Convert 0-100 to 0-5
+    } else {
+      sceneRatingFormatted = (scene.rating100 / 10).toString();
+    }
+  }
+
+  const [updateScene] = useSceneUpdate();
+  function setRating(newRating: number | null) {
+    updateScene({
+      variables: {
+        input: {
+          id: scene.id,
+          rating100: newRating,
+        },
+      },
+    });
+  }
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="rate-scene hide-on-ui-hide"
+    active={typeof scene.rating100 === "number"}
+    data-testid="MediaSlide--rateButton"
+    sidePanel={
+      <div className={cx("action-button-rating-stars", {'not-set': typeof scene.rating100 !== "number", 'left-handed': leftHandedUi}, ratingSystemOptions.type.toLowerCase())}>
+        <span className="clear star-rating-number">Clear</span>
+        <RatingSystem
+          value={scene.rating100}
+          onSetRating={setRating}
+          clickToRate
+          withoutContext
+        />
+      </div>
+    }
+    sideInfo={sceneRatingFormatted}
+  />
+}
+
+function OCounterActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFragment, buttonConfig: ActionButtonConfig}) {
+  const [incrementOCount] = useSceneIncrementO(scene.id);
+  const [removeOCountTime] = useSceneDecrementO(scene.id);
+  const decrementOCount = () => {
+    // o_history appears to already be sorted newest to oldest but we sort anyway to be sure that's always the case
+    const latestOHistoryTime = scene.o_history?.toSorted().reverse()[0]
+    if (latestOHistoryTime) {
+      removeOCountTime({
+        variables: {
+          id: scene.id,
+          times: [latestOHistoryTime],
+        },
+      })
+    }
+  }
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="o-counter hide-on-ui-hide"
+    active={(scene.o_counter ?? 0) > 0}
+    data-testid="MediaSlide--oCounterButton"
+    sidePanel={
+      <div className="action-button-o-counter">
+        <button onClick={() => decrementOCount()} disabled={(scene.o_counter ?? 0) <= 0}>
+          <FontAwesomeIcon icon={faMinus} />
+        </button>
+        {scene.o_counter ?? 0}
+        <button onClick={() => incrementOCount()}>
+          <FontAwesomeIcon icon={faPlus} />
+        </button>
+      </div>
+    }
+    sideInfo={(scene.o_counter ?? 0) > 0 && scene.o_counter}
+  />
+}
+
+function ForceLandscapeActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
+  const { forceLandscape, set: setAppSetting } = useAppStateStore();
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="force-landscape hide-on-ui-hide"
+    active={forceLandscape}
+    data-testid="MediaSlide--forceLandscapeButton"
+    onClick={() => setAppSetting("forceLandscape", (prev) => !prev)}
+  />
+}
+
+function FullscreenActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
+  const { fullscreen, set: setAppSetting } = useAppStateStore();
+  if (!('exitFullscreen' in document)) return null
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="fullscreen hide-on-ui-hide"
+    active={fullscreen}
+    data-testid="MediaSlide--fullscreenButton"
+    onClick={() => setAppSetting("fullscreen", (prev) => !prev)}
+  />
+}
+
+function MuteActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
+  const { audioMuted, set: setAppSetting } = useAppStateStore();
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="mute hide-on-ui-hide"
+    active={!audioMuted}
+    data-testid="MediaSlide--muteButton"
+    onClick={() => setAppSetting("audioMuted", (prev) => !prev)}
+  />
+}
+
+function LetterboxingActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
+  const { letterboxing, set: setAppSetting } = useAppStateStore();
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="letterboxing hide-on-ui-hide"
+    active={letterboxing}
+    data-testid="MediaSlide--letterboxButton"
+    onClick={() => setAppSetting("letterboxing", (prev) => !prev)}
+  />
+}
+
+function LoopActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
+  const { looping, set: setAppSetting } = useAppStateStore();
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="loop hide-on-ui-hide"
+    active={looping}
+    data-testid="MediaSlide--loopButton"
+    onClick={() => setAppSetting("looping", (prev) => !prev)}
+  />
+}
+
+function SubtitlesActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFragment, buttonConfig: ActionButtonConfig}) {
+  const { showSubtitles, set: setAppSetting } = useAppStateStore();
+  const { data: { subtitleLanguage } } = useStashTvConfig()
+  /** Only render captions track if available, and it matches the user's chosen
+  * language. Fails accessibility if missing, but there's no point rendering
+  * an empty track. */
+  const captionSources =
+    scene.captions && subtitleLanguage
+      ? scene.captions
+          .map((cap, i) => {
+            if (cap.language_code === subtitleLanguage) {
+              const src = scene.paths.caption + `?lang=${cap.language_code}&type=${cap.caption_type}`;
+              return (
+                <track
+                  default={subtitleLanguage === cap.language_code}
+                  key={i}
+                  kind="captions"
+                  label={ISO6391.getName(cap.language_code) || "Unknown"}
+                  src={src}
+                  srcLang={cap.language_code}
+                />
+              );
+            }
+          })
+          .find((c) => !!c)
+      : null;
+  if (!captionSources) return null
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    className="subtitles hide-on-ui-hide"
+    active={!!captionSources && showSubtitles}
+    data-testid="MediaSlide--subtitlesButton"
+    onClick={() => setAppSetting("showSubtitles", (prev) => !prev)}
+  />
+}
+
+function UiVisibilityActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
+  const { uiVisible, set: setAppSetting } = useAppStateStore();
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig)}
+    active={uiVisible}
+    className={cx("toggle-ui", "dim-on-ui-hide", {'active': uiVisible})}
+    data-testid="MediaSlide--showActionButton"
+    onClick={() => setAppSetting("uiVisible", (prev) => !prev)}
+  />
 }
