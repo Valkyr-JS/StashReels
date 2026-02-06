@@ -15,7 +15,12 @@
       }
     }
   }
+
   .modal-body {
     overflow: initial;
+
+    #filter {
+      caret-color: transparent;
+    }
   }
 }

@@ -14,7 +14,7 @@ import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
 import { RatingSystem } from "stash-ui/wrappers/components/shared/RatingSystem";
 import { queryFindTagsByIDForSelect, useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
+import { getActionButtonDetails, ActionButtonCustomIcons } from "../../../helpers/getActionButtonDetails";
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
@@ -35,9 +35,8 @@ export type ActionButtonConfig =
     | {type: "letterboxing"}
     | {type: "loop"}
     | {type: "subtitles"}
-    | {type: "quick-tag"; iconId: string; tagId: string }
+    | {type: "quick-tag"; iconId: ActionButtonCustomIcons; tagId: string }
   )
-
 
 export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   const {

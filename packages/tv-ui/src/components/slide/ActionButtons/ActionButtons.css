@@ -23,10 +23,7 @@
 
   .stack {
     position: relative;
-    display: flex;
     padding-top: 10px;
-    /* We reverse the order so that we start from the bottom when scrollable */
-    flex-direction: column-reverse;
     overflow-y: auto;
     /* Firefox will automatically make overflow-x visible if overflow-y is set to auto even if we try to explicitly set
 overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appearing. */
@@ -38,6 +35,12 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
     translate: 0.6em 0;
 
     --additional-transitions: var(--overflow-indicators-transition);
+  }
+
+  .stack, .pinned {
+    display: flex;
+    /* We reverse the order so that we start from the bottom when scrollable */
+    flex-direction: column-reverse;
   }
 
   &.left-handed .stack {

@@ -251,7 +251,7 @@ const SettingsTab = memo(() => {
     useEffect(() => {
       queryFindTagsByIDForSelect(tagIds)
         .then(result => setTags(result.data.findTags.tags))
-    }, [tagIds])
+    }, [objectHash(tagIds)])
 
 
   /* -------------------------------- Component ------------------------------- */
@@ -546,7 +546,7 @@ const SettingsTab = memo(() => {
         </>
       </Accordion.Collapse>
       <AccordionToggle eventKey="2">
-        Interface
+        UI
       </AccordionToggle>
       <Accordion.Collapse eventKey="2">
         <>
@@ -635,7 +635,7 @@ const SettingsTab = memo(() => {
                   type: "quick-tag",
                   pinned: false,
                   tagId: "",
-                  iconId: "",
+                  iconId: "tag",
                 })}
               >
                 <FontAwesomeIcon icon={faAdd} />
@@ -650,11 +650,9 @@ const SettingsTab = memo(() => {
               </Button>}
             </div>
             <Form.Text className="text-muted">
-              Action buttons will overflow off the top of the window if the window is not tall enough to display them
-              all at once. The list will become scrollable to allow access to overflowed buttons. Pinned buttons will
-              never be pushed off screen when scrolling.
+              Pinning buttons stops them from being pushed off screen when the window is not tall enough to show them
+              all without scrolling.
             </Form.Text>
-
           </Form.Group>
         </>
       </Accordion.Collapse>

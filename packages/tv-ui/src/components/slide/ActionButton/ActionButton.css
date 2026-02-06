@@ -33,6 +33,7 @@
     background-color: transparent;
     width: 40px;
     transition: scale 0.1s ease-in-out;
+    color: inherit;
 
     &:not([disabled]) {
       cursor: pointer;
@@ -61,11 +62,6 @@
         drop-shadow(calc(var(--shadow-offset) * 1)  calc(var(--shadow-offset) * -1) var(--shadow-blur) rgba(0, 0, 0, var(--shadow-layer-opacity)))
         drop-shadow(calc(var(--shadow-offset) * -1) calc(var(--shadow-offset) * 1)  var(--shadow-blur) rgba(0, 0, 0,
         var(--shadow-layer-opacity)));
-
-      path {
-        stroke: white;
-        color: white;
-      }
     }
   }
 }
