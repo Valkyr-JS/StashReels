@@ -1,37 +1,40 @@
 import { faMobile } from "@fortawesome/pro-solid-svg-icons/faMobile";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { fetchPluginConfig } from "./helpers";
 import { PLUGIN_NAMESPACE } from "./constants";
 
 const { PluginApi } = window;
-const { React } = PluginApi;
+const { GQL, React } = PluginApi;
 
-// Wait for the navbar to load, as this contains the
-PluginApi.patch.instead(
+// Add a Reels button to the main navigation bar. Uses patch.before to modify
+// the props passed to the original component, preserving the React context
+// chain (including IntlProvider).
+PluginApi.patch.before(
   "MainNavBar.MenuItems",
-  function ({ children, ...props }, _, Original) {
-    const [showButton, setShowButton] = React.useState(true);
+  function (props: React.PropsWithChildren<{}>) {
+    const { data, loading } = GQL.useConfigurationQuery();
 
-    fetchPluginConfig().then((res) => {
-      // Check if plugin config exists
-      if (res?.data && res.data.configuration.plugins[PLUGIN_NAMESPACE]) {
-        const pluginConfig: PluginConfig | undefined =
-          res.data.configuration.plugins[PLUGIN_NAMESPACE];
+    let showButton = true;
 
-        setShowButton(!pluginConfig.hideNavButton);
+    if (!loading && data) {
+      const pluginConfig: PluginConfig | undefined =
+        data.configuration.plugins[PLUGIN_NAMESPACE];
+
+      if (pluginConfig) {
+        showButton = !pluginConfig.hideNavButton;
       }
-    });
+    }
 
-    // If data isn't yet available or the user has hidden the button, return the
-    // original component
-    if (!showButton) return [<Original {...props} children={children} />];
+    if (!showButton) return [props];
 
-    // Add the button to the navbar
     return [
-      <Original {...props}>
-        {children}
-        <ReelsButtonInner />
-      </Original>,
+      {
+        children: (
+          <>
+            {props.children}
+            <ReelsButtonInner />
+          </>
+        ),
+      },
     ];
   }
 );
