@@ -130,7 +130,7 @@ const FeedPage: React.FC<FeedPageProps> = memo(({className}) => {
           </pre>}
         </div>
         <ActionButton
-          {...getActionButtonDetails({id: "", type: "settings"})}
+          {...getActionButtonDetails({id: "", type: "settings", pinned: false})}
           className="settings"
           active={showSettings}
           data-testid="MediaSlide--settingsButton"

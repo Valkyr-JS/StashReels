@@ -7,8 +7,3 @@ ui:
     /: .
   javascript:
     - stash-tv.umd.js
-settings:
-  hideNavButton:
-    displayName: Hide navigation button
-    description: Hide the main navigation link to Stash TV.
-    type: BOOLEAN

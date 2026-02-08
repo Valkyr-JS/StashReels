@@ -6,12 +6,9 @@ import { ApolloCache, StoreObject, useMutation } from "@apollo/client";
 
 /** Config saved in Stash but managed and only use by Stash TV */
 export type StashTvConfig = {
-  /** The ID of the default filter to be loaded on startup. */
   defaultFilterId?: string,
-  /** Hide the main navigation link to Stash TV. */
-  hideNavButton?: boolean,
-  /** The subtitle language code to be used when available. */
   subtitleLanguage?: string;
+  initialSetupComplete?: boolean;
 }
 
 export default function useStashTvConfig() {

@@ -125,7 +125,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
         return defaults[propName];
       },
     }),
-      {
+    {
       name: 'app-state',
       partialize: (state) =>
         Object.fromEntries(
