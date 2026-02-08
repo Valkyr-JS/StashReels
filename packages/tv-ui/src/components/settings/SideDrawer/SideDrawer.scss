@@ -2,15 +2,23 @@
   height: calc(var(--y-unit-dynamic) * 100);
   position: fixed;
   top: var(--safe-inset-top);
-  width: min(300px, 80%);
+  --safe-inset-draw-side: var(--safe-inset-right);
+  width: min(calc(300px + var(--safe-inset-draw-side)), 80%);
+  --content-padding: 1.5em;
+  // Since a safe area inset suggests there is some display in the inset area visually it looks better to have slightly
+  // less padding than areas that touch the true edge of the screen.
+  --side-padding: max(
+    0px,
+    calc(var(--safe-inset-draw-side) - var(--content-padding) * 0.75)
+  );
+  padding-inline-end: var(--side-padding);
   background-color: var(--body-bg);
   max-height: 100%;
 
   &.left-handed {
-    &::before {
-      right: unset;
-      left: 0;
-    }
+    --safe-inset-draw-side: var(--safe-inset-left);
+    padding-inline-end: unset;
+    padding-inline-start: var(--side-padding);
   }
 
   // Extend background out to the top, left and bottom to cover gaps during swipe
@@ -18,10 +26,17 @@
     content: "";
     position: absolute;
     top: -50%;
-    right: 0;
+    left: 0;
     width: calc(var(--x-unit-large) * 120);
     height: 200%;
     background-color: inherit;
+  }
+
+  &.left-handed {
+    &::before {
+      left: unset;
+      right: 0;
+    }
   }
 
   .content {
@@ -33,43 +48,43 @@
 
     display: flex;
     flex-direction: column;
-  }
 
-  .body,
-  .footer {
-    padding: 1.5em;
-  }
-
-  .body {
-    padding-bottom: 0;
-    flex: 1 1 auto;
-    grid-row: main-top / main-bottom;
-    overflow-y: auto;
-  }
-
-  .footer {
-    display: flex;
-    align-items: center;
-    grid-row: footer-top / footer-bottom;
-
-    h2 {
-      margin-right: auto;
-      margin-bottom: 0;
+    .body,
+    .footer {
+      padding: var(--content-padding);
     }
 
-    > .action {
-      appearance: none;
-      border: 0;
-      padding: 0;
+    .body {
+      padding-bottom: 0;
+      flex: 1 1 auto;
+      grid-row: main-top / main-bottom;
+      overflow-y: auto;
+    }
 
+    .footer {
       display: flex;
-      justify-content: center;
       align-items: center;
+      grid-row: footer-top / footer-bottom;
 
-      background-color: transparent;
-      font-size: 28px;
-      line-height: 1;
-      color: inherit; /* Not sure why this is necessary but it seems to be */
+      h2 {
+        margin-right: auto;
+        margin-bottom: 0;
+      }
+
+      > .action {
+        appearance: none;
+        border: 0;
+        padding: 0;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        background-color: transparent;
+        font-size: 28px;
+        line-height: 1;
+        color: inherit; /* Not sure why this is necessary but it seems to be */
+      }
     }
   }
 }

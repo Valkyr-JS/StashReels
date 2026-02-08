@@ -134,7 +134,7 @@ export default function SideDrawer({children, title, closeDisabled, className}: 
       className={cx("SideDrawer", className, { 'left-handed': leftHandedUi })}
       data-testid="SideDrawer"
       ref={ref}
-      style={useMemo(() => ({ [leftHandedUi ? 'left' : 'right']: x.to(px => `calc(100% - ${px}px)`) }), [x.get(), leftHandedUi])}
+      style={useMemo(() => ({ [leftHandedUi ? 'right' : 'left']: x.to(px => `calc(100% - ${px}px)`) }), [x.get(), leftHandedUi])}
     >
       <div className="content">
         <div className={cx("body", bodyScrollClasses)} ref={bodyRef}>
