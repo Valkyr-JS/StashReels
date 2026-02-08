@@ -1,26 +1,30 @@
 .ActionButtonSettingsModal {
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    gap: 0.5em;
+  .modal-dialog {
+    top: var(--safe-inset-top);
 
-    .ActionButton {
-      height: unset;
-      button {
-        width: unset;
-        svg {
-          margin: unset;
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: start;
+      gap: 0.5em;
+
+      .ActionButton {
+        height: unset;
+        button {
+          width: unset;
+          svg {
+            margin: unset;
+          }
         }
       }
     }
-  }
 
-  .modal-body {
-    overflow: initial;
+    .modal-body {
+      overflow: initial;
 
-    #filter {
-      caret-color: transparent;
+      #filter {
+        caret-color: transparent;
+      }
     }
   }
 }
