@@ -35,7 +35,6 @@ import {
   Pin,
   PinFill,
   ListUl,
-  ListCheck,
   Star,
   StarFill,
   Icon0Circle,
@@ -91,7 +90,6 @@ import {
   DropletFill,
   Droplet,
   Flag,
-  Flag,
   FlagFill,
   Floppy,
   FloppyFill,
@@ -107,11 +105,8 @@ import {
   SuitClub,
   TelephoneFill,
   Telephone,
-  Trash,
-  TrashFill,
   Trash3Fill,
   Trash3,
-  Watch,
   CardList
 } from "react-bootstrap-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -119,7 +114,7 @@ import cx from "classnames";
 
 type IconProps = {className?: string, size?: string | number}
 type Icon = React.FunctionComponent<IconProps>
-type ActionButtonDetails = {
+export type ActionButtonDetails = {
   activeIcon: Icon;
   inactiveIcon: Icon;
   activeText: string;

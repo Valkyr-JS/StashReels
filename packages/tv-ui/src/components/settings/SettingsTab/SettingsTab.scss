@@ -75,6 +75,9 @@
         flex: 0 0 auto;
       }
     }
+    .form-subgroup {
+      margin: .5em auto;
+    }
   }
 
   label {
@@ -89,24 +92,45 @@
     }
   }
 
-  .list-item {
-    display: flex;
-    gap: 2rem;
-    justify-content: space-between;
-    align-items: center;
+  .draggable-list {
+    --item-padding: 0.3em;
+    margin: calc(var(--item-padding) * -1) 0;
 
-    button {
-      font-size: 1.3em;
-      padding: 0.1em;
-    }
-
-    .inline {
-      gap: 0.5em;
+    .draggable-list-item {
+      display: flex;
+      gap: 2rem;
+      justify-content: space-between;
       align-items: center;
-    }
+      padding: var(--item-padding) 0;
 
-    &.muted {
-      opacity: 0.5;
+      .drag-handle {
+        display: flex;
+        gap: 0.5em;
+        align-items: center;
+        // We give the drag handle some a little bit extra margin sticking out over the edge of it's container to slightly
+        // increase the hit target and make grabbing the handle a little bit more forgiving.
+        padding-left: 1.5em;
+        margin-left: -1em;
+      }
+
+      button {
+        font-size: 1.3em;
+        padding: 0.1em;
+      }
+
+      .inline {
+        gap: 0.5em;
+        align-items: center;
+      }
+
+      &.muted {
+        opacity: 0.5;
+      }
+
+      .button-icon {
+        width: 2em;
+        height: 2em;
+      }
     }
   }
 

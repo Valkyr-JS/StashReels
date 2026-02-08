@@ -563,6 +563,7 @@ const SettingsTab = memo(() => {
             <label>Action Buttons</label>
 
             <DraggableList
+              className={cx("draggable-list")}
               items={actionButtonsConfig.toReversed().toSorted((a, b) => (a.pinned ? 1 : 0) - (b.pinned ? 1 : 0))}
               onItemsOrderChange={(newOrder) => {
                 const buttons = newOrder.toReversed()
@@ -575,7 +576,7 @@ const SettingsTab = memo(() => {
                   }))
                 )
               }}
-              renderItem={(item) => {
+              renderItem={(item, getDragHandleProps) => {
                 const details = getActionButtonDetails(
                   item,
                   {
@@ -584,15 +585,19 @@ const SettingsTab = memo(() => {
                     )?.name
                   }
                 );
-                return <div className={cx("list-item")}>
+                return <div className={cx("draggable-list-item")}>
                   <div className="inline">
-                    <FontAwesomeIcon icon={faGripVertical} />
-                    <ActionButton
-                      {...details}
-                      active={false}
-                      disabled={true}
-                      key={item.id}
-                    />
+                    <div className="drag-handle" {...getDragHandleProps({className: "drag-handle"})}>
+                      <FontAwesomeIcon icon={faGripVertical} />
+                      <ActionButton
+                        {...details}
+                        className={"button-icon"}
+                        active={false}
+                        disabled={true}
+                        key={item.id}
+                        size="auto"
+                      />
+                    </div>
                     {details.inactiveText}
                   </div>
                   <div className="inline">
@@ -628,7 +633,7 @@ const SettingsTab = memo(() => {
               }}
               getItemKey={(item) => item.id}
             />
-            <div className="inline">
+            <div className="inline form-subgroup">
               <Button
                 onClick={() => setActionButtonDraft({
                   id: "",

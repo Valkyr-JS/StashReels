@@ -5,7 +5,8 @@
     margin: 0;
   }
 
-  .draggableItem {
+  .draggable {
     cursor: grab;
+    touch-action: none;
   }
 }

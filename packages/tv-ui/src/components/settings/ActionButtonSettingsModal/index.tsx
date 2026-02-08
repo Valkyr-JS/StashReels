@@ -100,6 +100,7 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
             active={false}
             disabled={true}
             key={actionButtonConfig.id}
+            size="auto"
           />
         )}
         {operation === "add"

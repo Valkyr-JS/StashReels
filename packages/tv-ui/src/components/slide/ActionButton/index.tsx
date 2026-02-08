@@ -25,6 +25,7 @@ export type Props = React.DetailedHTMLProps<
   inactiveText: string;
   sideInfo?: React.ReactNode;
   sidePanel?: React.ReactNode;
+  size?: "auto"
 }
 
 const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
@@ -37,6 +38,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     className,
     sideInfo,
     sidePanel,
+    size,
     ...otherProps
   } = props;
   const Icon = active ? activeIcon : inactiveIcon;
@@ -70,7 +72,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
 
   return (
     <div
-      className={cx("ActionButton", className, { active, 'left-handed': leftHandedUi })}
+      className={cx("ActionButton", className, { active, 'left-handed': leftHandedUi, [`size-${size}`]: size })}
     >
       {sideInfo && (
         <div className="side-info">

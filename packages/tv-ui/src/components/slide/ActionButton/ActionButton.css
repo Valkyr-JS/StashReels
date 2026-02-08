@@ -11,6 +11,19 @@
     flex-direction: row-reverse;
   }
 
+  &.size-auto {
+    height: unset;
+    justify-content: center;
+
+    button {
+      width: unset;
+
+      svg {
+        margin: unset;
+      }
+    }
+  }
+
   .side-info {
     transition: opacity 0.2s ease-in-out;
     margin-left: 0.5em;

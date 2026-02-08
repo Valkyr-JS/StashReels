@@ -1,26 +1,72 @@
-import React, { ReactNode } from "react";
-import { Reorder } from "framer-motion";
+import React, { ReactNode, useCallback, useRef, useState } from "react";
+import { Reorder, useDragControls } from "framer-motion";
 import "./DraggableList.css"
+import cx, {Argument as ClassNameArgs} from "classnames";
 
-interface Props<Item> {
-  items: Item[],
-  onItemsOrderChange: (newOrder: Item[]) => void,
-  renderItem: (item: Item) => ReactNode,
-  getItemKey: (item: Item) => string,
+type GetDragHandleProps = (props?: {className?: ClassNameArgs}) => { onPointerDown: (e: React.PointerEvent) => void }
+const draggableClassName = "draggable";
+
+function DraggableListItem<Item>({
+  item,
+  renderItem,
+}: {
+  item: Item,
+  renderItem: (item: Item, getDragHandleProps: GetDragHandleProps) => ReactNode,
+}) {
+  const controls = useDragControls();
+
+  const [dragHandleInUse, setDragHandleInUse] = useState(false);
+  const getDragHandleProps = useCallback(
+    (props?: {className?: ClassNameArgs}) => {
+      if (!dragHandleInUse) setDragHandleInUse(true);
+      return {
+        className: cx(draggableClassName, props?.className),
+        onPointerDown: (e: React.PointerEvent) => controls.start(e)
+      }
+    },
+    [controls, dragHandleInUse, setDragHandleInUse]
+  );
+
+  return (
+    <Reorder.Item
+      value={item}
+      className={cx({[draggableClassName]: !dragHandleInUse})}
+      dragListener={!dragHandleInUse}
+      dragControls={controls}
+    >
+      {renderItem(item, getDragHandleProps)}
+    </Reorder.Item>
+  );
 }
 
-function DraggableList<Item>({ items, onItemsOrderChange, renderItem, getItemKey }: Props<Item>) {
+function DraggableList<Item>(
+  {
+    className,
+    items,
+    onItemsOrderChange,
+    renderItem,
+    getItemKey,
+  }: {
+    className?: ClassNameArgs,
+    items: Item[],
+    onItemsOrderChange: (newOrder: Item[]) => void,
+    renderItem: (item: Item, getDragHandleProps: GetDragHandleProps) => ReactNode,
+    getItemKey: (item: Item) => string,
+  }
+) {
   return (
     <Reorder.Group
       axis="y"
       values={items}
       onReorder={onItemsOrderChange}
-      className="DraggableList"
+      className={cx("DraggableList", className)}
     >
       {items.map((item, index) => (
-        <Reorder.Item key={getItemKey(item)} value={item} className="draggableItem">
-          {renderItem(item)}
-        </Reorder.Item>
+        <DraggableListItem<Item>
+          key={getItemKey(item)}
+          item={item}
+          renderItem={renderItem}
+        />
       ))}
     </Reorder.Group>
   )
