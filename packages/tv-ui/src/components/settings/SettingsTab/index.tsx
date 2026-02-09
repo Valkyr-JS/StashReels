@@ -738,6 +738,7 @@ const SettingsTab = memo(() => {
               </label>
               <Select
                 inputId="loggers-to-hide"
+                expandWidthToFit={true}
                 options={loggerOptions}
                 value={loggerOptions.filter(
                   ({value: category}) => loggersToHide.some(
