@@ -1,6 +1,6 @@
 
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from "@apollo/client";
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
 import { ListFilterModel } from "stash-ui/dist/src/models/list-filter/filter";
 import { useAppStateStore } from "../store/appStateStore";
@@ -30,7 +30,7 @@ type SavedMediaItemFilter = GQL.SavedFilter
 export type SearchableMediaItemFilter = {
   savedFilter?: SavedMediaItemFilter,
   generalFilter: GQL.FindScenesForTvQueryVariables["filter"],
-  isStashTvDefaultFilter: boolean,
+  isCurrentFilter: boolean,
 } & (
   {
     entityFilter: GQL.FindScenesForTvQueryVariables["scene_filter"]
@@ -88,11 +88,9 @@ export function useMediaItemFilters() {
     loading: loadingAvailableSavedMarkerFilters,
   } = useFindSavedFilters(GQL.FilterMode.SceneMarkers);
 
-  const { data: { defaultFilterId: stashTvDefaultFilterId} } = useStashTvConfig()
-
   const loadingDataRequiredBeforeLoadingCurrentFilter = stashConfigurationLoading || loadingAvailableSavedSceneFilters || loadingAvailableSavedMarkerFilters;
 
-  const { isRandomised, onlyShowMatchingOrientation } = useAppStateStore();
+  const { isRandomised, onlyShowMatchingOrientation, currentFilterId } = useAppStateStore();
   const { orientation } = useWindowSize()
 
   let limitOrientation: "landscape" | "portrait" | undefined = undefined
@@ -110,15 +108,23 @@ export function useMediaItemFilters() {
     !loadingDataRequiredBeforeLoadingCurrentFilter && !mediaItemFiltersLoading
   )
 
+  const [isResponsibleForLoading, setIsResponsibleForLoading] = useState(false);
+
   // Load default filter on initial load.
   useEffect(() => {
-    if (useGlobalFilterState.getState().loadingResponsibilityClaimed || loadingDataRequiredBeforeLoadingCurrentFilter) return;
+    if (useGlobalFilterState.getState().loadingResponsibilityClaimed) return;
     useGlobalFilterState.setState({ loadingResponsibilityClaimed: true, loading: true });
+    setIsResponsibleForLoading(true);
+  }, [])
+
+  useEffect(() => {
+    if (!isResponsibleForLoading || loadingDataRequiredBeforeLoadingCurrentFilter) return;
+
     // Place most of the logic into a separate function so we can use async/await
     async function setCurrentMediaItemFilterOnInitialLoad() {
       try {
-        if (stashTvDefaultFilterId) {
-          await setCurrentMediaItemFilterById(stashTvDefaultFilterId)
+        if (currentFilterId) {
+          await setCurrentMediaItemFilterById(currentFilterId)
         } else if (stashDefaultScenesFilter)  {
           // No default filter ID set for Stash TV specifically so we use the default Stash filter
           useGlobalFilterState.setState({
@@ -145,7 +151,7 @@ export function useMediaItemFilters() {
       useGlobalFilterState.setState({ loading: false });
     }
     setCurrentMediaItemFilterOnInitialLoad()
-  }, [loadingDataRequiredBeforeLoadingCurrentFilter, stashTvDefaultFilterId, stashDefaultScenesFilter]);
+  }, [isResponsibleForLoading, loadingDataRequiredBeforeLoadingCurrentFilter, currentFilterId, stashDefaultScenesFilter]);
 
   async function setCurrentMediaItemFilterById(id: string) {
     useGlobalFilterState.setState({ loading: true });
@@ -237,8 +243,8 @@ export function useMediaItemFilters() {
     const sharedProps = {
       savedFilter,
       generalFilter: getGeneralFilter(),
-      get isStashTvDefaultFilter() {
-        return savedFilter.id === stashTvDefaultFilterId;
+      get isCurrentFilter() {
+        return savedFilter.id === currentFilterId;
       }
     }
 
@@ -270,14 +276,14 @@ export function useMediaItemFilters() {
         for (const savedFilter of savedFiltersOfType) {
           savedFilters.push({
             ...savedFilter,
-            isStashTvDefaultFilter: savedFilter.id === stashTvDefaultFilterId,
+            isCurrentFilter: savedFilter.id === currentFilterId,
             entityType
           })
         }
       }
       return savedFilters;
     },
-    [availableSavedSceneFilters, availableSavedMarkerFilters, stashTvDefaultFilterId]
+    [availableSavedSceneFilters, availableSavedMarkerFilters, currentFilterId]
   );
 
   return {

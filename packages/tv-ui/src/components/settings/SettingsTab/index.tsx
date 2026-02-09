@@ -31,7 +31,6 @@ const SettingsTab = memo(() => {
     mediaItemFiltersLoading,
     mediaItemFiltersError,
     currentMediaItemFilter,
-    setCurrentMediaItemFilterById,
     availableSavedFilters,
   } = useMediaItemFilters()
 
@@ -57,7 +56,7 @@ const SettingsTab = memo(() => {
     leftHandedUi,
     actionButtonsConfig,
     set: setAppSetting,
-    setDefault: setDefaultAppSetting,
+    setToDefault: setDefaultAppSetting,
     getDefault: getDefaultAppSetting,
   } = useAppStateStore();
   const { mediaItems, mediaItemsLoading, mediaItemsNeverLoaded, mediaItemsError } = useMediaItems()
@@ -76,8 +75,7 @@ const SettingsTab = memo(() => {
     () => availableSavedFilters
       .map(filter => ({
         value: filter.id,
-        label: filter.name + (filter.isStashTvDefaultFilter ? " (default)" : ""),
-        isStashTvDefaultFilter: filter.isStashTvDefaultFilter,
+        label: filter.name,
         filterType: filter.entityType
       }))
       .sort((a, b) => a.label.localeCompare(b.label)),
@@ -283,7 +281,7 @@ const SettingsTab = memo(() => {
               inputId="filter"
               isLoading={mediaItemFiltersLoading || mediaItemsLoading}
               value={selectedFilter ?? null}
-              onChange={(newValue) => newValue && setCurrentMediaItemFilterById(newValue.value)}
+              onChange={(newValue) => newValue && setAppSetting("currentFilterId", newValue.value)}
               options={allFiltersGrouped}
               placeholder={`${allFilters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
               components={{
@@ -325,26 +323,6 @@ const SettingsTab = memo(() => {
               </div>
             )}
           </Form.Group>
-
-          {selectedFilter && !selectedFilter.isStashTvDefaultFilter && !noMediaItemsAvailable && <Form.Group>
-            <Button
-              onClick={() => {
-                updateStashTvConfig(
-                  {
-                    defaultFilterId: selectedFilter?.value,
-                  }
-                );
-              }}
-            >
-              Set "{selectedFilter?.label}" as the default filter
-            </Button>
-            <div>
-              <Form.Text className="text-muted">
-                Set the currently selected scene filter as the default filter
-                when opening Stash TV.
-              </Form.Text>
-            </div>
-          </Form.Group>}
 
           <Form.Group>
             {currentMediaItemFilter?.savedFilter?.find_filter?.sort?.startsWith("random_") ? (

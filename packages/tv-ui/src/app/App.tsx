@@ -16,7 +16,7 @@ await setupLogging()
 
 
 const App = () => {
-  const { forceLandscape, logLevel, loggersToShow, loggersToHide } = useAppStateStore()
+  const { forceLandscape, logLevel, loggersToShow, loggersToHide, storeLoaded } = useAppStateStore()
   useEffect(() => {
     setupLogging({logLevel, logCategoriesToShow: loggersToShow, logCategoriesToHide: loggersToHide});
   }, [logLevel, loggersToShow, loggersToHide]);
@@ -50,6 +50,8 @@ const App = () => {
   }), []);
 
   useDevConsoleHelpers()
+
+  if (!storeLoaded) return null
 
   return (
     <IntlProvider

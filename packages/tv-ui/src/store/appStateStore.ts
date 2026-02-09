@@ -1,10 +1,12 @@
 import { LogLevel } from '@logtape/logtape';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultLogLevel } from '../helpers/logging';
 import type { ActionButtonConfig } from '../components/slide/ActionButtons';
-
+import { stashConfigStorage } from '../helpers/stash-config-storage';
 export type DebuggingInfo = "render-debugging" | "onscreen-info";
+
+export const appStateStorageKey = 'app-state';
 
 type AppState = {
   audioMuted: boolean;
@@ -28,9 +30,11 @@ type AppState = {
   showGuideOverlay?: boolean;
   leftHandedUi?: boolean;
   actionButtonsConfig: ActionButtonConfig[];
+  currentFilterId?: string;
   // Non-persistent state
   showSettings: boolean;
   fullscreen: boolean;
+  storeLoaded: boolean;
   // Developer options
   showDevOptions: boolean;
   logLevel: LogLevel;
@@ -42,7 +46,7 @@ type AppState = {
 
 type AppAction = {
   set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => void;
-  setDefault: <PropName extends keyof typeof defaults>(propName: PropName) => void;
+  setToDefault: <PropName extends keyof typeof defaults>(propName: PropName) => void;
   getDefault: <PropName extends keyof typeof defaults>(propName: PropName) => typeof defaults[PropName];
 }
 
@@ -71,6 +75,7 @@ const defaults = {
   loggersToHide: [],
   showDebuggingInfo: [],
   videoJsEventsToLog: [],
+  storeLoaded: false,
   actionButtonsConfig: [
     {id: "1", type: "ui-visibility", pinned: true},
     {id: "2", type: "settings", pinned: false},
@@ -86,16 +91,24 @@ const defaults = {
   ],
 } satisfies AppState;
 
+const nonPersistentKeys: (keyof AppState)[] = [
+  'storeLoaded',
+  'showSettings',
+  'fullscreen',
+  'showDebuggingInfo'
+]
+
 export const useAppStateStore = create<AppState & AppAction>()(
   persist(
     (set, get) => ({
       ...defaults,
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
+        console.log("Setting", propName, value)
         set((state) => {
           const resolvedValue = typeof value === "function" ? value(state[propName]) : value
           // For enableRenderDebugging we also save the enableRenderDebugging option separately in localStorage
-          // so so that it can be read by renderDebugger.ts at the very start of the app even if we end up moving
-          // to storing settings in stash and need to do an api request to fetch.
+          // so so that it can be read by renderDebugger.ts at the very start of the app before we've received the store
+          // state from stash.
           if (propName === 'showDebuggingInfo') {
             const enableRenderDebugging = (resolvedValue as AppState['showDebuggingInfo'])
               .includes("render-debugging");
@@ -106,7 +119,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
               setTimeout(() => {
                 localStorage.setItem("enableRenderDebugging", JSON.stringify(enableRenderDebugging));
                 window.location.reload()
-              }, 30);
+              }, 300);
             }
           }
           return {
@@ -114,7 +127,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
           };
         });
       },
-      setDefault: <PropName extends keyof typeof defaults>(propName: PropName) => {
+      setToDefault: <PropName extends keyof typeof defaults>(propName: PropName) => {
         set((state) => {
           return {
             [propName]: defaults[propName],
@@ -126,15 +139,15 @@ export const useAppStateStore = create<AppState & AppAction>()(
       },
     }),
     {
-      name: 'app-state',
+      name: appStateStorageKey,
+      storage: createJSONStorage(() => stashConfigStorage),
       partialize: (state) =>
         Object.fromEntries(
-          Object.entries(state).filter(([key]) => ![
-            'showSettings',
-            'fullscreen',
-            'enableRenderDebugging'
-          ].includes(key)),
+          Object.entries(state).filter(([key]) => !(nonPersistentKeys as string[]).includes(key)),
         ),
+      onRehydrateStorage: (state) => {
+        return () => state.set("storeLoaded", true)
+      }
     }
   )
 );
