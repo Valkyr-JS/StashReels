@@ -3,6 +3,7 @@ import { PLUGIN_NAMESPACE } from "../tv-ui/src/constants/index.js";
 import { StashTvConfig } from "../tv-ui/src/hooks/useStashTvConfig"
 import { ConfigDataFragment, ConfigInterfaceResult } from "stash-ui/dist/src/core/generated-graphql.js";
 import type { CheckboxGroup } from "stash-ui/stash/ui/v2.5/src/components/Settings/SettingsInterfacePanel/CheckboxGroup";
+import { appStateStorageKey } from "../tv-ui/src/store/appStateStore.js";
 
 const { PluginApi } = window;
 const { React } = PluginApi;
@@ -26,14 +27,25 @@ PluginApi.patch.instead(
   "PluginSettings",
   function (props, _, Original) {
     const [settingResetComplete, setSettingResetComplete] = React.useState(false);
+    const [stashTvConfig, setStashTvConfig] = PluginApi.React.useState<StashTvConfig | null>(null);
 
     if (props.pluginID !== PLUGIN_NAMESPACE) return <Original {...props} />;
 
     const resetStashTvSettings = async () => {
       setSettingResetComplete(false);
       await updateTvConfig(() => ({}))
+      setStashTvConfig(null);
       setSettingResetComplete(true);
     }
+
+    PluginApi.React.useEffect(() => {
+      getStashConfig().then(config => setStashTvConfig(config.plugins[PLUGIN_NAMESPACE]));
+    }, [])
+
+    const isDevOptionsEnabled = PluginApi.React.useMemo(
+      () => JSON.parse(stashTvConfig?.[appStateStorageKey] || '{}')?.state?.showDevOptions,
+      [stashTvConfig]
+    );
 
     // Add the button to the navbar
     return [
@@ -60,6 +72,31 @@ PluginApi.patch.instead(
             </PluginApi.libraries.Bootstrap.Button>
           </div>
         </div>
+        {isDevOptionsEnabled && <div className="setting">
+          <div>
+            <details>
+              <summary>
+                <h3 style={{ display: 'inline' }}>Stash TV settings JSON</h3>
+              </summary>
+              <pre>
+                {JSON.stringify(
+                  (stashTvConfig && appStateStorageKey in stashTvConfig)
+                    ? {...stashTvConfig, [appStateStorageKey]: '<app state data>'}
+                    : stashTvConfig,
+                  null,
+                  2
+                )}
+              </pre>
+              {(stashTvConfig && appStateStorageKey in stashTvConfig) && <>
+                App state stored in Stash TV config:
+                <pre>
+                  {JSON.stringify(JSON.parse(stashTvConfig[appStateStorageKey]), null, 2)}
+                </pre>
+              </>}
+            </details>
+          </div>
+          <div></div> {/* To stop :last-child style right-aligning this */}
+        </div>}
       </div>
     ];
   }
