@@ -1,4 +1,3 @@
-import { faTelevision } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PLUGIN_NAMESPACE } from "../tv-ui/src/constants/index.js";
 import { StashTvConfig } from "../tv-ui/src/hooks/useStashTvConfig"
@@ -21,6 +20,50 @@ updateTvConfig(
     }
   }
 )
+
+// Show Stash TV in the menu bar if it's been enabled in the plugin config
+PluginApi.patch.instead(
+  "PluginSettings",
+  function (props, _, Original) {
+    const [settingResetComplete, setSettingResetComplete] = React.useState(false);
+
+    if (props.pluginID !== PLUGIN_NAMESPACE) return <Original {...props} />;
+
+    const resetStashTvSettings = async () => {
+      setSettingResetComplete(false);
+      await updateTvConfig(() => ({}))
+      setSettingResetComplete(true);
+    }
+
+    // Add the button to the navbar
+    return [
+      <Original {...props} />,
+      <div className="plugin-settings">
+        <div className="setting"></div> {/* Dummy setting to force line between settings */}
+        <div className="setting">
+          <div>
+            <h3>Reset all Stash TV settings</h3>
+            <div className="sub-heading">
+              Stash TV has its own settings which are configurable from the settings panel in the
+              Stash TV interface. This resets those settings to default.
+            </div>
+          </div>
+          <div>
+            <PluginApi.libraries.Bootstrap.Button onClick={resetStashTvSettings} variant="warning">
+              {settingResetComplete && <>
+                <FontAwesomeIcon
+                  icon={PluginApi.libraries.FontAwesomeSolid.faCheck}
+                />
+                {" "}
+              </>}
+              Reset
+            </PluginApi.libraries.Bootstrap.Button>
+          </div>
+        </div>
+      </div>
+    ];
+  }
+);
 
 // Show Stash TV in the menu bar if it's been enabled in the plugin config
 PluginApi.patch.instead(
@@ -77,7 +120,7 @@ const StashTVButtonInner = () => {
       >
         <FontAwesomeIcon
           className="fa-icon nav-menu-icon d-block d-xl-inline mb-2 mb-xl-0"
-          icon={faTelevision}
+          icon={PluginApi.libraries.FontAwesomeSolid.faTelevision}
         />
         <span>TV</span>
       </a>
