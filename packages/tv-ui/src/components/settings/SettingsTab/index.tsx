@@ -25,6 +25,7 @@ import { ActionButtonSettingsModal } from "../ActionButtonSettingsModal";
 import { queryFindTagsByIDForSelect } from "stash-ui/dist/src/core/StashService";
 import { FindTagsForSelectQuery } from "stash-ui/dist/src/core/generated-graphql";
 import { objectKeys } from "ts-extras"
+import { getStashOrigin } from "../../../helpers/getStashOrigin";
 
 const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -349,8 +350,8 @@ const SettingsTab = memo(() => {
             />
             <Form.Text className="text-muted">
               Choose a filter from Stash to use as your Stash TV filter. If you don't have any filters create a new
-              {" "}<a href={new URL('/scenes', import.meta.env.STASH_ADDRESS).toString()}>scene filter</a> or
-              {" "}<a href={new URL('/scenes/markers', import.meta.env.STASH_ADDRESS).toString()}>marker filter</a> in
+              {" "}<a href={new URL('/scenes', getStashOrigin()).toString()}>scene filter</a> or
+              {" "}<a href={new URL('/scenes/markers', getStashOrigin()).toString()}>marker filter</a> in
               Stash and it will appear here.
             </Form.Text>
 
