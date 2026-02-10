@@ -10,7 +10,6 @@ import { getPlayerIdForVideoJsPlayer } from "../../helpers";
 import { useAppStateStore } from "../../store/appStateStore";
 import 'videojs-offset'
 import { getLogger } from "@logtape/logtape";
-import { fixVideojsOffsetMultiPlayerBug } from "./hooks/fix-videojs-offset-multi-player-bug";
 const mountCount = new Map<string, number>();
 
 const videoJsOptionsOverride: Record<string, VideoJsPlayerOptions> = {}
@@ -119,7 +118,6 @@ videojs.hook('beforesetup', function(videoEl, options) {
     return videoJsOptionsOverride[playerId] || {}
 })
 
-fixVideojsOffsetMultiPlayerBug(videojs);
 allowPluginRemoval(videojs);
 
 
