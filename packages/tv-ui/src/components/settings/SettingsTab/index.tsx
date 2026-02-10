@@ -348,8 +348,10 @@ const SettingsTab = memo(() => {
               }}
             />
             <Form.Text className="text-muted">
-              Choose a scene filter from Stash to use as your Stash TV
-              filter
+              Choose a filter from Stash to use as your Stash TV filter. If you don't have any filters create a new
+              {" "}<a href={new URL('/scenes', import.meta.env.STASH_ADDRESS).toString()}>scene filter</a> or
+              {" "}<a href={new URL('/scenes/markers', import.meta.env.STASH_ADDRESS).toString()}>marker filter</a> in
+              Stash and it will appear here.
             </Form.Text>
 
             {mediaItemFiltersError ? (
