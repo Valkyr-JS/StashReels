@@ -42,6 +42,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     ...otherProps
   } = props;
   const Icon = active ? activeIcon : inactiveIcon;
+  const ButtonElement = otherProps.disabled ? "div" : "button";
   const { leftHandedUi } = useAppStateStore();
   const SidePanel = ({children}: {children: ComponentProps<typeof OverlayTrigger>['children']}) => {
     if (!sidePanel) return <>{children}</>
@@ -80,8 +81,9 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
         </div>
       )}
       <SidePanel>
-        <button
+        <ButtonElement
           {...otherProps}
+          className={cx("button")}
           type="button"
           ref={ref}
         >
@@ -93,7 +95,7 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
           <span className="sr-only">
             {displayText}
           </span>
-        </button>
+        </ButtonElement>
       </SidePanel>
     </div>
   );

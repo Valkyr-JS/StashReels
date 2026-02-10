@@ -17,7 +17,7 @@ import useStashTvConfig from "../../../hooks/useStashTvConfig";
 import { LogLevel } from "@logtape/logtape";
 import { getLoggers } from "../../../helpers/logging";
 import DraggableList from "../../DraggableList";
-import { getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
+import { actionButtonsDetails, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 import ActionButton from "../../slide/ActionButton";
 import objectHash from "object-hash";
 import { ActionButtonConfig } from "../../slide/ActionButtons";
@@ -65,7 +65,8 @@ const SettingsTab = memo(() => {
 
   const actionButtonsConfigIsDefault = useMemo(() => {
     const defaultConfig = getDefaultAppSetting("actionButtonsConfig");
-    return objectHash(actionButtonsConfig) === objectHash(defaultConfig)
+    const hashOptions: objectHash.NormalOption = { excludeKeys: key => ["id"].includes(key) }
+    return objectHash(actionButtonsConfig, hashOptions) === objectHash(defaultConfig, hashOptions)
   }, [getDefaultAppSetting, actionButtonsConfig])
 
 
@@ -241,16 +242,61 @@ const SettingsTab = memo(() => {
     }
   }
 
+  const [tags, setTags] = useState<FindTagsForSelectQuery["findTags"]["tags"]>([]);
+  const tagIds = actionButtonsConfig.filter(config => 'tagId' in config)
+      .map(config => config.tagId)
+      .toSorted()
+  useEffect(() => {
+    queryFindTagsByIDForSelect(tagIds)
+      .then(result => setTags(result.data.findTags.tags))
+  }, [objectHash(tagIds)])
 
-    const [tags, setTags] = useState<FindTagsForSelectQuery["findTags"]["tags"]>([]);
-    const tagIds = actionButtonsConfig.filter(config => 'tagId' in config)
-        .map(config => config.tagId)
-        .toSorted()
-    useEffect(() => {
-      queryFindTagsByIDForSelect(tagIds)
-        .then(result => setTags(result.data.findTags.tags))
-    }, [objectHash(tagIds)])
-
+  const addableActionButtons = Object.keys(actionButtonsDetails)
+    .map((type: keyof typeof actionButtonsDetails) => {
+      let config: ActionButtonConfig;
+      const configBase = {
+        id: "",
+        pinned: false,
+      }
+      if (type === "quick-tag") {
+        config = {
+          ...configBase,
+          type,
+          tagId: "",
+          iconId: "tag",
+        }
+      } else {
+        config = {
+          ...configBase,
+          type
+        }
+      }
+      return {
+        type,
+        details: getActionButtonDetails(config),
+        add() {
+          if (type === "quick-tag") {
+            setActionButtonDraft(config);
+          } else {
+            setAppSetting(
+              "actionButtonsConfig",
+              [
+                ...actionButtonsConfig,
+                {
+                  ...config,
+                  id: new Date().getTime().toString() + Math.random().toString(),
+                }
+              ]
+            );
+          }
+        }
+      }
+    })
+    // Exclude singleton button types that are already displayed
+    .filter(
+      actionButton => !actionButtonsConfig.some(config => config.type === actionButton.type)
+        || actionButton.details.repeatable
+    )
 
   /* -------------------------------- Component ------------------------------- */
   return <SideDrawer
@@ -568,8 +614,8 @@ const SettingsTab = memo(() => {
                     <div className="drag-handle" {...getDragHandleProps({className: "drag-handle"})}>
                       <FontAwesomeIcon icon={faGripVertical} />
                       <ActionButton
-                        {...details}
-                        className={"button-icon"}
+                        {...details.props}
+                        className={"action-button-icon"}
                         active={false}
                         disabled={true}
                         key={item.id}
@@ -578,7 +624,7 @@ const SettingsTab = memo(() => {
                     </div>
                     {details.inactiveText}
                   </div>
-                  <div className="inline">
+                  <div className="inline controls">
                     {["quick-tag"].includes(item.type) && <Button
                       variant="link"
                       className={cx("hide-button", "muted")}
@@ -611,27 +657,36 @@ const SettingsTab = memo(() => {
               }}
               getItemKey={(item) => item.id}
             />
-            <div className="inline form-subgroup">
+            <div className="form-subgroup">
+              {addableActionButtons.map(actionButton => (
+                <Button
+                  key={actionButton.type}
+                  variant="link"
+                  className={cx("add-action-button")}
+                  onClick={() => actionButton.add()}
+                >
+                  <FontAwesomeIcon icon={faAdd} />
+                  <div className="info">
+                    <ActionButton
+                      {...actionButton.details.props}
+                      className={"action-button-icon"}
+                      active={false}
+                      disabled={true}
+                      size="auto"
+                    />
+                    Add "{actionButton.details.inactiveText}"
+                  </div>
+                </Button>
+              ))}
+            </div>
+            {!actionButtonsConfigIsDefault && <div className="inline form-subgroup">
               <Button
-                onClick={() => setActionButtonDraft({
-                  id: "",
-                  type: "quick-tag",
-                  pinned: false,
-                  tagId: "",
-                  iconId: "tag",
-                })}
-              >
-                <FontAwesomeIcon icon={faAdd} />
-                Add
-              </Button>
-
-              {actionButtonsConfigIsDefault || <Button
-                variant="warning"
+                variant="outline-warning"
                 onClick={() => setDefaultAppSetting('actionButtonsConfig')}
               >
-                Set to default
-              </Button>}
-            </div>
+                Reset to default
+              </Button>
+            </div>}
             <Form.Text className="text-muted">
               Pinning buttons stops them from being pushed off screen when the window is not tall enough to show them
               all without scrolling.

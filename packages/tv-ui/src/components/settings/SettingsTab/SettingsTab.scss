@@ -76,7 +76,7 @@
       }
     }
     .form-subgroup {
-      margin: .5em auto;
+      margin: 1em auto;
     }
   }
 
@@ -113,7 +113,7 @@
         margin-left: -1em;
       }
 
-      button {
+      .controls button {
         font-size: 1.3em;
         padding: 0.1em;
       }
@@ -126,14 +126,26 @@
       &.muted {
         opacity: 0.5;
       }
-
-      .button-icon {
-        width: 2em;
-        height: 2em;
-      }
     }
   }
 
+
+  .action-button-icon {
+    width: 2em;
+    height: 2em;
+    padding: 0.1em;
+  }
+
+  .add-action-button {
+    padding-left: 0.2em;
+
+    .info {
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+  }
 
   button {
     display: flex;

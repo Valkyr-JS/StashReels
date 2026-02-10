@@ -103,7 +103,6 @@ export const useAppStateStore = create<AppState & AppAction>()(
     (set, get) => ({
       ...defaults,
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
-        console.log("Setting", propName, value)
         set((state) => {
           const resolvedValue = typeof value === "function" ? value(state[propName]) : value
           // For enableRenderDebugging we also save the enableRenderDebugging option separately in localStorage

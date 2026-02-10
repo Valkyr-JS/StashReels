@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import { ActionButtonConfig } from "../../slide/ActionButtons";
-import { useAppStateStore } from "../../../store/appStateStore";
-import { ActionButtonCustomIcons, actionButtonCustomIcons, actionButtonsDetails, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
+import { ActionButtonCustomIcons, actionButtonCustomIcons, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 import Select from "../Select";
 import { components, MenuListProps, OptionProps, SingleValueProps } from "react-select";
 import { TagSelect, Tag } from "stash-ui/wrappers/components/TagSelect";
@@ -23,22 +22,21 @@ type Props = {
 
 export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClose, onSave }: Props) => {
   const operation = actionButtonConfig.id ? "edit" : "add";
-  const { actionButtonsConfig } = useAppStateStore();
-  const possibleTypes = Object.entries(actionButtonsDetails)
-    .map(([type, details]) => ({
-      value: type as ActionButtonConfig["type"],
-      label: details.inactiveText
-    }))
-    // Exclude singleton button types that are already displayed
-    .filter(
-      type => !actionButtonsConfig.some(config => config.type === type.value)
-        // We can have as many as we want of these types
-        || type.value === "quick-tag"
-    )
   const [tag, setTag] = useState<Tag>()
 
+  const initialConfig = useMemo(() => ({...actionButtonConfig}), [])
+  const [initialTagName, setInitialTagName] = useState<string>()
+  useEffect(() => {
+    if (!initialTagName && 'tagId' in initialConfig && tag && initialConfig.tagId === tag?.id) {
+      setInitialTagName(tag.name)
+    }
+  }, [initialTagName, initialConfig, tag])
+
   // We memorise this so that the header shows the state of the saved config, not the config as it's being edited
-  const details = useMemo(() => getActionButtonDetails(actionButtonConfig, { tagName: tag?.name }), [actionButtonConfig.id, Boolean(tag)])
+  const initialDetails = useMemo(
+    () => getActionButtonDetails(actionButtonConfig, { tagName: initialTagName }),
+    [initialConfig.id, initialTagName]
+  )
 
   useEffect(() => {
     if (!('tagId' in actionButtonConfig) || !actionButtonConfig.tagId) return;
@@ -94,55 +92,21 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
   return (
     <Modal show onHide={() => onClose()} title="" className="ActionButtonSettingsModal">
       <ModalHeader>
-        {operation === "edit" && (
-          <ActionButton
-            {...details}
-            active={false}
-            disabled={true}
-            key={actionButtonConfig.id}
-            size="auto"
-          />
-        )}
-        {operation === "add"
-          ? "Add Action Button"
-          : <span>Edit <em>{details.inactiveText}</em> Action Button</span>
-        }
+        <ActionButton
+          {...initialDetails.props}
+          active={false}
+          disabled={true}
+          key={actionButtonConfig.id}
+          size="auto"
+        />
+        <span>
+          {operation === "add" ? "Add" : "Edit"}{" "}
+          <em>{initialDetails.inactiveText}</em>{" "}
+          Action Button
+        </span>
       </ModalHeader>
       <Modal.Body>
         <div className="dialog-content">
-          {operation === "add" && (
-            <Form.Group>
-              <label htmlFor="action-button-type">
-                Action button type
-              </label>
-              <Select
-                inputId="action-button-type"
-                value={possibleTypes.find(type => type.value === actionButtonConfig.type)}
-                onChange={(newValue) => {
-                  if (!newValue) return;
-                  const {pinned, id} = actionButtonConfig
-                  let updatedConfig
-                  if (newValue?.value === "quick-tag") {
-                    updatedConfig = {
-                      id,
-                      type: newValue.value,
-                      pinned,
-                      tagId: "",
-                      iconId: "tag",
-                    } as const
-                  } else {
-                    updatedConfig = {
-                      id,
-                      type: newValue.value,
-                      pinned
-                    }
-                  }
-                  onUpdate(updatedConfig)
-                }}
-                options={possibleTypes}
-              />
-            </Form.Group>
-          )}
           {'tagId' in actionButtonConfig && (
             <Form.Group>
               <label htmlFor="tag-id">
@@ -150,9 +114,10 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
               </label>
               <TagSelect
                 inputId="tag-id"
-                onSelect={(t) => {
-                  setTag(t[0])
-                  onUpdate({ ...actionButtonConfig, tagId: t[0].id })
+                onSelect={(tags) => {
+                  const tag = tags[0]
+                  setTag(tag)
+                  onUpdate({ ...actionButtonConfig, tagId: tag?.id })
                 }}
                 values={tag ? [tag] : []}
                 hoverPlacement="right"

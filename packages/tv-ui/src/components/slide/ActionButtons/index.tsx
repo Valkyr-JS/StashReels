@@ -54,7 +54,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
       case "settings":
         return <SettingsActionButton buttonConfig={buttonConfig} />
       case "show-scene-info":
-        return <ShowSceneInfoActionButton scene={scene} sceneInfoOpen={sceneInfoOpen} setSceneInfoOpen={setSceneInfoOpen} buttonConfig={buttonConfig} />
+        return <ShowSceneInfoActionButton sceneInfoOpen={sceneInfoOpen} setSceneInfoOpen={setSceneInfoOpen} buttonConfig={buttonConfig} />
       case "rate-scene":
         return <RateSceneActionButton scene={scene} buttonConfig={buttonConfig} />
       case "o-counter":
@@ -105,10 +105,17 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
   )
 }
 
-function SettingsActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
-  const { showSettings, set: setAppSetting } = useAppStateStore();
+export function SettingsActionButton({buttonConfig}: {buttonConfig?: ActionButtonConfig}) {
+  const { showSettings, actionButtonsConfig, set: setAppSetting } = useAppStateStore();
+
+  if (!buttonConfig) {
+    buttonConfig = actionButtonsConfig.find(config => config.type === "settings")
+    if (!buttonConfig) {
+      throw new Error("No settings action button config found")
+    }
+  }
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="settings hide-on-ui-hide"
     active={showSettings}
     data-testid="MediaSlide--settingsButton"
@@ -116,15 +123,9 @@ function SettingsActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}
   />
 }
 
-function ShowSceneInfoActionButton({scene, sceneInfoOpen, setSceneInfoOpen, buttonConfig}: {scene: GQL.TvSceneDataFragment, sceneInfoOpen: boolean, setSceneInfoOpen: (open: boolean) => void, buttonConfig: ActionButtonConfig}) {
-  if (
-    scene.performers.length === 0 ||
-    !scene.studio ||
-    !scene.title ||
-    !scene.date
-  ) return null
+function ShowSceneInfoActionButton({sceneInfoOpen, setSceneInfoOpen, buttonConfig}: {scene: GQL.TvSceneDataFragment, sceneInfoOpen: boolean, setSceneInfoOpen: (open: boolean) => void, buttonConfig: ActionButtonConfig}) {
   return <ActionButton
-      {...getActionButtonDetails(buttonConfig)}
+      {...getActionButtonDetails(buttonConfig).props}
       className="show-scene-info hide-on-ui-hide"
       active={sceneInfoOpen}
       data-testid="MediaSlide--infoButton"
@@ -159,7 +160,7 @@ function RateSceneActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFra
     });
   }
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="rate-scene hide-on-ui-hide"
     active={typeof scene.rating100 === "number"}
     data-testid="MediaSlide--rateButton"
@@ -194,7 +195,7 @@ function OCounterActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFrag
     }
   }
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="o-counter hide-on-ui-hide"
     active={(scene.o_counter ?? 0) > 0}
     data-testid="MediaSlide--oCounterButton"
@@ -216,7 +217,7 @@ function OCounterActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFrag
 function ForceLandscapeActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
   const { forceLandscape, set: setAppSetting } = useAppStateStore();
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="force-landscape hide-on-ui-hide"
     active={forceLandscape}
     data-testid="MediaSlide--forceLandscapeButton"
@@ -228,7 +229,7 @@ function FullscreenActionButton({buttonConfig}: {buttonConfig: ActionButtonConfi
   const { fullscreen, set: setAppSetting } = useAppStateStore();
   if (!('exitFullscreen' in document)) return null
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="fullscreen hide-on-ui-hide"
     active={fullscreen}
     data-testid="MediaSlide--fullscreenButton"
@@ -239,7 +240,7 @@ function FullscreenActionButton({buttonConfig}: {buttonConfig: ActionButtonConfi
 function MuteActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
   const { audioMuted, set: setAppSetting } = useAppStateStore();
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="mute hide-on-ui-hide"
     active={!audioMuted}
     data-testid="MediaSlide--muteButton"
@@ -250,7 +251,7 @@ function MuteActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
 function LetterboxingActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
   const { letterboxing, set: setAppSetting } = useAppStateStore();
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="letterboxing hide-on-ui-hide"
     active={letterboxing}
     data-testid="MediaSlide--letterboxButton"
@@ -261,7 +262,7 @@ function LetterboxingActionButton({buttonConfig}: {buttonConfig: ActionButtonCon
 function LoopActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
   const { looping, set: setAppSetting } = useAppStateStore();
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="loop hide-on-ui-hide"
     active={looping}
     data-testid="MediaSlide--loopButton"
@@ -297,7 +298,7 @@ function SubtitlesActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFra
       : null;
   if (!captionSources) return null
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     className="subtitles hide-on-ui-hide"
     active={!!captionSources && showSubtitles}
     data-testid="MediaSlide--subtitlesButton"
@@ -308,7 +309,7 @@ function SubtitlesActionButton({scene, buttonConfig}: {scene: GQL.TvSceneDataFra
 function UiVisibilityActionButton({buttonConfig}: {buttonConfig: ActionButtonConfig}) {
   const { uiVisible, set: setAppSetting } = useAppStateStore();
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig)}
+    {...getActionButtonDetails(buttonConfig).props}
     active={uiVisible}
     className={cx("toggle-ui", "dim-on-ui-hide", {'active': uiVisible})}
     data-testid="MediaSlide--showActionButton"
@@ -348,7 +349,7 @@ function QuickTagActionButton({buttonConfig, scene}: {buttonConfig: Extract<Acti
       .then(result => setTagName(result.data.findTags.tags[0]?.name || tagName))
   }, [buttonConfig.tagId])
   return <ActionButton
-    {...getActionButtonDetails(buttonConfig, {tagName})}
+    {...getActionButtonDetails(buttonConfig, {tagName}).props}
     active={sceneHasTag}
     className={cx("quick-tag", "hide-on-ui-hide")}
     data-testid="MediaSlide--quickTagButton"

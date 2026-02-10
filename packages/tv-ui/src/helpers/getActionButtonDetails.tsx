@@ -119,6 +119,7 @@ export type ActionButtonDetails = {
   inactiveIcon: Icon;
   activeText: string;
   inactiveText: string;
+  repeatable?: boolean; // Whether the action can be added to the action stack multiple times
 }
 
 function renderIcon(Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>> | IconDefinition | BootstrapIcon, {className, size}: IconProps) {
@@ -127,7 +128,7 @@ function renderIcon(Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
   } else {
     let props = {}
     if (size) {
-      props = { size, width: `${size}px`, height: `${size}px` }
+      props = { size, width: size, height: size }
     }
     return <Icon className={cx("icon", `icon-${className}`)} {...props}/>
   }
@@ -363,28 +364,36 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
     activeIcon: actionButtonCustomIcons["tag"].active,
     inactiveIcon: actionButtonCustomIcons["tag"].inactive,
     activeText: "Remove tag from scene",
-    inactiveText: "Add tag to scene"
+    inactiveText: "Add tag to scene",
+    repeatable: true,
   },
 }
 export type ActionButtonCustomIcons = keyof typeof actionButtonCustomIcons
 
-export function getActionButtonDetails(config: ActionButtonConfig, options?: { tagName?: string }): ActionButtonDetails {
-  const details = actionButtonsDetails[config.type];
-  if (!details) {
+export function getActionButtonDetails(config: ActionButtonConfig, options?: { tagName?: string }): ActionButtonDetails & { props: ActionButtonDetails } {
+  if (!actionButtonsDetails[config.type]) {
     throw new Error(`No details found for action button type: ${config.type}`)
   }
+  const details = {
+    ...actionButtonsDetails[config.type],
+    get props(): ActionButtonDetails {
+      return {
+        activeIcon: this.activeIcon,
+        inactiveIcon: this.inactiveIcon,
+        activeText: this.activeText,
+        inactiveText: this.inactiveText,
+      }
+    }
+  };
   const customIcon = ('iconId' in config && config.iconId) ? actionButtonCustomIcons[config.iconId] : undefined;
   if (config.type === "quick-tag") {
-    return {
-      ...details,
-      ...(options?.tagName ? {
-        activeText: `Remove "${options.tagName}" from scene`,
-        inactiveText: `Add "${options.tagName}" to scene`,
-      } : {}),
-      ...(customIcon ? {
-        activeIcon: customIcon.active,
-        inactiveIcon: customIcon.inactive,
-      } : {})
+    if (options?.tagName) {
+      details.activeText = `Remove "${options.tagName}" from scene`
+      details.inactiveText = `Add "${options.tagName}" to scene`
+    }
+    if (customIcon) {
+      details.activeIcon = customIcon.active;
+      details.inactiveIcon = customIcon.inactive;
     }
   }
   return details
