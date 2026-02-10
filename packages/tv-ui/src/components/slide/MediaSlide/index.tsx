@@ -24,7 +24,7 @@ import { type ScrollToIndexOptions } from "../../VideoScroller";
 import { ActionButtons } from "../ActionButtons";
 import SceneInfo from "../SceneInfo";
 import { getLogger, type Logger } from "@logtape/logtape";
-import abLoopPlugin from "videojs-abloop";
+import {Options as AbLoopPluginOptions} from "videojs-abloop";
 import ClipTimestamp from "../ClipTimestamp";
 import { SharedGestureState, useGesture } from "@use-gesture/react";
 import { useFeedback } from "../../FeedbackOverlay";
@@ -540,18 +540,18 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   useEffect(() => {
     if (!playerReady) return;
-    let options: abLoopPlugin.Options = {
+    let options: AbLoopPluginOptions = {
       loopIfBeforeStart: true,
       loopIfAfterEnd: true,
-      pauseAfterLooping: false,
-      pauseBeforeLooping: false,
-      ...videojsPlayerRef.current?.abLoopPlugin.getOptions(),
+      pauseAfterLoop: false,
+      pauseBeforeLoop: false,
+      ...(videojsPlayerRef.current?.abLoopPlugin?.getOptions() ?? {}),
       enabled: looping,
-      start: initialTimestamp ?? false,
-      end: endTimestamp ?? false,
+      start: initialTimestamp || undefined,
+      end: endTimestamp || undefined,
     }
     logger.debug(`Setting AB loop plugin options{*}`, {options});
-    videojsPlayerRef.current?.abLoopPlugin.setOptions(options);
+    videojsPlayerRef.current?.abLoopPlugin?.setOptions(options);
   }, [looping, playerReady, initialTimestamp, endTimestamp])
 
   // Track what marker (if any) is currently playing

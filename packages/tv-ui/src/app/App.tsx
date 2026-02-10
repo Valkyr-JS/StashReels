@@ -59,7 +59,6 @@ const App = () => {
       messages={messages}
       formats={intlFormats}
     >
-      {/* @ts-expect-error -- Error is possibly due to different React version between packages tv-ui and stash-ui but this seems to work okay */}
       <ErrorBoundary>
         <ConfigurationProvider
           configuration={modifiedStashConfig}

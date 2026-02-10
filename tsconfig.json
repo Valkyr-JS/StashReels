@@ -9,5 +9,15 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "exclude": ["node_modules", "dist", "node_modules", "packages/stash-ui/stash", "**/*.stories.tsx"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.stories.tsx",
+    "packages/stash-ui/stash/**/*"
+  ],
+  "include": [
+    "packages/tv-ui/**/*",
+    "packages/tv-plugin/**/*",
+    "packages/stash-ui/wrappers/**/*"
+  ]
 }

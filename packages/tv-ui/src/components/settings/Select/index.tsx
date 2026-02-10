@@ -1,10 +1,8 @@
-import React, { ReactElement, RefAttributes } from "react";
-import RSSelect, { GroupBase } from "react-select";
+import React from "react";
+import RSSelect, { GroupBase, Props as StateManagerProps, SelectInstance, CSSObjectWithLabel, ClassNamesState } from "react-select";
 import { useMedia } from "react-use";
 import cx from "classnames";
 import "./Select.css"
-import { StateManagerProps } from "react-select/dist/declarations/src/useStateManager";
-import type RSSelectInternal from "react-select/dist/declarations/src/Select";
 import { useAppStateStore } from "../../../store/appStateStore";
 
 // @ts-expect-error -- why-did-you-render doesn't type this properly but it does consume this
@@ -16,11 +14,10 @@ type AdditionalProps = {
   expandWidthToFit?: boolean;
 }
 
-type Component = <Option = unknown, IsMulti extends boolean = false, Group extends GroupBase<Option> = GroupBase<Option>>(
-  props: StateManagerProps<Option, IsMulti, Group> & RefAttributes<RSSelectInternal<Option, IsMulti, Group>> & AdditionalProps
-) => ReactElement;
-
-const Select: Component = (props) => {
+// Define Select as a generic function component with explicit type parameters
+function Select<Option = unknown, IsMulti extends boolean = false, Group extends GroupBase<Option> = GroupBase<Option>>(
+  props: StateManagerProps<Option, IsMulti, Group> & AdditionalProps
+): React.ReactElement {
   const {className, expandWidthToFit, styles, ...otherProps} = props
   const hasTouchScreen = useMedia("(pointer: coarse)");
   // Disabling isSearchable on mobile resolves the issue of keyboard popping up on mobile devices and messing up the layout, particularly for forceLandscape mode
@@ -34,7 +31,7 @@ const Select: Component = (props) => {
     className={cx("Select", "react-select", className)}
     styles={{
       ...styles,
-      menu: (provided) => ({
+      menu: (provided: CSSObjectWithLabel) => ({
         ...(expandWidthToFit ? {
           'maxWidth': 'calc(var(--x-unit-small) * 90)',
           'minWidth': 'max-content',
@@ -44,7 +41,7 @@ const Select: Component = (props) => {
           ? styles.menu(provided)
           : provided),
       }),
-      menuList: (provided) => ({
+      menuList: (provided: CSSObjectWithLabel) => ({
         ...(expandWidthToFit ? {
           scrollbarGutter: 'stable',
         } : {}),
@@ -56,7 +53,7 @@ const Select: Component = (props) => {
     classNamePrefix="react-select"
     isSearchable={isSearchable}
     classNames={{
-      menu: (state) => state.placement === 'top' ? 'menu-above' : 'menu-below'
+      menu: (state: ClassNamesState) => (state as any).placement === 'top' ? 'menu-above' : 'menu-below'
     }}
     menuPortalTarget={document.body}
     menuPosition="fixed"
@@ -64,4 +61,7 @@ const Select: Component = (props) => {
   />
 }
 
-export default Select;
+// Export with proper generic signature for TypeScript
+export default Select as <Option = unknown, IsMulti extends boolean = false, Group extends GroupBase<Option> = GroupBase<Option>>(
+  props: StateManagerProps<Option, IsMulti, Group> & AdditionalProps
+) => React.ReactElement;

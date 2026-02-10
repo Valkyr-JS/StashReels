@@ -39,6 +39,7 @@
     "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.14.3",
+    "history": "^4.9.0",
     "i18n-iso-countries": "^7.5.0",
     "intersection-observer": "^0.12.2",
     "localforage": "^1.10.0",
@@ -78,6 +79,7 @@
   },
   "devDependencies": {
     "@types/glob": "^9.0.0",
+    "@types/react-router-dom": "^5.3.3",
     "glob": "^11.0.3",
     "sass": "1.58.1",
     "tsc-alias": "^1.8.16"

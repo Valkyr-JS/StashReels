@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PLUGIN_NAMESPACE } from "../tv-ui/src/constants/index.js";
 import { StashTvConfig } from "../tv-ui/src/hooks/useStashTvConfig"
 import { ConfigDataFragment, ConfigInterfaceResult } from "stash-ui/dist/src/core/generated-graphql.js";
-import type { CheckboxGroup } from "stash-ui/stash/ui/v2.5/src/components/Settings/SettingsInterfacePanel/CheckboxGroup";
+import type { CheckboxGroup } from "stash-ui/dist/src/components/Settings/SettingsInterfacePanel/CheckboxGroup";
 import { appStateStorageKey } from "../tv-ui/src/store/appStateStore.js";
 
 const { PluginApi } = window;
@@ -43,7 +43,9 @@ PluginApi.patch.instead(
     }, [])
 
     const isDevOptionsEnabled = PluginApi.React.useMemo(
-      () => JSON.parse(stashTvConfig?.[appStateStorageKey] || '{}')?.state?.showDevOptions,
+      () => JSON.parse(
+        stashTvConfig && appStateStorageKey in stashTvConfig && typeof stashTvConfig[appStateStorageKey] === "string" ? stashTvConfig[appStateStorageKey] : '{}'
+      )?.state?.showDevOptions,
       [stashTvConfig]
     );
 
@@ -80,14 +82,14 @@ PluginApi.patch.instead(
               </summary>
               <pre>
                 {JSON.stringify(
-                  (stashTvConfig && appStateStorageKey in stashTvConfig)
+                  (stashTvConfig && appStateStorageKey in stashTvConfig && typeof stashTvConfig[appStateStorageKey] === "string")
                     ? {...stashTvConfig, [appStateStorageKey]: '<app state data>'}
                     : stashTvConfig,
                   null,
                   2
                 )}
               </pre>
-              {(stashTvConfig && appStateStorageKey in stashTvConfig) && <>
+              {(stashTvConfig && appStateStorageKey in stashTvConfig && typeof stashTvConfig[appStateStorageKey] === "string") && <>
                 App state stored in Stash TV config:
                 <pre>
                   {JSON.stringify(JSON.parse(stashTvConfig[appStateStorageKey]), null, 2)}
@@ -101,6 +103,7 @@ PluginApi.patch.instead(
     ];
   }
 );
+PluginApi.patch.instead
 
 // Show Stash TV in the menu bar if it's been enabled in the plugin config
 PluginApi.patch.instead(

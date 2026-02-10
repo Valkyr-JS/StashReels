@@ -30,7 +30,7 @@ function wrapPlayerFunction<FunctionName extends Exclude<FunctionKeys<VideoJsPla
     }) as VideoJsPlayer[FunctionName];
 }
 
-videojs.hook('setup', (player) => {
+videojs.hook('setup', (player: VideoJsPlayer) => {
     // Stop ScenePlayer from stealing focus on mount
     player.focus = () => {}
 
@@ -79,7 +79,7 @@ videojs.hook('setup', (player) => {
     player.duration = modifiedDurationFunction;
 });
 
-videojs.hook('setup', function(player) {
+videojs.hook('setup', function(player: VideoJsPlayer) {
     let playerId
     try {
         playerId = getPlayerIdForVideoJsPlayer(player.el());
@@ -90,7 +90,7 @@ videojs.hook('setup', function(player) {
     videoJsSetupCallbacks[playerId]?.(player)
 })
 
-videojs.hook('beforesetup', function(videoEl, options) {
+videojs.hook('beforesetup', function(videoEl: Element, options: any) {
     // Will be merged in with existing options
     return {
         userActions: {
@@ -122,7 +122,7 @@ videojs.hook('beforesetup', function(videoEl, options) {
 });
 
 // Merge in any option overrides set by this component
-videojs.hook('beforesetup', function(videoEl, options) {
+videojs.hook('beforesetup', function(videoEl: Element, options: any) {
     let playerId
     try {
         playerId = getPlayerIdForVideoJsPlayer(videoEl);
@@ -281,13 +281,13 @@ const ScenePlayer = forwardRef<
         player.sourceSelector = function(...args) {
             const sourceSelector = originalSourceSelector.apply(this, args);
             const originalSetSources = sourceSelector.setSources;
-            sourceSelector.setSources = function(sources, ...otherArgs) {
-                sources.forEach(source => {
+            sourceSelector.setSources = function(sources: any[]) {
+                sources.forEach((source: any) => {
                     if (source.src) {
                         source.src = source.src.replace(/\/preview\/stream$/, '/preview');
                     }
                 });
-                originalSetSources.apply(this, [sources, ...otherArgs]);
+                (originalSetSources as any).call(this, sources);
             };
             return sourceSelector;
         };
@@ -303,7 +303,6 @@ const ScenePlayer = forwardRef<
             if (event === 'ended' && listener === stubOnComplete) {
                 return;
             }
-            // @ts-expect-error - on has multiple overloads
             return originalOn.apply(this, args);
         };
         const originalOff = player.off;
@@ -312,7 +311,6 @@ const ScenePlayer = forwardRef<
             if (event === 'ended' && !listener) {
                 return;
             }
-            // @ts-expect-error - off has multiple overloads
             return originalOff.apply(this, args);
         };
     }
@@ -398,8 +396,15 @@ const ScenePlayer = forwardRef<
                     // Prevent bug in markers plugin where it tries to operate on the player element after it's been
                     // disposed
                     videojsPlayer.markers = () => ({
-                        clearMarkers: () => {}
-                    } as ReturnType<VideoJsPlayer["markers"]>)
+                        clearMarkers: () => {},
+                        add: () => {},
+                        getMarkers: () => [],
+                        remove: () => {},
+                        removeAll: () => {},
+                        updateTime: () => {},
+                        reset: () => {},
+                        destroy: () => {}
+                    })
                 })
             }
         }

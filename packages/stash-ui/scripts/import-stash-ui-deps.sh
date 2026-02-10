@@ -5,6 +5,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$script_dir/.."
+
 jq_filter='
 def sort_keys:
   with_entries(.) | to_entries | sort_by(.key) | from_entries;

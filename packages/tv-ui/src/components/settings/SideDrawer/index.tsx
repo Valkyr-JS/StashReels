@@ -2,12 +2,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { default as cx } from "classnames";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { useSpring, animated, config } from "@react-spring/web";
+import { useSpring, animated, config, AnimatedComponent } from "@react-spring/web";
 import "./SideDrawer.scss";
 import { useAppStateStore } from "../../../store/appStateStore";
 import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
 
-const AnimatedDivPure = memo(animated.div);
+const AnimatedDivPure = memo(animated.div) as AnimatedComponent<"div">;
 
 type Props = {
   children?: React.ReactNode,

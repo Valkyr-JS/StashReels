@@ -10,7 +10,7 @@ import SideDrawer from "../SideDrawer";
 import Switch from "../Switch";
 import { useMediaItems } from "../../../hooks/useMediaItems";
 import { useMediaItemFilters } from "../../../hooks/useMediaItemFilters";
-import { Button, Form, Accordion } from "react-bootstrap";
+import { Button, Form, Accordion, useAccordionToggle } from "react-bootstrap";
 import { AccordionContext } from "react-bootstrap";
 import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
@@ -324,22 +324,22 @@ const SettingsTab = memo(() => {
             <label htmlFor="filter">
               Media Filter
             </label>
-            <Select
+            <Select<{ value: string; label: string; filterType: "scene" | "marker" }, false, { label: string; filterType: "scene" | "marker"; options: readonly { value: string; label: string; filterType: "scene" | "marker"; }[] }>
               inputId="filter"
               isLoading={mediaItemFiltersLoading || mediaItemsLoading}
               value={selectedFilter ?? null}
-              onChange={(newValue) => newValue && setAppSetting("currentFilterId", newValue.value)}
+              onChange={(newValue: { value: string; label: string; filterType: "scene" | "marker" } | null) => newValue && setAppSetting("currentFilterId", newValue.value)}
               options={allFiltersGrouped}
               placeholder={`${allFilters.length > 0 ? "No filter selected" : "No filters saved in stash"}. Showing all scenes.`}
               components={{
-                GroupHeading: (props) => (
+                GroupHeading: (props: import('react-select').GroupHeadingProps<{ value: string; label: string; filterType: "scene" | "marker" }>) => (
                   <components.GroupHeading {...props}>
                     <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
                     {props.data.label}
 
                   </components.GroupHeading>
                 ),
-                SingleValue: (props) => (
+                SingleValue: (props: import('react-select').SingleValueProps<{ value: string; label: string; filterType: "scene" | "marker" }>) => (
                   <components.SingleValue {...props}>
                     <FontAwesomeIcon icon={props.data.filterType === "scene" ? faCirclePlay : faLocationDot} />
                     {props.data.label}
@@ -439,10 +439,10 @@ const SettingsTab = memo(() => {
               <label htmlFor="start-position">
                 Start Point
               </label>
-              <Select
+              <Select<typeof startPositionOptions[number]>
                 inputId="start-position"
                 value={startPositionOptions.find(option => option.value === startPosition) ?? null}
-                onChange={(newValue) => newValue && setAppSetting("startPosition", newValue.value)}
+                onChange={(newValue: typeof startPositionOptions[number] | null) => newValue && setAppSetting("startPosition", newValue.value)}
                 options={startPositionOptions}
               />
               <Form.Text className="text-muted">
@@ -454,10 +454,10 @@ const SettingsTab = memo(() => {
               <label htmlFor="end-position">
                 End Point
               </label>
-              <Select
+              <Select<typeof endPositionOptions[number]>
                 inputId="end-position"
                 value={endPositionOptions.find(option => option.value === endPosition) ?? null}
-                onChange={(newValue) => newValue && setAppSetting("endPosition", newValue.value)}
+                onChange={(newValue: typeof endPositionOptions[number] | null) => newValue && setAppSetting("endPosition", newValue.value)}
                 options={endPositionOptions}
               />
               <Form.Text className="text-muted">
@@ -540,10 +540,10 @@ const SettingsTab = memo(() => {
             <label htmlFor="subtitle-language">
               Subtitle language
             </label>
-            <Select
+            <Select<{ label: string; value: string }>
               inputId="subtitle-language"
               value={defaultSubtitles}
-              onChange={(newValue) => {
+              onChange={(newValue: { label: string; value: string } | null) => {
                 if (!newValue) return;
                 updateStashTvConfig(
                   {
@@ -735,10 +735,10 @@ const SettingsTab = memo(() => {
               <label htmlFor="log-level">
                 Log Level to Show
               </label>
-              <Select
+              <Select<{ value: LogLevel; label: string }>
                 inputId="log-level"
                 value={logLevelOptions.find(option => option.value === logLevel) ?? null}
-                onChange={(newValue) => newValue?.value && setAppSetting("logLevel", newValue.value)}
+                onChange={(newValue: { value: LogLevel; label: string } | null) => newValue?.value && setAppSetting("logLevel", newValue.value)}
                 options={logLevelOptions}
               />
               <Form.Text className="text-muted">The level of logging detail.</Form.Text>
@@ -748,7 +748,7 @@ const SettingsTab = memo(() => {
               <label htmlFor="loggers-to-show">
                 Loggers to Show
               </label>
-              <Select
+              <Select<{ value: string[]; label: string }, true>
                 inputId="loggers-to-show"
                 expandWidthToFit={true}
                 options={loggerOptions}
@@ -759,7 +759,7 @@ const SettingsTab = memo(() => {
                     )
                   )
                 )}
-                onChange={(newValues) => setAppSetting("loggersToShow", newValues.map(option => option.value))}
+                onChange={(newValues: readonly { value: string[]; label: string }[]) => setAppSetting("loggersToShow", newValues.map((option) => option.value))}
                 isMulti={true}
                 closeMenuOnSelect={false}
               />
@@ -770,7 +770,7 @@ const SettingsTab = memo(() => {
               <label htmlFor="loggers-to-hide">
                 Loggers to Hide
               </label>
-              <Select
+              <Select<{ value: string[]; label: string }, true>
                 inputId="loggers-to-hide"
                 expandWidthToFit={true}
                 options={loggerOptions}
@@ -782,7 +782,7 @@ const SettingsTab = memo(() => {
                   )
                 )}
                 placeholder="All loggers"
-                onChange={(newValues) => setAppSetting("loggersToHide", newValues.map(option => option.value))}
+                onChange={(newValues: readonly { value: string[]; label: string }[]) => setAppSetting("loggersToHide", newValues.map((option) => option.value))}
                 isMulti={true}
                 closeMenuOnSelect={false}
               />
@@ -793,10 +793,10 @@ const SettingsTab = memo(() => {
               <label htmlFor="show-debugging-info">
                 Additional Debugging Info
               </label>
-              <Select
+              <Select<{ value: DebuggingInfo; label: string }, true>
                 inputId="show-debugging-info"
                 value={showDebuggingInfoOptions.filter(option => showDebuggingInfo.includes(option.value))}
-                onChange={(newValues) => setAppSetting("showDebuggingInfo", newValues.map(option => option.value))}
+                onChange={(newValues: readonly { value: DebuggingInfo; label: string }[]) => setAppSetting("showDebuggingInfo", newValues.map((option) => option.value))}
                 options={showDebuggingInfoOptions}
                 isMulti={true}
                 closeMenuOnSelect={false}
@@ -831,15 +831,15 @@ const SettingsTab = memo(() => {
               <label htmlFor="video-js-events-to-log">
                 Video.js Events To Log
               </label>
-              <Select
+              <Select<{ label: string; value: string }, true>
                 inputId="video-js-events-to-log"
                 value={videoJsEventsToLog.map(eventName => ({
                   label: eventName,
                   value: eventName,
                 }))}
-                onChange={(newValue) => setAppSetting(
+                onChange={(newValue: readonly { label: string; value: string }[]) => setAppSetting(
                   "videoJsEventsToLog",
-                  newValue.some(item => item.value === "all") ? videoJsEvents : newValue.map(item => item.value)
+                  newValue.some((item) => item.value === "all") ? videoJsEvents : newValue.map((item) => item.value)
                 )}
                 options={["all", ...videoJsEvents].map(eventName => ({
                   label: eventName,
@@ -872,11 +872,11 @@ const SettingsTab = memo(() => {
 SettingsTab.displayName = "SettingsTab";
 export default SettingsTab;
 
-const AccordionToggle: Accordion["Toggle"] = (props) => {
+const AccordionToggle = (props: any) => {
   const {children, className, as, variant, eventKey, ...otherProps} = props;
-  // @ts-expect-error - AccordionContext is imported from a library that used a different React instance but it seems to work fine
   const contextEventKey = useContext(AccordionContext);
   const open = contextEventKey === eventKey;
+  const decoratedOnClick = useAccordionToggle(eventKey);
   return (
     <Accordion.Toggle className={cx(className, open ? 'open' : '')} as={Button} variant="link" eventKey={eventKey} {...otherProps}>
       <h3>

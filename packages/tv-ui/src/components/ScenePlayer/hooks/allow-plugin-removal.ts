@@ -16,14 +16,14 @@ import videoJsNamespace, { VideoJsPlayer } from "video.js";
  */
 
 export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
-    videojs.hook('beforesetup', function(videoEl, options) {
+    videojs.hook('beforesetup', function(videoEl: Element, options: any) {
         return {
             _originalPlugins: options.plugins,
             plugins: "clear"
         };
     });
 
-    videojs.hook('beforesetup', function(videoEl, options) {
+    videojs.hook('beforesetup', function(videoEl: Element, options: any) {
         const pluginsToKeep: Record<string, unknown> = {}
         for (const [key, value] of Object.entries(options._originalPlugins)) {
             if (value) {
@@ -36,7 +36,7 @@ export function allowPluginRemoval(videojs: typeof videoJsNamespace) {
     });
 
     // Add plugin stubs so that ScenePlayer doesn't error when trying to use them
-    videojs.hook('setup', (player) => {
+    videojs.hook('setup', (player: VideoJsPlayer) => {
         const plugins = player.toJSON().plugins || {};
 
         if (!('vrMenu' in plugins)) {

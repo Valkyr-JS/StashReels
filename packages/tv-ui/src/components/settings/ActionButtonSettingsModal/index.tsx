@@ -95,9 +95,9 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
         <ActionButton
           {...initialDetails.props}
           active={false}
-          disabled={true}
           key={actionButtonConfig.id}
           size="auto"
+          displayOnly={true}
         />
         <span>
           {operation === "add" ? "Add" : "Edit"}{" "}
@@ -114,8 +114,8 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
               </label>
               <TagSelect
                 inputId="tag-id"
-                onSelect={(tags) => {
-                  const tag = tags[0]
+                onSelect={(tags: Array<{ id: string; name: string }>) => {
+                  const tag = tags[0] as Tag
                   setTag(tag)
                   onUpdate({ ...actionButtonConfig, tagId: tag?.id })
                 }}
@@ -129,11 +129,11 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
               <label htmlFor="filter">
                 Icon
               </label>
-              <Select
+              <Select<typeof customIcons[number]>
                 inputId="filter"
                 value={customIcons.find(icon => icon.value === actionButtonConfig.iconId)}
                 options={customIcons}
-                onChange={(newValue) => onUpdate({ ...actionButtonConfig, iconId: (newValue && 'value' in newValue) ? newValue.value : "tag" })}
+                onChange={(newValue: typeof customIcons[number] | null) => onUpdate({ ...actionButtonConfig, iconId: (newValue && 'value' in newValue) ? newValue.value : "tag" })}
                 components={{ MenuList: GridMenuList, Option: GridOption, SingleValue: GridSingleValue }}
               />
             </Form.Group>
