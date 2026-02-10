@@ -85,6 +85,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
   }, [])
   useEffect(() => () => { showDebuggingInfo.includes("render-debugging") && console.log(`🔚 MediaSlide (media id ${props.mediaItem.id}) unmounting`) }, [])
 
+  useEffect(() => {
+    if (isCurrentVideo) logger.info(`Current video set to ${props.mediaItem.id} {*}`, { mediaItem: props.mediaItem });
+  }, [isCurrentVideo, props.mediaItem.id])
+
   const scene = props.mediaItem.entityType === "scene" ? props.mediaItem.entity : props.mediaItem.entity.scene;
 
   const getMediaItemDuration = () => props.mediaItem.entityType === "marker" ? props.mediaItem.entity.duration : props.mediaItem.entity.files[0]?.duration;
@@ -166,7 +170,9 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   useEffect(() => {
     if (!isCurrentVideo || !videojsPlayerRef.current) return;
+    window.videojs = videojs as unknown as typeof window.videojs
     window.tvCurrentPlayer = showDevOptions ? videojsPlayerRef.current : undefined;
+    window.tvAllPlayers = showDevOptions ? videojs.getAllPlayers() : undefined;
     window.tvCurrentMediaItem = showDevOptions ? props.mediaItem : undefined;
   }, [isCurrentVideo, showDevOptions, playerReady])
 
@@ -248,6 +254,10 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
       return undefined;
     }
   }, [endPosition, initialTimestamp, minPlayLength, maxPlayLength, playLength, getMediaItemDuration(), scenePreviewOnly, looping]);
+
+  useEffect(() => {
+    logger.info(`Initial timestamp: ${initialTimestamp}, End timestamp: ${endTimestamp}`, {initialTimestamp, endTimestamp})
+  }, [initialTimestamp, endTimestamp])
 
   useEffect(() => {
     if (!showGuideOverlay) return;
@@ -543,15 +553,15 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
     let options: AbLoopPluginOptions = {
       loopIfBeforeStart: true,
       loopIfAfterEnd: true,
-      pauseAfterLoop: false,
-      pauseBeforeLoop: false,
+      pauseAfterLooping: false,
+      pauseBeforeLooping: false,
       ...(videojsPlayerRef.current?.abLoopPlugin?.getOptions() ?? {}),
       enabled: looping,
-      start: initialTimestamp || undefined,
-      end: endTimestamp || undefined,
+      start: initialTimestamp ?? false,
+      end: endTimestamp ?? false,
     }
     logger.debug(`Setting AB loop plugin options{*}`, {options});
-    videojsPlayerRef.current?.abLoopPlugin?.setOptions(options);
+    videojsPlayerRef.current?.abLoopPlugin.setOptions(options);
   }, [looping, playerReady, initialTimestamp, endTimestamp])
 
   // Track what marker (if any) is currently playing
@@ -638,6 +648,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           <div className="debugStats">
             {props.index} - {scene.id} {loadingDeferred ? "(Loading deferred)" : ""}
             {" "}{props.mediaItem.entityType === "marker" ? `(Marker: ${props.mediaItem.entity.primary_tag.name})` : ""}
+            {" "}(duration: {roundTo(videojsPlayerRef.current?.duration() || 0, 2)}s, current time: {roundTo(videojsPlayerRef.current?.currentTime() || 0, 2)}s)
           </div>
           <div className="loadingDeferredDebugBackground" />
         </>}
@@ -1307,6 +1318,7 @@ function useGestureControls(
 declare global {
   interface Window {
     tvCurrentPlayer?: VideoJsPlayer,
+    tvAllPlayers?: VideoJsPlayer[] | undefined,
     tvCurrentMediaItem?: MediaItem,
   }
 }

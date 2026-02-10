@@ -10,6 +10,7 @@ import { getPlayerIdForVideoJsPlayer } from "../../helpers";
 import { useAppStateStore } from "../../store/appStateStore";
 import 'videojs-offset'
 import { getLogger } from "@logtape/logtape";
+import { fixVideojsOffsetMultiPlayerBug } from "./hooks/fix-videojs-offset-multi-player-bug";
 const mountCount = new Map<string, number>();
 
 const videoJsOptionsOverride: Record<string, VideoJsPlayerOptions> = {}
@@ -30,56 +31,41 @@ function wrapPlayerFunction<FunctionName extends Exclude<FunctionKeys<VideoJsPla
     }) as VideoJsPlayer[FunctionName];
 }
 
-videojs.hook('setup', (player: VideoJsPlayer) => {
+videojs.hook('setup', (player) => {
     // Stop ScenePlayer from stealing focus on mount
     player.focus = () => {}
 
-    wrapPlayerFunction(player, 'currentTime', ((originalDurationFunction: VideoJsPlayer['currentTime'], ...args: Parameters<VideoJsPlayer['currentTime']>) => {
-      if (args.length) {
-        // If we attempt to set the time before metadata is loaded then it seem to work but with the negative side
-        // effect that .played() will report the starting time as 0 even if we set currentTime to something else. To
-        // avoid this we delay setting currentTime until after metadata has loaded if it hasn't already.
-        if (player.readyState() >= 1) {
-          return originalDurationFunction(...args)
-        } else {
-          player.one('loadedmetadata', () => {
-            originalDurationFunction(...args)
-          });
-          return
-        }
-      } else {
-        return originalDurationFunction(...args);
-      }
-    }) as {(originalDurationFunction: VideoJsPlayer['currentTime'], seconds: number): void; (originalDurationFunction: VideoJsPlayer['currentTime'], ): number;} )
+    /////////////////////////////////////////////////////////////////////////////////
+    //
+    //    Trial removing the following and add back in if things break
+    //
+    /////////////////////////////////////////////////////////////////////////////////
 
-    // There seem's to be a bug with videojs where if multiple videos are loaded at the same time then the duration of
-    // the one player can be set to that of another.
-    const originalDurationFunction = player.duration.bind(player);
-    const usingOffsetPlugin = !!player.toJSON().plugins.offset;
-    function modifiedDurationFunction(): number;
-    function modifiedDurationFunction(newDuration: number): void;
-    function modifiedDurationFunction (newDuration?: number) {
-        // The offset plugin manages duration itself so if it's present we just use the original function
-        if (usingOffsetPlugin) {
-            return newDuration === undefined ? originalDurationFunction() : originalDurationFunction(newDuration);
-        }
-        const scene = '_scene' in player ? player._scene as GQL.TvSceneDataFragment : undefined;
-        const duration = scene?.files[0]?.duration
-        // If we haven't been able to determine a duration then fall back to original function
-        if (duration === undefined) {
-            return originalDurationFunction();
-        }
-        // If the caller was trying to set the duration then we also set the player's duration but we use our duration value
-        if (newDuration !== undefined) {
-            return originalDurationFunction(duration);
-        }
-        return duration;
-    }
-
-    player.duration = modifiedDurationFunction;
+    // wrapPlayerFunction(player, 'currentTime', ((originalCurrentTimeFunction: VideoJsPlayer['currentTime'], ...args: Parameters<VideoJsPlayer['currentTime']>) => {
+    //   if (args.length) {
+    //     // If we attempt to set the time before metadata is loaded then it seem to work but with the negative side
+    //     // effect that .played() will report the starting time as 0 even if we set currentTime to something else. To
+    //     // avoid this we delay setting currentTime until after metadata has loaded if it hasn't already.
+    //     if (player.readyState() >= 1) {
+    //       const duration = player.duration()
+    //       if (args[0] < 0 || args[0] > duration) {
+    //         console.warn(`Attempting to set currentTime to ${args[0]} which is outside the bounds of the video duration (0 - ${duration}). This may cause playback issues.`, player);
+    //       }
+    //       const result = originalCurrentTimeFunction(...args)
+    //       return result
+    //     } else {
+    //       player.one('loadedmetadata', () => {
+    //         player.currentTime(...args)
+    //       });
+    //       return
+    //     }
+    //   } else {
+    //     return originalCurrentTimeFunction(...args);
+    //   }
+    // }) as {(originalCurrentTimeFunction: VideoJsPlayer['currentTime'], seconds: number): void; (originalCurrentTimeFunction: VideoJsPlayer['currentTime'], ): number;} )
 });
 
-videojs.hook('setup', function(player: VideoJsPlayer) {
+videojs.hook('setup', function(player) {
     let playerId
     try {
         playerId = getPlayerIdForVideoJsPlayer(player.el());
@@ -90,7 +76,7 @@ videojs.hook('setup', function(player: VideoJsPlayer) {
     videoJsSetupCallbacks[playerId]?.(player)
 })
 
-videojs.hook('beforesetup', function(videoEl: Element, options: any) {
+videojs.hook('beforesetup', function(videoEl, options) {
     // Will be merged in with existing options
     return {
         userActions: {
@@ -122,7 +108,7 @@ videojs.hook('beforesetup', function(videoEl: Element, options: any) {
 });
 
 // Merge in any option overrides set by this component
-videojs.hook('beforesetup', function(videoEl: Element, options: any) {
+videojs.hook('beforesetup', function(videoEl, options) {
     let playerId
     try {
         playerId = getPlayerIdForVideoJsPlayer(videoEl);
@@ -133,6 +119,7 @@ videojs.hook('beforesetup', function(videoEl: Element, options: any) {
     return videoJsOptionsOverride[playerId] || {}
 })
 
+fixVideojsOffsetMultiPlayerBug(videojs);
 allowPluginRemoval(videojs);
 
 
@@ -281,13 +268,13 @@ const ScenePlayer = forwardRef<
         player.sourceSelector = function(...args) {
             const sourceSelector = originalSourceSelector.apply(this, args);
             const originalSetSources = sourceSelector.setSources;
-            sourceSelector.setSources = function(sources: any[]) {
-                sources.forEach((source: any) => {
+            sourceSelector.setSources = function(sources, ...otherArgs) {
+                sources.forEach(source => {
                     if (source.src) {
                         source.src = source.src.replace(/\/preview\/stream$/, '/preview');
                     }
                 });
-                (originalSetSources as any).call(this, sources);
+                originalSetSources.apply(this, [sources, ...otherArgs]);
             };
             return sourceSelector;
         };
@@ -303,6 +290,7 @@ const ScenePlayer = forwardRef<
             if (event === 'ended' && listener === stubOnComplete) {
                 return;
             }
+            // @ts-expect-error - on has multiple overloads
             return originalOn.apply(this, args);
         };
         const originalOff = player.off;
@@ -311,6 +299,7 @@ const ScenePlayer = forwardRef<
             if (event === 'ended' && !listener) {
                 return;
             }
+            // @ts-expect-error - off has multiple overloads
             return originalOff.apply(this, args);
         };
     }
@@ -361,16 +350,17 @@ const ScenePlayer = forwardRef<
 
     // Options to inject into wrapped ScenePlayer's Video.js instance when it's being created
     videoJsOptionsOverride[playerId] = {
-        muted,
-        loop: loop, // Unfortunately this doesn't seem to work since the stash ScenePlayer component seems immediately set
-        // the loop value itself after initialization so we have to set it the player ready callback
-        ...optionsToMerge,
-        plugins: {
-            ...(!trackActivity ? { trackActivity: undefined } : {}),
-            ...(!scrubberThumbnail ? { vttThumbnails: undefined } : {}),
-            ...(!markers ? { markers: undefined } : {}),
-            ...optionsToMerge?.plugins
-        },
+      id: `videojs-${playerId}`,
+      muted,
+      loop: loop, // Unfortunately this doesn't seem to work since the stash ScenePlayer component seems immediately set
+      // the loop value itself after initialization so we have to set it the player ready callback
+      ...optionsToMerge,
+      plugins: {
+          ...(!trackActivity ? { trackActivity: undefined } : {}),
+          ...(!scrubberThumbnail ? { vttThumbnails: undefined } : {}),
+          ...(!markers ? { markers: undefined } : {}),
+          ...optionsToMerge?.plugins,
+      },
     }
 
     // Pass muted prop to Video.js player
@@ -396,15 +386,8 @@ const ScenePlayer = forwardRef<
                     // Prevent bug in markers plugin where it tries to operate on the player element after it's been
                     // disposed
                     videojsPlayer.markers = () => ({
-                        clearMarkers: () => {},
-                        add: () => {},
-                        getMarkers: () => [],
-                        remove: () => {},
-                        removeAll: () => {},
-                        updateTime: () => {},
-                        reset: () => {},
-                        destroy: () => {}
-                    })
+                        clearMarkers: () => {}
+                    } as ReturnType<VideoJsPlayer["markers"]>)
                 })
             }
         }

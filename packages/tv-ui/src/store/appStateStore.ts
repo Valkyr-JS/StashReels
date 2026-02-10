@@ -95,7 +95,6 @@ const nonPersistentKeys: (keyof AppState)[] = [
   'storeLoaded',
   'showSettings',
   'fullscreen',
-  'showDebuggingInfo'
 ]
 
 export const useAppStateStore = create<AppState & AppAction>()(

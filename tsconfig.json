@@ -18,6 +18,8 @@
   "include": [
     "packages/tv-ui/**/*",
     "packages/tv-plugin/**/*",
-    "packages/stash-ui/wrappers/**/*"
+    "packages/stash-ui/wrappers/**/*",
+    "packages/stash-ui/dist/src/@types/**/*",
+    "packages/stash-ui/dist/src/components/ScenePlayer/*.d.ts"
   ]
 }

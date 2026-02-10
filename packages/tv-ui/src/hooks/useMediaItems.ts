@@ -73,17 +73,26 @@ export function useMediaItems() {
     })
 
     mediaItems = useMemo(
-      () => markersResponse.data?.findSceneMarkers.scene_markers.map(marker => ({
-        id: `marker:${marker.id}`,
-        entityType: "marker" as const,
-        entity: {
-          ...marker,
-          get duration() {
-            const endTime = marker.end_seconds ?? Math.min(marker.seconds + defaultMarkerLength, marker.scene.files[0].duration);
-            return endTime - marker.seconds;
+      () => markersResponse.data?.findSceneMarkers.scene_markers
+        .filter(marker => {
+          if (marker.seconds > marker.scene.files[0].duration) {
+            logger.warn(`Marker with ID ${marker.id} has start time (${marker.seconds}s) greater than scene duration (${marker.scene.files[0].duration}s). This marker will be skipped.`, {marker})
+            return false
           }
-        }
-      })) || [],
+          return true
+        })
+        .map(marker => ({
+          id: `marker:${marker.id}`,
+          entityType: "marker" as const,
+          entity: {
+            ...marker,
+            get duration() {
+              const endTime = marker.end_seconds ?? Math.min(marker.seconds + defaultMarkerLength, marker.scene.files[0].duration);
+              return endTime - marker.seconds;
+            }
+          }
+        }))
+        || [],
       [markersResponse.data?.findSceneMarkers.scene_markers]
     )
     response = markersResponse
