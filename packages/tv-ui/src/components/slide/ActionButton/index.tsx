@@ -13,10 +13,7 @@ import { useAppStateStore } from "../../../store/appStateStore";
 
 const useCurrentOpenPopover = create<null | string>(() => (null))
 
-export type Props = React.DetailedHTMLProps<
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    HTMLButtonElement
-> & {
+export type Props = {
   /** Indicates if the buttons associated action is active. */
   active: boolean;
   activeIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
@@ -25,10 +22,13 @@ export type Props = React.DetailedHTMLProps<
   inactiveText: string;
   sideInfo?: React.ReactNode;
   sidePanel?: React.ReactNode;
-  size?: "auto"
+  size?: "auto",
+  displayOnly?: boolean;
+  className?: string;
+  onClick?: () => void;
 }
 
-const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
+const ActionButton = (props: Props) => {
   const {
     active,
     activeIcon,
@@ -39,10 +39,11 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
     sideInfo,
     sidePanel,
     size,
-    ...otherProps
+    displayOnly,
+    onClick,
   } = props;
   const Icon = active ? activeIcon : inactiveIcon;
-  const ButtonElement = otherProps.disabled ? "div" : "button";
+  const ButtonElement = displayOnly ? "div" : "button";
   const { leftHandedUi } = useAppStateStore();
   const SidePanel = ({children}: {children: ComponentProps<typeof OverlayTrigger>['children']}) => {
     if (!sidePanel) return <>{children}</>
@@ -82,10 +83,9 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
       )}
       <SidePanel>
         <ButtonElement
-          {...otherProps}
           className={cx("button")}
           type="button"
-          ref={ref}
+          onClick={displayOnly ? undefined : onClick}
         >
           {'icon' in Icon ? (
             <FontAwesomeIcon icon={Icon} />
@@ -99,6 +99,6 @@ const ActionButton = forwardRef<HTMLButtonElement, Props>((props, ref) => {
       </SidePanel>
     </div>
   );
-});
+};
 
 export default ActionButton;

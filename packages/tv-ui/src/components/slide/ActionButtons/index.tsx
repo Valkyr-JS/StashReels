@@ -123,7 +123,7 @@ export function SettingsActionButton({buttonConfig}: {buttonConfig?: ActionButto
   />
 }
 
-function ShowSceneInfoActionButton({sceneInfoOpen, setSceneInfoOpen, buttonConfig}: {scene: GQL.TvSceneDataFragment, sceneInfoOpen: boolean, setSceneInfoOpen: (open: boolean) => void, buttonConfig: ActionButtonConfig}) {
+function ShowSceneInfoActionButton({sceneInfoOpen, setSceneInfoOpen, buttonConfig}: {sceneInfoOpen: boolean, setSceneInfoOpen: (open: boolean) => void, buttonConfig: ActionButtonConfig}) {
   return <ActionButton
       {...getActionButtonDetails(buttonConfig).props}
       className="show-scene-info hide-on-ui-hide"

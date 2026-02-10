@@ -24,6 +24,7 @@ import { ActionButtonConfig } from "../../slide/ActionButtons";
 import { ActionButtonSettingsModal } from "../ActionButtonSettingsModal";
 import { queryFindTagsByIDForSelect } from "stash-ui/dist/src/core/StashService";
 import { FindTagsForSelectQuery } from "stash-ui/dist/src/core/generated-graphql";
+import { objectKeys } from "ts-extras"
 
 const SettingsTab = memo(() => {
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
@@ -251,8 +252,8 @@ const SettingsTab = memo(() => {
       .then(result => setTags(result.data.findTags.tags))
   }, [objectHash(tagIds)])
 
-  const addableActionButtons = Object.keys(actionButtonsDetails)
-    .map((type: keyof typeof actionButtonsDetails) => {
+  const addableActionButtons = objectKeys(actionButtonsDetails)
+    .map((type) => {
       let config: ActionButtonConfig;
       const configBase = {
         id: "",
@@ -617,7 +618,7 @@ const SettingsTab = memo(() => {
                         {...details.props}
                         className={"action-button-icon"}
                         active={false}
-                        disabled={true}
+                        displayOnly={true}
                         key={item.id}
                         size="auto"
                       />
@@ -671,7 +672,7 @@ const SettingsTab = memo(() => {
                       {...actionButton.details.props}
                       className={"action-button-icon"}
                       active={false}
-                      disabled={true}
+                      displayOnly={true}
                       size="auto"
                     />
                     Add "{actionButton.details.inactiveText}"

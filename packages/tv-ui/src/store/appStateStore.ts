@@ -103,6 +103,10 @@ export const useAppStateStore = create<AppState & AppAction>()(
     (set, get) => ({
       ...defaults,
       set: <PropName extends keyof AppState>(propName: PropName, value: AppState[PropName] | ((prev: AppState[PropName]) => AppState[PropName])) => {
+        if (!get().storeLoaded && propName !== "storeLoaded") {
+          console.warn(`Tried to set ${propName} to "${value}" before store was loaded`);
+          return;
+        }
         set((state) => {
           const resolvedValue = typeof value === "function" ? value(state[propName]) : value
           // For enableRenderDebugging we also save the enableRenderDebugging option separately in localStorage
@@ -127,6 +131,10 @@ export const useAppStateStore = create<AppState & AppAction>()(
         });
       },
       setToDefault: <PropName extends keyof typeof defaults>(propName: PropName) => {
+        if (!get().storeLoaded) {
+          console.warn(`Tried to set ${propName} to default before store was loaded`);
+          return;
+        }
         set((state) => {
           return {
             [propName]: defaults[propName],
