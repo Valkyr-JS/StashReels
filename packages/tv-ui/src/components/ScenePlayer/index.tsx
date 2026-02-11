@@ -377,18 +377,23 @@ const ScenePlayer = forwardRef<
 
     // Fix bug in wrapped ScenePlayer that some times results in an error being thrown on unmount
     useEffect(() => {
-        return () => {
-            const videojsPlayer = videojsPlayerRef.current
-            if (videojsPlayer) {
-                videojsPlayer.on("dispose", () => {
-                    // Prevent bug in markers plugin where it tries to operate on the player element after it's been
-                    // disposed
-                    videojsPlayer.markers = () => ({
-                        clearMarkers: () => {}
-                    } as ReturnType<VideoJsPlayer["markers"]>)
-                })
+      return () => {
+        const videojsPlayer = videojsPlayerRef.current
+        if (videojsPlayer) {
+          const vttThumbnailsPlugin = videojsPlayer.vttThumbnails()
+          videojsPlayer.on("dispose", () => {
+            if (vttThumbnailsPlugin) {
+              // @ts-expect-error - This is a private method but we have no other way to stop this being called
+              vttThumbnailsPlugin.setupThumbnailElement = () => {};
             }
+            // Prevent bug in markers plugin where it tries to operate on the player element after it's been
+            // disposed
+            videojsPlayer.markers = () => ({
+                clearMarkers: () => {}
+            } as ReturnType<VideoJsPlayer["markers"]>)
+          })
         }
+      }
     }, [])
 
     useEffect(() => {
