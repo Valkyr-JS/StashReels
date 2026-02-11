@@ -249,6 +249,9 @@
 
   video,
   .video-js .text-selection-on-gesture-workaround {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
   }
   .video-js {
