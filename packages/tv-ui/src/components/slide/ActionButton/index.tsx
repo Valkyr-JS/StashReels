@@ -1,5 +1,4 @@
 import React, {
-  ComponentProps,
   useEffect,
   useMemo,
 } from "react";
@@ -10,6 +9,7 @@ import { OverlayTrigger, Popover } from "react-bootstrap";
 import { create } from "zustand";
 import { useAppStateStore } from "../../../store/appStateStore";
 import { ActionButtonIcon } from "../../../helpers/getActionButtonDetails";
+import { OverlayTriggerProps } from "react-bootstrap/esm/OverlayTrigger";
 
 const useCurrentOpenPopover = create<null | string>(() => (null))
 
@@ -62,28 +62,35 @@ const ActionButton = (props: Props) => {
         </div>
       )}
       <SidePanel content={sidePanel} onSidePanelToggle={onSidePanelToggle}>
-        <ButtonElement
-          className={cx("button")}
-          type="button"
-          onClick={displayOnly ? undefined : onClick}
-        >
-          <Icon />
-          <span className="sr-only">
-            {displayText}
-          </span>
-        </ButtonElement>
+        {({onClick: sidePanelClick, ref}) => {
+          return (
+            <ButtonElement
+              className={cx("button")}
+              type="button"
+              onClick={displayOnly ? undefined : onClick || sidePanelClick}
+              ref={ref}
+            >
+              <Icon />
+              <span className="sr-only">
+                {displayText}
+              </span>
+            </ButtonElement>
+          )
+        }}
       </SidePanel>
     </div>
   );
 };
 
+type Children = (props: {onClick: (event: React.MouseEvent<HTMLElement>) => void, ref: React.Ref<any>}) => JSX.Element
+
 const SidePanel = (
   {content, children, onSidePanelToggle}: {
     content: SidePanelContent,
     onSidePanelToggle?: (isOpen: boolean) => void,
-    children: ComponentProps<typeof OverlayTrigger>['children']
+    children: Children
   }
-) => {
+): JSX.Element => {
   const currentOpenPopover = useCurrentOpenPopover()
   const { leftHandedUi, forceLandscape } = useAppStateStore();
   const id = `action-button-side-panel-${useUID()}`
@@ -91,6 +98,9 @@ const SidePanel = (
   useEffect(() => {
     onSidePanelToggle?.(isOpen)
   }, [isOpen, onSidePanelToggle])
+
+  // Without isOpenDelayedClose the popover content will be immediately removed from the DOM immediately where as the
+  // popover itself takes a short amount of time to animate out
   const [isOpenDelayedClose, setIsOpenDelayedClose] = React.useState(isOpen)
   useEffect(() => {
     let timeout: NodeJS.Timeout;
@@ -103,21 +113,8 @@ const SidePanel = (
       if (timeout) clearTimeout(timeout);
     }
   }, [isOpen])
-  if (!content) return <>{children}</>
-  const popover =  (
-    <Popover
-      className={cx("action-button-side-panel", { 'left-handed': leftHandedUi })}
-      id={id}
-    >
-      <div className="contents">
-        {isOpenDelayedClose && (
-          typeof content === "function"
-            ? content({isOpen, close: () => useCurrentOpenPopover.setState(null)})
-            : content
-        )}
-      </div>
-    </Popover>
-  )
+  if (!content) return children({onClick: () => {}, ref: null})
+
   const safeInsetPadding = useMemo(() => {
     const style = getComputedStyle(document.documentElement);
     const additionalPadding = parseInt(style.getPropertyValue('--overlay-edge-margin')) ?? 0
@@ -128,16 +125,58 @@ const SidePanel = (
       bottom: (parseInt(style.getPropertyValue('--safe-inset-bottom')) || 0) + additionalPadding,
     };
   }, [forceLandscape])
+
+  const processedClickEvents = useMemo(() => new WeakSet(), [])
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleClick(event: Event) {
+      processedClickEvents.add(event)
+    }
+    window.addEventListener("click", handleClick, {capture: true})
+    return () => {
+      window.removeEventListener("click", handleClick, {capture: true})
+    }
+  }, [isOpen])
+
+  const renderChildren: Children = ({onClick, ref}) => children({
+    onClick: (event) => {
+      // We want to skip any events that have already been acted upon as part of the rootClose handling
+      if (processedClickEvents.has(event.nativeEvent) || isOpen) return
+      onClick?.(event)
+    },
+    ref
+  })
+
   return (
     <OverlayTrigger
       trigger="click"
       placement={leftHandedUi ? "right" : "left"}
-      overlay={popover}
+      overlay={
+        <Popover
+          className={cx("action-button-side-panel", { 'left-handed': leftHandedUi })}
+          id={id}
+        >
+          <div className="contents">
+            {isOpenDelayedClose && (
+              typeof content === "function"
+                ? content({isOpen, close: () => useCurrentOpenPopover.setState(null)})
+                : content
+            )}
+          </div>
+        </Popover>
+      }
       show={isOpen}
       rootClose={true}
-      rootCloseEvent="mousedown"
-      onToggle={() => {
-        useCurrentOpenPopover.setState(id === currentOpenPopover ? null : id)
+      rootCloseEvent="click"
+      onToggle={(shouldOpen) => {
+        // We want to make sure to ignore any calls triggered by a rootClose event if the user has already clicked a
+        // different action button and opened a different popover
+        const currentlyOpen = id === useCurrentOpenPopover.getState()
+        if (shouldOpen && !currentlyOpen) {
+          useCurrentOpenPopover.setState(id)
+        } else if (!shouldOpen && currentlyOpen) {
+          useCurrentOpenPopover.setState(null)
+        }
       }}
       popperConfig={{
         modifiers: [
@@ -150,7 +189,10 @@ const SidePanel = (
         ],
       }}
     >
-      {children}
+      {
+        // OverlayTrigger's children appear to be typed wrong
+        renderChildren as unknown as OverlayTriggerProps['children']
+      }
     </OverlayTrigger>
   )
 }
