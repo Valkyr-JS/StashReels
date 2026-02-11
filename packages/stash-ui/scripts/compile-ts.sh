@@ -7,8 +7,9 @@ IFS=$'\n\t'
 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BUILD_DIR="$SCRIPT_DIR/../dist"
-STASH_DIR="$SCRIPT_DIR/../stash/ui/v2.5"
+PACKAGE_DIR="$SCRIPT_DIR/.."
+BUILD_DIR="$PACKAGE_DIR/dist"
+STASH_DIR="$PACKAGE_DIR/stash/ui/v2.5"
 
 # Ensure build directory exists
 mkdir -p "$BUILD_DIR"
@@ -16,7 +17,9 @@ mkdir -p "$BUILD_DIR"
 # Compile TypeScript in stash/ui/v2.5
 {
     cd "$STASH_DIR"
+    cp "$PACKAGE_DIR/patches/scene-player-utils.ts" src/components/ScenePlayer/util.ts
     yarn run tsc --outDir "$BUILD_DIR" --noEmit false --declaration true --rootDir "."
+    git restore src/components/ScenePlayer/util.ts
 };
 
 # Run tsc-alias to replace path aliases and copy in CSS + custom declaration files

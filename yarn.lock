@@ -719,10 +719,10 @@
   resolved "https://registry.npmjs.org/@juggle/resize-observer/-/resize-observer-3.4.0.tgz"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
 
-"@logtape/logtape@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.2.0.tgz#f77a1b5b57f479294ff3708c55050aa2ba5edcec"
-  integrity sha512-L7aXBYrxpSUQcsZm/hCuh5REN+dckxmPmH7x7eCROiLAHUSPzc7AhbsxsZLDsXMM4ggtbmS3sUQVa+blfF4sZA==
+"@logtape/logtape@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-2.0.2.tgz#41057af2ffdb701fc139a3197c7d3f35626bf7ba"
+  integrity sha512-cveUBLbCMFkvkLycP/2vNWvywl47JcJbazHIju94/QNGboZ/jyYAgZIm0ZXezAOx3eIz8OG1EOZ5CuQP3+2FQg==
 
 "@mapbox/hast-util-table-cell-style@^0.2.0":
   version "0.2.1"
