@@ -56,6 +56,11 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
   const sharedOptions = {
     count: mediaItems.length,
     debug: showDebuggingInfo.includes("virtualizer-debugging"),
+    // We already render a few items either side of the current one so add a little buffer either side when
+    // scrolling/resizing before we recalculate displayed items. This helps avoid rapidly unmounting and remounting
+    // items when the user is scrolling or when the window is being resized.
+    paddingStart: 100,
+    paddingEnd: 100,
     estimateSize: () => {
       if (!estimateSizeTesterElement.current) {
         const el = document.createElement('div');
@@ -385,7 +390,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
     const newItemIndexesToRender = rowVirtualizer.getVirtualItems().map(v => v.index);
     previousItemIndexesToRenderRef.current = newItemIndexesToRender;
     return newItemIndexesToRender;
-  }, [rowVirtualizer.getVirtualItems(), itemsToRenderFrozen]);
+  }, [rowVirtualizer.getVirtualItems().map(v => v.index).join(","), itemsToRenderFrozen]);
 
 
   const changeItemHandler = useCallback((newIndex, scrollOptions) => {
