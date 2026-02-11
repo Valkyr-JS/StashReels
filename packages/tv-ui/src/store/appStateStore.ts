@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultLogLevel } from '../helpers/logging';
 import type { ActionButtonConfig } from '../components/slide/ActionButtons';
 import { stashConfigStorage } from '../helpers/stash-config-storage';
-export type DebuggingInfo = "render-debugging" | "onscreen-info";
+export type DebuggingInfo = "render-debugging" | "onscreen-info" | "virtualizer-debugging";
 
 export const appStateStorageKey = 'app-state';
 

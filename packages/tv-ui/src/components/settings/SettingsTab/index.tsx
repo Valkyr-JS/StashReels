@@ -14,7 +14,7 @@ import { Button, Form, Accordion, useAccordionToggle } from "react-bootstrap";
 import { AccordionContext } from "react-bootstrap";
 import cx from "classnames";
 import useStashTvConfig from "../../../hooks/useStashTvConfig";
-import { LogLevel } from "@logtape/logtape";
+import { getLogger, LogLevel } from "@logtape/logtape";
 import { getLoggers } from "../../../helpers/logging";
 import DraggableList from "../../DraggableList";
 import { actionButtonsDetails, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
@@ -28,6 +28,7 @@ import { objectKeys } from "ts-extras"
 import { getStashOrigin } from "../../../helpers/getStashOrigin";
 
 const SettingsTab = memo(() => {
+  const logger = getLogger(["stash-tv", "SettingsTab"]);
   const { data: { subtitleLanguage }, update: updateStashTvConfig } = useStashTvConfig()
   const {
     mediaItemFiltersLoading,
@@ -220,6 +221,7 @@ const SettingsTab = memo(() => {
       {
         "render-debugging": "Render Debugging",
         "onscreen-info": "On-screen Info",
+        "virtualizer-debugging": "Virtualizer Debugging",
       } satisfies { [K in DebuggingInfo]: string; }
     ).map(([value, label]) => ({
       value: value as DebuggingInfo,
@@ -251,6 +253,10 @@ const SettingsTab = memo(() => {
   useEffect(() => {
     queryFindTagsByIDForSelect(tagIds)
       .then(result => setTags(result.data.findTags.tags))
+      .catch((error) => {
+        console.info("Action buttons with tag IDs", actionButtonsConfig.filter(config => 'tagId' in config))
+        logger.error(`Error when fetching tags ${tagIds.join(", ")}: {error}`, {error})
+      })
   }, [objectHash(tagIds)])
 
   const addableActionButtons = objectKeys(actionButtonsDetails)

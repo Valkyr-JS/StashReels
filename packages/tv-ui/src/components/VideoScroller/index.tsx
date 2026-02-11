@@ -55,6 +55,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
 
   const sharedOptions = {
     count: mediaItems.length,
+    debug: showDebuggingInfo.includes("virtualizer-debugging"),
     estimateSize: () => {
       if (!estimateSizeTesterElement.current) {
         const el = document.createElement('div');
@@ -377,6 +378,7 @@ const VideoScroller: React.FC<VideoScrollerProps> = memo(() => {
   }
   const previousItemIndexesToRenderRef = useRef<number[]>([]);
   const itemIndexesToRender = useMemo(() => {
+    logger.trace(`Calculating items to render. Frozen: ${itemsToRenderFrozen}, Virtual items: ${rowVirtualizer.getVirtualItems().map(v => v.index).join(", ")}`);
     if (itemsToRenderFrozenRef.current && previousItemIndexesToRenderRef.current) {
       return previousItemIndexesToRenderRef.current;
     }

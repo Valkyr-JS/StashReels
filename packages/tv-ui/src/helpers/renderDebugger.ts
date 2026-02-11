@@ -158,7 +158,6 @@ if (import.meta.env.DEV && JSON.parse(localStorage.getItem("enableRenderDebuggin
         if (componentTitlePrintHook) {
           groupNamePrintRenderInfoHook = (groupDepth: number, ...args: [string, string]) => {
             if (groupDepth !== 0) return args; // Only modify top-level group titles
-            console.log("Running componentTitlePrintHook for", displayName, args);
             return componentTitlePrintHook(...args);
           }
         }
