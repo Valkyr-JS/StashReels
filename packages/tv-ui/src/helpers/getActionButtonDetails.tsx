@@ -11,6 +11,7 @@ import {
   faGear,
   IconDefinition,
   faTag,
+  faLocationDot,
 } from "@fortawesome/free-solid-svg-icons";
 import VolumeMuteOutlineIcon from '../assets/volume-mute-outline.svg?react';
 import ExpandOutlineIcon from '../assets/expand-outline.svg?react';
@@ -25,6 +26,7 @@ import SplashIcon from '../assets/splash.svg?react';
 import SplashOutlineIcon from '../assets/splash-outline.svg?react';
 import CogOutlineIcon from '../assets/cog-outline.svg?react';
 import AddTagOutlineIcon from '../assets/add-tag-outline.svg?react';
+import AddMarkerOutlineIcon from '../assets/add-marker-outline.svg?react';
 import ClosedCaptioningOutline from '../assets/closed-captioning-outline.svg?react';
 import VerticalEllipsisOutlineIcon from '../assets/vertical-ellipsis-outline.svg?react';
 import {
@@ -64,9 +66,6 @@ import {
   Icon as BootstrapIcon,
   ArchiveFill,
   Archive,
-  Asterisk,
-  BackpackFill,
-  Backpack,
   Backpack3,
   Backpack3Fill,
   BagFill,
@@ -107,7 +106,8 @@ import {
   Telephone,
   Trash3Fill,
   Trash3,
-  CardList
+  CardList,
+  GeoAlt
 } from "react-bootstrap-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import cx from "classnames";
@@ -366,6 +366,12 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
     activeText: "Remove tag from scene",
     inactiveText: "Add tag to scene",
     repeatable: true,
+  },
+  "create-marker": {
+    activeIcon: (props: IconProps) => renderIcon(faLocationDot, props),
+    inactiveIcon: (props: IconProps) => renderIcon(AddMarkerOutlineIcon, props),
+    activeText: "Create marker",
+    inactiveText: "Create marker",
   },
 }
 export type ActionButtonCustomIcons = keyof typeof actionButtonCustomIcons

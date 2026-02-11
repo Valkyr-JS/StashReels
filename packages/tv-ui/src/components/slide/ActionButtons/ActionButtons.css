@@ -91,7 +91,10 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
   }
 }
 
-/* These live inside the popover element which is rendered as a child of body */
+/* These live inside popover elements which are rendered as children of body */
+.action-button-create-marker {
+  margin: 0.5em;
+}
 .action-button-rating-stars {
   display: flex;
 

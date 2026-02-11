@@ -152,7 +152,7 @@
   .vjs-control-bar {
     transition: opacity 0.6s;
   }
-  &:not(.inViewport):not(.currentlyScrolling) {
+  &:not(.current-video):not(.currentlyScrolling) {
     filter: brightness(0.7);
     transition: filter 1s;
 

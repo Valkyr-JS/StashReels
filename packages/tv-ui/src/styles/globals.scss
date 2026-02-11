@@ -2,6 +2,7 @@ html {
   scroll-snap-type: y mandatory;
   scroll-behavior: auto;
   container: viewport/size;
+  --overlay-edge-margin: 10px;
 
   &.force-landscape {
     scroll-snap-type: unset; /* When the root is rotated scroll snapping doesn't seem to work on the root so we set it on a child instead */

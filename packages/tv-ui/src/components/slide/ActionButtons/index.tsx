@@ -15,11 +15,14 @@ import { RatingSystem } from "stash-ui/wrappers/components/shared/RatingSystem";
 import { queryFindTagsByIDForSelect, useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getActionButtonDetails, ActionButtonCustomIcons } from "../../../helpers/getActionButtonDetails";
+import { SceneMarkerForm } from "stash-ui/wrappers/components/SceneMarkerForm";
+import { VideoJsPlayer } from "video.js";
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
   sceneInfoOpen: boolean;
   setSceneInfoOpen: (open: boolean) => void;
+  playerRef: React.RefObject<VideoJsPlayer>;
 }
 
 export type ActionButtonConfig =
@@ -36,9 +39,10 @@ export type ActionButtonConfig =
     | {type: "loop"}
     | {type: "subtitles"}
     | {type: "quick-tag"; iconId: ActionButtonCustomIcons; tagId: string }
+    | {type: "create-marker"}
   )
 
-export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
+export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen, playerRef}: Props) {
   const {
     uiVisible,
     leftHandedUi,
@@ -75,6 +79,8 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen}: Props) {
         return <UiVisibilityActionButton buttonConfig={buttonConfig} />
       case "quick-tag":
         return <QuickTagActionButton scene={scene} buttonConfig={buttonConfig} />
+      case "create-marker":
+        return <CreateMarkerActionButton scene={scene} buttonConfig={buttonConfig} playerRef={playerRef} />
       default:
         throw new Error(`Unknown action button type: ${type}`)
     }
@@ -354,5 +360,29 @@ function QuickTagActionButton({buttonConfig, scene}: {buttonConfig: Extract<Acti
     className={cx("quick-tag", "hide-on-ui-hide")}
     data-testid="MediaSlide--quickTagButton"
     onClick={() => sceneHasTag ? removeTag() : addTag()}
+  />
+}
+
+function CreateMarkerActionButton(
+  {buttonConfig, scene, playerRef}:
+  {
+    buttonConfig: Extract<ActionButtonConfig, { type: "create-marker" }>,
+    scene: GQL.TvSceneDataFragment,
+    playerRef: React.RefObject<VideoJsPlayer>
+  }
+) {
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig).props}
+    className={cx("hide-on-ui-hide")}
+    active={false}
+    sidePanel={({close}) => (
+      <SceneMarkerForm
+        className="action-button-create-marker"
+        sceneID={scene.id}
+        onClose={close}
+        marker={undefined}
+      />
+    )}
+    data-testid="MediaSlide--createMarkerButton"
   />
 }

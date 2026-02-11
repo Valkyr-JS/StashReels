@@ -636,7 +636,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
 
   return (
     <div
-      className={cx("MediaSlide", {inViewport: isCurrentVideo, 'cover': !letterboxing, 'hide-controls': !uiVisible, 'left-handed': leftHandedUi}, props.className)}
+      className={cx("MediaSlide", {'current-video': isCurrentVideo, 'cover': !letterboxing, 'hide-controls': !uiVisible, 'left-handed': leftHandedUi}, props.className)}
       data-testid="MediaSlide--container"
       data-index={props.index}
       data-scene-id={scene.id}
@@ -723,7 +723,7 @@ const MediaSlide: React.FC<MediaSlideProps> = (props) => {
           className={cx({active: sceneInfoOpen})}
           onExternalLinkClick={() => videojsPlayerRef.current?.pause()}
         />
-        <ActionButtons scene={scene} sceneInfoOpen={sceneInfoOpen} setSceneInfoOpen={setSceneInfoOpen} />
+        <ActionButtons scene={scene} sceneInfoOpen={sceneInfoOpen} setSceneInfoOpen={setSceneInfoOpen} playerRef={videojsPlayerRef} />
       </CrtEffect>
     </div>
   );
