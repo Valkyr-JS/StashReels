@@ -107,13 +107,14 @@ import {
   Trash3Fill,
   Trash3,
   CardList,
-  GeoAlt
 } from "react-bootstrap-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import cx from "classnames";
+import { getLogger } from "@logtape/logtape";
 
 type IconProps = {className?: string, size?: string | number}
 type Icon = React.FunctionComponent<IconProps>
+export type ActionButtonIcon = Icon
 export type ActionButtonDetails = {
   activeIcon: Icon;
   inactiveIcon: Icon;
@@ -376,12 +377,21 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
 }
 export type ActionButtonCustomIcons = keyof typeof actionButtonCustomIcons
 
+const logger = getLogger(["stash-tv", "getActionButtonDetails"])
+
 export function getActionButtonDetails(config: ActionButtonConfig, options?: { tagName?: string }): ActionButtonDetails & { props: ActionButtonDetails } {
-  if (!actionButtonsDetails[config.type]) {
-    throw new Error(`No details found for action button type: ${config.type}`)
+  let partialDetails = actionButtonsDetails[config.type]
+  if (!partialDetails) {
+    logger.error(`No details found for action button type: ${config.type}`)
+    partialDetails = {
+      activeIcon: () => <>?</>,
+      inactiveIcon: () => <>?</>,
+      activeText: "?",
+      inactiveText: "?",
+    }
   }
   const details = {
-    ...actionButtonsDetails[config.type],
+    ...partialDetails,
     get props(): ActionButtonDetails {
       return {
         activeIcon: this.activeIcon,

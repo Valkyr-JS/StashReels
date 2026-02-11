@@ -3,14 +3,13 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import cx from "classnames";
 import "./ActionButton.css";
 import { useUID } from "react-uid";
 import { OverlayTrigger, Popover } from "react-bootstrap";
 import { create } from "zustand";
 import { useAppStateStore } from "../../../store/appStateStore";
+import { ActionButtonIcon } from "../../../helpers/getActionButtonDetails";
 
 const useCurrentOpenPopover = create<null | string>(() => (null))
 
@@ -19,9 +18,9 @@ export type SidePanelContent = React.ReactNode | ((props: {isOpen: boolean, clos
 export type Props = {
   /** Indicates if the buttons associated action is active. */
   active: boolean;
-  activeIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+  activeIcon: ActionButtonIcon;
   activeText: string;
-  inactiveIcon: IconDefinition | React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+  inactiveIcon: ActionButtonIcon;
   inactiveText: string;
   sideInfo?: React.ReactNode;
   sidePanel?: SidePanelContent;
@@ -68,11 +67,7 @@ const ActionButton = (props: Props) => {
           type="button"
           onClick={displayOnly ? undefined : onClick}
         >
-          {'icon' in Icon ? (
-            <FontAwesomeIcon icon={Icon} />
-          ) : (
-            <Icon className={cx("icon", `icon-${className}`)} />
-          )}
+          <Icon />
           <span className="sr-only">
             {displayText}
           </span>
