@@ -10,6 +10,9 @@ import { create } from "zustand";
 import { useAppStateStore } from "../../../store/appStateStore";
 import { ActionButtonIcon } from "../../../helpers/getActionButtonDetails";
 import { OverlayTriggerProps } from "react-bootstrap/esm/OverlayTrigger";
+import { preventMisclickOnMoveModifier } from "../../../helpers/popper-modifiers/preventMisclickOnMove";
+import { preventChildOverflowModifier } from "../../../helpers/popper-modifiers/preventChildOverflow";
+import { applyArrowHideModifier } from "../../../helpers/popper-modifiers/applyArrowHide";
 
 const useCurrentOpenPopover = create<null | string>(() => (null))
 
@@ -180,10 +183,14 @@ const SidePanel = (
       }}
       popperConfig={{
         modifiers: [
+          preventMisclickOnMoveModifier,
+          preventChildOverflowModifier,
+          applyArrowHideModifier,
           {
             name: 'preventOverflow',
             options: {
               padding: safeInsetPadding,
+              tether: false,
             },
           },
         ],

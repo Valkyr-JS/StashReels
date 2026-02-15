@@ -127,10 +127,6 @@
   );
   display: flex;
 
-  > .arrow::after {
-    border-left-color: var(--body-bg);
-  }
-
   &.show {
     animation: slideInFromRight 0.1s ease-out forwards;
   }
@@ -139,8 +135,16 @@
     animation: fadeOut 0.1s ease-out forwards;
   }
 
+  > .arrow::after {
+    border-left-color: var(--body-bg);
+  }
+
+  > .arrow[data-hide] {
+    display: none;
+  }
+
+  /* Including contents in it's own element allows us to check for overflow without including the arrow */
   > .contents {
-    overflow-y: auto;
-    overflow-x: hidden;
+    width: 100%;
   }
 }
