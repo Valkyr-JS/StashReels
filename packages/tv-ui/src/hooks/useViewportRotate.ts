@@ -3,6 +3,7 @@ import { updateReadOnlyProps } from "../helpers";
 import { useFirstMountState } from "react-use";
 import cx from "classnames";
 import "./useViewportRotate.css";
+import { propertyRemap } from "../helpers/propertyRemap";
 
 // Exactly like useEffect but the first run happens synchronously on first render
 function useEffectKeen(effect: () => void | (() => void), deps: React.DependencyList) {
@@ -19,7 +20,6 @@ function useEffectKeen(effect: () => void | (() => void), deps: React.Dependency
 
 export function useViewportRotate(rotationEnabled: boolean) {
   const isFirstMount = useFirstMountState();
-  const originalDescriptorsObjectMap = new WeakMap<Object, Record<string, PropertyDescriptor>>();
 
   // <html /> is outside of React's control so we have to set the class manually
   document.documentElement.className = cx({ "force-landscape": rotationEnabled });
@@ -208,50 +208,11 @@ export function useViewportRotate(rotationEnabled: boolean) {
     useEffectKeen(() => {
       if (!rotationEnabled) return;
 
-      // We track the original descriptors for each object so we can be sure to restore them correctly even not matter
-      // what order the cleanup functions are called in. But we also need to track the descriptor right before remapping
-      // since it might have already been remapped and we want to chain the remaps correctly.
-      if (!originalDescriptorsObjectMap.has(objectToModify)) {
-        originalDescriptorsObjectMap.set(objectToModify, {});
-      }
-      const originalDescriptors = originalDescriptorsObjectMap.get(objectToModify) as Record<keyof ObjectToModify, PropertyDescriptor>;
-      for (const propName of Object.keys(propertyMap) as (keyof ObjectToModify)[]) {
-        if (!(propName in originalDescriptors)) {
-          originalDescriptors[propName] = Object.getOwnPropertyDescriptor(objectToModify, propName)!;
-        }
-      }
-      const beforeRemapDescriptors: Record<keyof ObjectToModify, PropertyDescriptor> = Object.fromEntries(
-        Object.keys(propertyMap).map((propName) => [
-          propName,
-          Object.getOwnPropertyDescriptor(objectToModify, propName as keyof ObjectToModify)!
-        ])
-      ) as Record<keyof ObjectToModify, PropertyDescriptor>;
-
-      // Remap properties
-      for (const [propName, mappedPropOrGetter] of Object.entries(propertyMap) as [keyof ObjectToModify, keyof ObjectToModify | (() => ObjectToModify[keyof ObjectToModify])][] ) {
-        const beforeRemapDescriptor = beforeRemapDescriptors[propName];
-
-        Object.defineProperty(objectToModify, propName, {
-          ...beforeRemapDescriptor,
-          get() {
-            if (this !== parentObject) {
-              return beforeRemapDescriptor.get?.call(this)
-            }
-            if (typeof mappedPropOrGetter === 'function') {
-              return mappedPropOrGetter.call(parentObject);
-            } else {
-              return beforeRemapDescriptors[mappedPropOrGetter].get?.call(parentObject);
-            }
-          },
-        });
-      }
-
-      return () => {
-        // Restore original properties
-        for (const propName of Object.keys(propertyMap) as (keyof ObjectToModify)[]) {
-          Object.defineProperty(objectToModify, propName, originalDescriptors[propName]);
-        }
-      }
+      return propertyRemap(
+        parentObject,
+        propertyMap,
+        objectToModify,
+      );
     }, [rotationEnabled])
   }
 
