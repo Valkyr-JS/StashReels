@@ -10,7 +10,7 @@ export const stashConfigStorage = {
     // Fallback to loading from localStorage if no config in stash yet. We won't need this after everyone has upgrade to
     // the version of Stash TV that saves config in stash but this is needed for now to avoid breaking changes for users
     // upgrading from older versions of Stash TV.
-    .then(config => config[key] || localStorage.getItem(key))
+    .then(config => config?.[key] || localStorage.getItem(key) || null)
     .catch(console.error),
   setItem: async (key: string, value: string) => await updateTvConfig(config => ({...config, [key]: value}))
     .catch(console.error),

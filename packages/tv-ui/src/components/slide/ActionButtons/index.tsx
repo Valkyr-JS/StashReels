@@ -82,7 +82,8 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen, playerRef
       case "create-marker":
         return <CreateMarkerActionButton scene={scene} buttonConfig={buttonConfig} playerRef={playerRef} />
       default:
-        throw new Error(`Unknown action button type: ${type}`)
+        logger.error(`Unknown action button type: ${type}`)
+        return <>?</>
     }
   }
 
