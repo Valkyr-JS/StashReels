@@ -453,8 +453,8 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
   "delete-media-item": {
     activeIcon: actionButtonIcons["trash"].active,
     inactiveIcon: actionButtonIcons["trash"].inactive,
-    activeText: "Delete media item",
-    inactiveText: "Delete media item",
+    activeText: "Delete scene/marker",
+    inactiveText: "Delete scene/marker",
   },
 }
 export type ActionButtonIcons = keyof typeof actionButtonIcons
