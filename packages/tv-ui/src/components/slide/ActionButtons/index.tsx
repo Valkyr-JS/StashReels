@@ -21,6 +21,8 @@ import { getLogger } from "@logtape/logtape";
 import { EditTagSelectionForm } from "../../EditTagSelectionForm";
 import { MediaItem } from "../../../hooks/useMediaItems";
 import { useMediaItemTags } from "../../../hooks/useMediaItemTags";
+import { DeleteScenesDialog } from "stash-ui/dist/src/components/Scenes/DeleteScenesDialog";
+import { DeleteSceneMarkersDialog } from "stash-ui/dist/src/components/Scenes/DeleteSceneMarkersDialog";
 
 const logger = getLogger(["stash-tv", "ActionButtons"]);
 
@@ -87,6 +89,9 @@ export const createMarkerActionButtonSchema = sharedActionButtonSchema.shape({
     tagIds: yup.array().of(yup.string().required()).required(),
   }).nullable()
 })
+export const deleteMediaItemActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["delete-media-item"]).required(),
+})
 
 export type ActionButtonConfig =
   | yup.InferType<typeof uiVisibilityActionButtonSchema>
@@ -103,6 +108,7 @@ export type ActionButtonConfig =
   | yup.InferType<typeof quickTagActionButtonSchema>
   | yup.InferType<typeof editTagsActionButtonSchema>
   | yup.InferType<typeof createMarkerActionButtonSchema>
+  | yup.InferType<typeof deleteMediaItemActionButtonSchema>
 
 export const createNewActionButtonConfig = <ButtonType extends ActionButtonConfig["type"]>(
   type: ButtonType,
@@ -189,6 +195,8 @@ export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playe
         return <EditTagsActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       case "create-marker":
         return <CreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} playerRef={playerRef} />
+      case "delete-media-item":
+        return <DeleteMediaItemActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       default:
         logger.error(`Unknown action button type: ${type}`)
         return <>?</>
@@ -571,4 +579,45 @@ function CreateMarkerActionButton(
     onClick={handleClick}
     data-testid="MediaSlide--quickCreateMarkerButton"
   />
+}
+
+function DeleteMediaItemActionButton(
+  {buttonConfig, mediaItem}:
+  {
+    buttonConfig: Extract<ActionButtonConfig, { type: "delete-media-item" }>,
+    mediaItem: MediaItem
+  }
+) {
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  const handleClick = () => {
+    setShowDeleteConfirmation(true);
+  }
+  let renderDialog
+  if (mediaItem.entityType === "scene") {
+    renderDialog = () => (
+      <DeleteScenesDialog
+        selected={[mediaItem.entity as unknown as GQL.SlimSceneDataFragment]}
+        onClose={() => setShowDeleteConfirmation(false)}
+      />
+    )
+  } else if (mediaItem.entityType === "marker") {
+    renderDialog = () => (
+      <DeleteSceneMarkersDialog
+        selected={[mediaItem.entity as unknown as GQL.SceneMarkerDataFragment]}
+        onClose={() => setShowDeleteConfirmation(false)}
+      />
+    )
+  } else {
+    logger.error("DeleteMediaItemActionButton rendered for unsupported media item type", {mediaItem})
+    return null
+  }
+  return <>
+    {showDeleteConfirmation && renderDialog()}
+    <ActionButton
+      {...getActionButtonDetails(buttonConfig).props}
+      active={false}
+      onClick={handleClick}
+    />
+  </>
 }

@@ -450,6 +450,12 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
     hasSettings: true,
     repeatable: true,
   },
+  "delete-media-item": {
+    activeIcon: actionButtonIcons["trash"].active,
+    inactiveIcon: actionButtonIcons["trash"].inactive,
+    activeText: "Delete media item",
+    inactiveText: "Delete media item",
+  },
 }
 export type ActionButtonIcons = keyof typeof actionButtonIcons
 
