@@ -1,6 +1,6 @@
 {
   "name": "stashreels",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "TikTok for Stash.",
   "main": "index.js",
   "scripts": {
