@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
-import { ActionButtonConfig, editTagsActionButtonSchema, quickCreateMarkerActionButtonSchema, quickTagActionButtonSchema } from "../../slide/ActionButtons";
+import { ActionButtonConfig, editTagsActionButtonSchema, createMarkerActionButtonSchema, quickTagActionButtonSchema, createNewActionButtonConfig } from "../../slide/ActionButtons";
 import { ActionButtonIcons, actionButtonIcons, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 import { Tag } from "stash-ui/wrappers/components/TagSelect";
 import { TagIdSelect } from "stash-ui/wrappers/components/TagIdSelect";
@@ -15,6 +15,7 @@ import { getLogger } from "@logtape/logtape";
 import { IconSelect } from "../IconSelect";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import Switch from "../Switch";
 
 const logger = getLogger(["stash-tv", "ActionButtonSettingsModal"]);
 
@@ -62,14 +63,14 @@ export const ActionButtonSettingsModal = ({ initialActionButtonConfig, onClose, 
       onSubmit: (values) => onSave(editTagsActionButtonSchema.cast(values)),
     });
     form = <EditTagsForm formik={formik} />
-  } else if (initialActionButtonConfig.type === "quick-create-marker") {
-    formik = useFormik<yup.InferType<typeof quickCreateMarkerActionButtonSchema>>({
+  } else if (initialActionButtonConfig.type === "create-marker") {
+    formik = useFormik<yup.InferType<typeof createMarkerActionButtonSchema>>({
       initialValues: initialActionButtonConfig,
       enableReinitialize: true,
-      validate: yupFormikValidate(quickCreateMarkerActionButtonSchema),
-      onSubmit: (values) => onSave(quickCreateMarkerActionButtonSchema.cast(values)),
+      validate: yupFormikValidate(createMarkerActionButtonSchema),
+      onSubmit: (values) => onSave(createMarkerActionButtonSchema.cast(values)),
     });
-    form = <QuickCreateMarkerForm formik={formik} />
+    form = <CreateMarkerForm formik={formik} />
   } else {
     throw new Error(`Unknown action button type: ${initialActionButtonConfig.type}`)
   }
@@ -208,24 +209,61 @@ function EditTagsForm({formik}: { formik: ReturnType<typeof useFormik<yup.InferT
   </>
 }
 
-function QuickCreateMarkerForm({formik}: { formik: ReturnType<typeof useFormik<yup.InferType<typeof quickCreateMarkerActionButtonSchema>>> }) {
+function CreateMarkerForm({formik}: { formik: ReturnType<typeof useFormik<yup.InferType<typeof createMarkerActionButtonSchema>>> }) {
+  const { markerDefaults: markerDefaultsError, iconId: iconIdError, ...otherErrors } = formik.errors
+  return <>
+    <Form.Group>
+      <Switch
+        id="quick-add"
+        checked={Boolean(formik.values.markerDefaults)}
+        label="Create with defaults"
+        onChange={event => formik.setFieldValue(
+          "markerDefaults",
+          event.target.checked
+            ? createNewActionButtonConfig("create-marker", {includeMarkerDefaults: true}).markerDefaults
+            : null
+        )}
+      />
+      <Form.Text className="text-muted">
+        Create a marker immediately when clicked with pre-defined details.
+      </Form.Text>
+    </Form.Group>
+    {formik.values.markerDefaults && <CreateMarkerQuickAddForm formik={formik} />}
+    {Object.keys(otherErrors).length > 0 && (
+      <Form.Control.Feedback type="invalid">
+        <ul>
+          {Object.entries(otherErrors).map(([key, error]) => (
+            <li key={key}>{error}</li>
+          ))}
+        </ul>
+      </Form.Control.Feedback>
+    )}
+  </>
+}
+
+function CreateMarkerQuickAddForm({formik}: { formik: ReturnType<typeof useFormik<yup.InferType<typeof createMarkerActionButtonSchema>>> }) {
   const customQuickCreateMarkerIcons = Object.entries(actionButtonIcons)
     .filter(([key, icon]) => icon.category.includes("marker") || icon.category.includes("general"))
     .map(([key, icon]) => ({
       value: key as ActionButtonIcons,
       label: icon.inactive
     }))
-  const { title: titleError, primaryTagId: primaryTagIdError, iconId: iconIdError, ...otherErrors } = formik.errors
+  const { markerDefaults } = formik.values
+  if (!markerDefaults) return null;
+  const { iconId: iconIdError } = formik.errors
+  // Formik doesn't type the nested markerDefaults correctly so we have to cast it
+  const { title: titleError, primaryTagId: primaryTagIdError, tags: tagsError, ...otherErrors } = formik.errors.markerDefaults as { title?: string; primaryTagId?: string; tags?: string } || {}
+  const touched = formik.touched.markerDefaults as { title?: boolean; primaryTagId?: boolean; tags?: boolean } | undefined || {}
   return <>
     <Form.Group>
       <label htmlFor="title">
         Title (optional)
       </label>
       <MarkerTitleSuggest
-        initialMarkerTitle={formik.values.title}
-        onChange={(v) => formik.setFieldValue("title", v)}
+        initialMarkerTitle={markerDefaults.title || ""}
+        onChange={(v) => formik.setFieldValue("markerDefaults.title", v)}
       />
-      {formik.touched.title && (
+      {touched.title && (
         <Form.Control.Feedback type="invalid">
           {titleError}
         </Form.Control.Feedback>
@@ -237,12 +275,12 @@ function QuickCreateMarkerForm({formik}: { formik: ReturnType<typeof useFormik<y
       </label>
       <TagIdSelect
         inputId="primary-tag"
-        ids={formik.values.primaryTagId ? [formik.values.primaryTagId] : []}
-        onSelect={(tags: Tag[]) => formik.setFieldValue("primaryTagId", tags[0]?.id)}
+        ids={formik.values.markerDefaults?.primaryTagId ? [formik.values.markerDefaults.primaryTagId] : []}
+        onSelect={(tags: Tag[]) => formik.setFieldValue("markerDefaults.primaryTagId", tags[0]?.id)}
         isClearable={false}
         hoverPlacement="right"
       />
-      {formik.touched.primaryTagId && (
+      {touched.primaryTagId && (
         <Form.Control.Feedback type="invalid">
           {primaryTagIdError}
         </Form.Control.Feedback>
@@ -255,8 +293,8 @@ function QuickCreateMarkerForm({formik}: { formik: ReturnType<typeof useFormik<y
       <TagIdSelect
         isMulti
         inputId="tags"
-        ids={formik.values.tagIds || []}
-        onSelect={(tags: Tag[]) => formik.setFieldValue("tagIds", tags.map(t => t.id))}
+        ids={formik.values.markerDefaults?.tagIds || []}
+        onSelect={(tags: Tag[]) => formik.setFieldValue("markerDefaults.tagIds", tags.map(t => t.id))}
         hoverPlacement="right"
       />
     </Form.Group>

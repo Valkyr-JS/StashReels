@@ -447,12 +447,6 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
     inactiveIcon: actionButtonIcons["add-marker"].inactive,
     activeText: "Create marker",
     inactiveText: "Create marker",
-  },
-  "quick-create-marker": {
-    activeIcon: actionButtonIcons["add-marker"].active,
-    inactiveIcon: actionButtonIcons["add-marker"].inactive,
-    activeText: "Create preset marker",
-    inactiveText: "Create preset marker",
     hasSettings: true,
     repeatable: true,
   },
@@ -492,6 +486,15 @@ export function getActionButtonDetails(config: ActionButtonConfig, options?: { t
     if (options?.tagName) {
       details.activeText = `Remove "${options.tagName}" from scene`
       details.inactiveText = `Add "${options.tagName}" to scene`
+    }
+  }
+  if (config.type === "create-marker" && config.markerDefaults) {
+    if (options?.tagName) {
+      details.activeText = `Edit "${options.tagName}" marker`
+      details.inactiveText = `Create "${options.tagName}" marker`
+    } else {
+      details.activeText = `Edit marker`
+      details.inactiveText = `Create marker with defaults`
     }
   }
   return details

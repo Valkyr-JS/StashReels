@@ -80,13 +80,12 @@ export const editTagsActionButtonSchema = sharedActionButtonSchema.shape({
 })
 export const createMarkerActionButtonSchema = sharedActionButtonSchema.shape({
   type: yup.string().oneOf(["create-marker"]).required(),
-})
-export const quickCreateMarkerActionButtonSchema = sharedActionButtonSchema.shape({
-  type: yup.string().oneOf(["quick-create-marker"]).required(),
   iconId: yup.string().required(),
-  title: yup.string(),
-  primaryTagId: yup.string().required(),
-  tagIds: yup.array().of(yup.string().required()).required(),
+  markerDefaults: yup.object({
+    title: yup.string(),
+    primaryTagId: yup.string().required(),
+    tagIds: yup.array().of(yup.string().required()).required(),
+  }).nullable()
 })
 
 export type ActionButtonConfig =
@@ -104,9 +103,11 @@ export type ActionButtonConfig =
   | yup.InferType<typeof quickTagActionButtonSchema>
   | yup.InferType<typeof editTagsActionButtonSchema>
   | yup.InferType<typeof createMarkerActionButtonSchema>
-  | yup.InferType<typeof quickCreateMarkerActionButtonSchema>;
 
-export const createNewActionButtonConfig = (type: ActionButtonConfig["type"]): ActionButtonConfig => {
+export const createNewActionButtonConfig = <ButtonType extends ActionButtonConfig["type"]>(
+  type: ButtonType,
+  options?: {includeMarkerDefaults?: boolean}
+): Extract<ActionButtonConfig, { type: ButtonType }> => {
   const sharedDefaults = {
     id: `${Date.now()}-${Math.random().toString().slice(2)}` ,
     pinned: false
@@ -117,28 +118,30 @@ export const createNewActionButtonConfig = (type: ActionButtonConfig["type"]): A
         ...sharedDefaults,
         type,
         pinnedTagIds: [],
-      }
+      } as unknown as Extract<ActionButtonConfig, { type: ButtonType }>
     case "quick-tag":
       return {
         ...sharedDefaults,
         type,
         iconId: "add-tag",
         tagId: "",
-      }
-    case "quick-create-marker":
+      } as unknown as Extract<ActionButtonConfig, { type: ButtonType }>
+    case "create-marker":
       return {
         ...sharedDefaults,
-          type,
-          iconId: "add-marker",
+        type,
+        iconId: !options?.includeMarkerDefaults ? "add-marker" : "bookmark",
+        markerDefaults: options?.includeMarkerDefaults ? {
           title: "",
           primaryTagId: "",
           tagIds: [],
-      }
+        } : null
+      } as unknown as Extract<ActionButtonConfig, { type: ButtonType }>
     default:
       return {
         ...sharedDefaults,
           type,
-      }
+      } as unknown as Extract<ActionButtonConfig, { type: ButtonType }>
   }
 }
 
@@ -185,9 +188,7 @@ export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playe
       case "edit-tags":
         return <EditTagsActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       case "create-marker":
-        return <CreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
-      case "quick-create-marker":
-        return <QuickCreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} playerRef={playerRef} />
+        return <CreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} playerRef={playerRef} />
       default:
         logger.error(`Unknown action button type: ${type}`)
         return <>?</>
@@ -502,33 +503,9 @@ function EditTagsActionButton(
 }
 
 function CreateMarkerActionButton(
-  {buttonConfig, mediaItem}:
-  {
-    buttonConfig: Extract<ActionButtonConfig, { type: "create-marker" }>,
-    mediaItem: MediaItem
-  }
-) {
-  if (mediaItem.entityType !== "scene") return null
-  return <ActionButton
-    {...getActionButtonDetails(buttonConfig).props}
-    className={cx("hide-on-ui-hide")}
-    active={false}
-    sidePanel={({close}) => (
-      <SceneMarkerForm
-        className="action-button-create-marker"
-        sceneID={mediaItem.entity.id}
-        onClose={close}
-        marker={undefined}
-      />
-    )}
-    data-testid="MediaSlide--createMarkerButton"
-  />
-}
-
-function QuickCreateMarkerActionButton(
   {buttonConfig, mediaItem, playerRef}:
   {
-    buttonConfig: Extract<ActionButtonConfig, { type: "quick-create-marker" }>,
+    buttonConfig: Extract<ActionButtonConfig, { type: "create-marker" }>,
     mediaItem: MediaItem,
     playerRef: React.RefObject<VideoJsPlayer>
   }
@@ -536,14 +513,14 @@ function QuickCreateMarkerActionButton(
   if (mediaItem.entityType !== "scene") return null
   const scene = mediaItem.entity
   const existingMarker = useMemo(
-    () => mediaItem.entity.scene_markers
-      .find(m => m.primary_tag.id === buttonConfig.primaryTagId && m.title === buttonConfig.title),
-    [mediaItem.entity.scene_markers, buttonConfig.primaryTagId, buttonConfig.title]
+    () => buttonConfig.markerDefaults && mediaItem.entity.scene_markers
+      .find(m => m.primary_tag.id === buttonConfig.markerDefaults?.primaryTagId && m.title === buttonConfig.markerDefaults?.title),
+    [mediaItem.entity.scene_markers, buttonConfig.markerDefaults?.primaryTagId, buttonConfig.markerDefaults?.title]
   )
 
   const [sceneMarkerCreate] = useSceneMarkerCreate();
   const handleClick = () => {
-    if (existingMarker) return
+    if (existingMarker || !buttonConfig.markerDefaults) return
     const currentTime = playerRef.current?.currentTime()
     if (currentTime === undefined) {
       logger.error("Player current time is undefined when creating quick marker", {sceneId: scene.id})
@@ -552,13 +529,29 @@ function QuickCreateMarkerActionButton(
     sceneMarkerCreate({
       variables: {
         scene_id: scene.id,
-        title: buttonConfig.title ?? "",
-        primary_tag_id: buttonConfig.primaryTagId,
-        tag_ids: buttonConfig.tagIds,
+        title: buttonConfig.markerDefaults.title ?? "",
+        primary_tag_id: buttonConfig.markerDefaults.primaryTagId,
+        tag_ids: buttonConfig.markerDefaults.tagIds,
         seconds: currentTime,
         end_seconds: null,
       },
     });
+  }
+  if (!buttonConfig.markerDefaults) {
+    return <ActionButton
+      {...getActionButtonDetails(buttonConfig).props}
+      className={cx("hide-on-ui-hide")}
+      active={false}
+      sidePanel={({close}) => (
+        <SceneMarkerForm
+          className="action-button-create-marker"
+          sceneID={mediaItem.entity.id}
+          onClose={close}
+          marker={undefined}
+        />
+      )}
+      data-testid="MediaSlide--createMarkerButton"
+    />
   }
   const renderSidePanel = existingMarker
     ? ({close}: {close: () => void}) => (

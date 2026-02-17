@@ -267,7 +267,13 @@ const SettingsTab = memo(() => {
           createNewActionButtonConfig(type)
         ),
         add() {
-          const config = createNewActionButtonConfig(type);
+          const options = {
+            includeMarkerDefaults: false
+          }
+          if (type === "create-marker" && actionButtonsConfig.some(config => config.type === "create-marker")) {
+            options.includeMarkerDefaults = true
+          }
+          const config = createNewActionButtonConfig(type, options);
           if (getActionButtonDetails(config).hasSettings) {
             setActionButtonDraft(config);
           } else {
