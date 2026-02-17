@@ -92,6 +92,9 @@ overflow-x to visible. So we hide it instead to avoid horizontal scrollbars appe
 }
 
 /* These live inside popover elements which are rendered as children of body */
+.action-button-side-panel-edit-tags {
+  width: 650px;
+}
 .action-button-create-marker {
   margin: 0.5em;
 }

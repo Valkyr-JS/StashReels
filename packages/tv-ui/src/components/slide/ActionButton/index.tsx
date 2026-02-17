@@ -27,6 +27,7 @@ export type Props = {
   inactiveText: string;
   sideInfo?: React.ReactNode;
   sidePanel?: SidePanelContent;
+  sidePanelClassName?: string;
   onSidePanelToggle?: (isOpen: boolean) => void,
   size?: "auto",
   displayOnly?: boolean;
@@ -48,6 +49,7 @@ const ActionButton = (props: Props) => {
     displayOnly,
     onClick,
     onSidePanelToggle,
+    sidePanelClassName,
   } = props;
   const Icon = active ? activeIcon : inactiveIcon;
   const ButtonElement = displayOnly ? "div" : "button";
@@ -64,7 +66,11 @@ const ActionButton = (props: Props) => {
           {sideInfo}
         </div>
       )}
-      <SidePanel content={sidePanel} onSidePanelToggle={onSidePanelToggle}>
+      <SidePanel
+        content={sidePanel}
+        onSidePanelToggle={onSidePanelToggle}
+        sidePanelClassName={sidePanelClassName}
+      >
         {({onClick: sidePanelClick, ref}) => {
           return (
             <ButtonElement
@@ -88,9 +94,10 @@ const ActionButton = (props: Props) => {
 type Children = (props: {onClick: (event: React.MouseEvent<HTMLElement>) => void, ref: React.Ref<any>}) => JSX.Element
 
 const SidePanel = (
-  {content, children, onSidePanelToggle}: {
+  {content, children, onSidePanelToggle, sidePanelClassName}: {
     content: SidePanelContent,
     onSidePanelToggle?: (isOpen: boolean) => void,
+    sidePanelClassName?: string,
     children: Children
   }
 ): JSX.Element => {
@@ -156,7 +163,7 @@ const SidePanel = (
       placement={leftHandedUi ? "right" : "left"}
       overlay={
         <Popover
-          className={cx("action-button-side-panel", { 'left-handed': leftHandedUi })}
+          className={cx("action-button-side-panel", sidePanelClassName, { 'left-handed': leftHandedUi })}
           id={id}
         >
           <div className="contents">

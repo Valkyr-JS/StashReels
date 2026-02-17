@@ -107,6 +107,10 @@ import {
   Trash3Fill,
   Trash3,
   CardList,
+  Tag,
+  TagFill,
+  TagsFill,
+  Tags,
 } from "react-bootstrap-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import cx from "classnames";
@@ -121,6 +125,7 @@ export type ActionButtonDetails = {
   activeText: string;
   inactiveText: string;
   repeatable?: boolean; // Whether the action can be added to the action stack multiple times
+  hasSettings?: boolean;
 }
 
 function renderIcon(Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>> | IconDefinition | BootstrapIcon, {className, size}: IconProps) {
@@ -156,9 +161,17 @@ export const actionButtonCustomIcons = {
     active: (props: IconProps) => renderIcon(StarFill, props),
     inactive: (props: IconProps) => renderIcon(Star, props)
   },
-  "tag": {
+  "add-tag": {
     active: (props: IconProps) => renderIcon(faTag, props),
     inactive: (props: IconProps) => renderIcon(AddTagOutlineIcon, props)
+  },
+  "tag": {
+    active: (props: IconProps) => renderIcon(TagFill, props),
+    inactive: (props: IconProps) => renderIcon(Tag, props)
+  },
+  "tags": {
+    active: (props: IconProps) => renderIcon(TagsFill, props),
+    inactive: (props: IconProps) => renderIcon(Tags, props)
   },
   "thumbs-up": {
     active: (props: IconProps) => renderIcon(HandThumbsUpFill, props),
@@ -362,11 +375,19 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
     inactiveText: "Show subtitles"
   },
   "quick-tag": {
-    activeIcon: actionButtonCustomIcons["tag"].active,
-    inactiveIcon: actionButtonCustomIcons["tag"].inactive,
-    activeText: "Remove tag from scene",
-    inactiveText: "Add tag to scene",
+    activeIcon: actionButtonCustomIcons["add-tag"].active,
+    inactiveIcon: actionButtonCustomIcons["add-tag"].inactive,
+    activeText: "Remove single tag from scene",
+    inactiveText: "Add single tag to scene",
     repeatable: true,
+    hasSettings: true,
+  },
+  "edit-tags": {
+    activeIcon: actionButtonCustomIcons["tags"].active,
+    inactiveIcon: actionButtonCustomIcons["tags"].inactive,
+    activeText: "Edit scene tags",
+    inactiveText: "Edit scene tags",
+    hasSettings: true,
   },
   "create-marker": {
     activeIcon: (props: IconProps) => renderIcon(faLocationDot, props),

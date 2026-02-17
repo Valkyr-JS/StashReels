@@ -17,6 +17,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getActionButtonDetails, ActionButtonCustomIcons } from "../../../helpers/getActionButtonDetails";
 import { SceneMarkerForm } from "stash-ui/wrappers/components/SceneMarkerForm";
 import { VideoJsPlayer } from "video.js";
+import { getLogger } from "@logtape/logtape";
+import { EditTagSelectionForm, SlimTag } from "../../EditTagSelectionForm";
+
+const logger = getLogger(["stash-tv", "ActionButtons"]);
 
 export type Props = {
   scene: GQL.TvSceneDataFragment;
@@ -39,6 +43,7 @@ export type ActionButtonConfig =
     | {type: "loop"}
     | {type: "subtitles"}
     | {type: "quick-tag"; iconId: ActionButtonCustomIcons; tagId: string }
+    | {type: "edit-tags"; pinnedTagIds: string[] }
     | {type: "create-marker"}
   )
 
@@ -79,6 +84,8 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen, playerRef
         return <UiVisibilityActionButton buttonConfig={buttonConfig} />
       case "quick-tag":
         return <QuickTagActionButton scene={scene} buttonConfig={buttonConfig} />
+      case "edit-tags":
+        return <EditTagsActionButton scene={scene} buttonConfig={buttonConfig} />
       case "create-marker":
         return <CreateMarkerActionButton scene={scene} buttonConfig={buttonConfig} playerRef={playerRef} />
       default:
@@ -361,6 +368,42 @@ function QuickTagActionButton({buttonConfig, scene}: {buttonConfig: Extract<Acti
     className={cx("quick-tag", "hide-on-ui-hide")}
     data-testid="MediaSlide--quickTagButton"
     onClick={() => sceneHasTag ? removeTag() : addTag()}
+  />
+}
+
+function EditTagsActionButton(
+  {buttonConfig, scene}:
+  {
+    buttonConfig: Extract<ActionButtonConfig, { type: "edit-tags" }>,
+    scene: GQL.TvSceneDataFragment
+  }
+) {
+  const [updateScene] = useSceneUpdate();
+  function setTags(tags: SlimTag[]) {
+    updateScene({
+      variables: {
+        input: {
+          id: scene.id,
+          tag_ids: tags.map(tag => tag.id),
+        },
+      },
+    });
+  }
+
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig).props}
+    className={cx("hide-on-ui-hide")}
+    active={false}
+    sidePanel={({close}) => (
+      <EditTagSelectionForm
+        initialTags={scene.tags}
+        pinnedTagIds={buttonConfig.pinnedTagIds}
+        save={setTags}
+        cancel={close}
+      />
+    )}
+    sidePanelClassName="action-button-side-panel-edit-tags"
+    data-testid="MediaSlide--createMarkerButton"
   />
 }
 

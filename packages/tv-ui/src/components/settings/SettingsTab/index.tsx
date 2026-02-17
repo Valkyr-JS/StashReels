@@ -266,12 +266,18 @@ const SettingsTab = memo(() => {
         id: "",
         pinned: false,
       }
-      if (type === "quick-tag") {
+      if (type === "edit-tags") {
         config = {
           ...configBase,
           type,
+          pinnedTagIds: [],
+        }
+      } else if (type === "quick-tag") {
+        config = {
+          ...configBase,
+          type,
+          iconId: "add-tag",
           tagId: "",
-          iconId: "tag",
         }
       } else {
         config = {
@@ -283,7 +289,7 @@ const SettingsTab = memo(() => {
         type,
         details: getActionButtonDetails(config),
         add() {
-          if (type === "quick-tag") {
+          if (getActionButtonDetails(config).hasSettings) {
             setActionButtonDraft(config);
           } else {
             setAppSetting(
@@ -388,7 +394,7 @@ const SettingsTab = memo(() => {
                   id="randomise-filter"
                   checked={isRandomised}
                   label="Randomise filter order"
-                  onChange={event => {console.log(event); setAppSetting("isRandomised", event.target.checked)}}
+                  onChange={event => setAppSetting("isRandomised", event.target.checked)}
                 />
               <Form.Text className="text-muted">Randomise the order of scenes in the filter.</Form.Text>
             </>}
@@ -635,9 +641,9 @@ const SettingsTab = memo(() => {
                     {details.inactiveText}
                   </div>
                   <div className="inline controls">
-                    {["quick-tag"].includes(item.type) && <Button
+                    {details.hasSettings && <Button
                       variant="link"
-                      className={cx("hide-button", "muted")}
+                      className={cx("settings", "muted")}
                       onClick={() => setActionButtonDraft(item)}
                     >
                       <FontAwesomeIcon icon={faPenToSquare} />
@@ -684,7 +690,7 @@ const SettingsTab = memo(() => {
                       displayOnly={true}
                       size="auto"
                     />
-                    Add "{actionButton.details.inactiveText}"
+                    {actionButton.details.inactiveText}
                   </div>
                 </Button>
               ))}

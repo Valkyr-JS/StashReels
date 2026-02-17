@@ -5,12 +5,15 @@ import { ActionButtonCustomIcons, actionButtonCustomIcons, getActionButtonDetail
 import Select from "../Select";
 import { components, MenuListProps, OptionProps, SingleValueProps } from "react-select";
 import { TagSelect, Tag } from "stash-ui/wrappers/components/TagSelect";
+import { TagIdSelect } from "stash-ui/wrappers/components/TagIdSelect";
 import "./ActionButtonSettingsModal.css";
 import { queryFindTagsByIDForSelect } from "stash-ui/dist/src/core/StashService";
-
 import { Form } from "react-bootstrap";
 import { ModalHeaderProps } from "react-bootstrap/esm/ModalHeader";
 import ActionButton from "../../slide/ActionButton";
+import { getLogger } from "@logtape/logtape";
+
+const logger = getLogger(["stash-tv", "ActionButtonSettingsModal"]);
 
 
 type Props = {
@@ -71,9 +74,7 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
   const GridOption = (props: OptionProps<typeof customIcons[number]>) => {
     return (
       <components.Option {...props}>
-        <div>
-          <props.data.label.inactive size="100%" />
-        </div>
+        <props.data.label.inactive size="100%" />
       </components.Option>
     );
   };
@@ -107,7 +108,7 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
       </ModalHeader>
       <Modal.Body>
         <div className="dialog-content">
-          {'tagId' in actionButtonConfig && (
+          {actionButtonConfig.type === "quick-tag" && (
             <Form.Group>
               <label htmlFor="tag-id">
                 Tag to add (required)
@@ -124,10 +125,10 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
               />
             </Form.Group>
           )}
-          {'iconId' in actionButtonConfig && (
+          {actionButtonConfig.type === "quick-tag" && (
             <Form.Group>
               <label htmlFor="filter">
-                Icon
+                Action Button Icon
               </label>
               <Select<typeof customIcons[number]>
                 inputId="filter"
@@ -138,13 +139,30 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
               />
             </Form.Group>
           )}
+          {actionButtonConfig.type === "edit-tags" && (
+            <Form.Group>
+              <label htmlFor="pinned-tags">
+                Pinned Tags
+              </label>
+              <TagIdSelect
+                isMulti
+                inputId="pinned-tags"
+                ids={actionButtonConfig.pinnedTagIds || []}
+                onSelect={(tags: Tag[]) => onUpdate({ ...actionButtonConfig, pinnedTagIds: tags.map(t => t.id) })}
+                hoverPlacement="right"
+              />
+              <Form.Text className="text-muted">
+                Pinned tags allow you to quickly add your most used tags.
+              </Form.Text>
+            </Form.Group>
+          )}
         </div>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={() => onClose()}>
           Cancel
         </Button>
-        <Button variant="success" onClick={() => onSave(actionButtonConfig)}>
+        <Button variant="primary" onClick={() => onSave(actionButtonConfig)}>
           {operation === "add" ? "Add" : "Save"}
         </Button>
       </Modal.Footer>
