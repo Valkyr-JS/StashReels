@@ -2,11 +2,11 @@
 
 Stash Reels allows you to swipe through scene playlists based on your Stash filters. Featuring a non-instrusive, hideable UI, Stash Reels is based heavily on apps like TikTok and Instagram.
 
-## Beta notice - rebuild in progress
+## ⚠️ Warning: No longer maintained (17 Feb 2026) ⚠️
 
-Thanks to the great feedback for this plugin, I've decided to rebuild it from the ground up to better incorporate suggestions. This current build will only be updated to fix breaking issues; no new features will be added before the rebuild release.
+Apart from a couple of minor bug fixes, Stash Reels hasn't been updated in well over a year now, and I barely started working on version 2. I'd very much like to come back to Stash Reels in future, but for now it's not something I'm able to dedicate the required time to do it justice. Stash Reels still has some major issues in terms of loading times, but fixing them would take a significant amount of refactoring.
 
-The rebuild will feature a full user interface for browsing all Stash content, not just scenes. At least scenes and markers will be supported on initial release, with more added later. If you have any suggestions for features you'd like to see, please raise them in [the GitHub repository for the rebuild](https://github.com/Valkyr-JS/StashReelsRedux/issues).
+If you're looking for a similar plugin, you may want to check out [StashTV](https://github.com/secondfolder/stash-tv) (a fork of Stash Reels) or [StashGifs](https://github.com/evolite/stashgifs) (a fork of StashTV). I don't have any involvement at all with either, but they are being actively maintained as of time of writing.
 
 ## Installation
 
