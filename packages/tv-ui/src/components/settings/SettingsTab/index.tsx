@@ -20,7 +20,7 @@ import DraggableList from "../../DraggableList";
 import { actionButtonsDetails, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 import ActionButton from "../../slide/ActionButton";
 import objectHash from "object-hash";
-import { ActionButtonConfig } from "../../slide/ActionButtons";
+import { ActionButtonConfig, createNewActionButtonConfig } from "../../slide/ActionButtons";
 import { ActionButtonSettingsModal } from "../ActionButtonSettingsModal";
 import { queryFindTagsByIDForSelect } from "stash-ui/dist/src/core/StashService";
 import { FindTagsForSelectQuery } from "stash-ui/dist/src/core/generated-graphql";
@@ -261,56 +261,17 @@ const SettingsTab = memo(() => {
 
   const addableActionButtons = objectKeys(actionButtonsDetails)
     .map((type) => {
-      let config: ActionButtonConfig;
-      const configBase = {
-        id: "",
-        pinned: false,
-      }
-      if (type === "edit-tags") {
-        config = {
-          ...configBase,
-          type,
-          pinnedTagIds: [],
-        }
-      } else if (type === "quick-tag") {
-        config = {
-          ...configBase,
-          type,
-          iconId: "add-tag",
-          tagId: "",
-        }
-      } else if (type === "quick-create-marker") {
-        config = {
-          ...configBase,
-          type,
-          iconId: "add-marker",
-          title: "",
-          primaryTagId: "",
-          tagIds: [],
-        }
-      } else {
-        config = {
-          ...configBase,
-          type
-        }
-      }
       return {
         type,
-        details: getActionButtonDetails(config),
+        details: getActionButtonDetails(
+          createNewActionButtonConfig(type)
+        ),
         add() {
+          const config = createNewActionButtonConfig(type);
           if (getActionButtonDetails(config).hasSettings) {
             setActionButtonDraft(config);
           } else {
-            setAppSetting(
-              "actionButtonsConfig",
-              [
-                ...actionButtonsConfig,
-                {
-                  ...config,
-                  id: new Date().getTime().toString() + Math.random().toString(),
-                }
-              ]
-            );
+            setAppSetting("actionButtonsConfig", [...actionButtonsConfig, config]);
           }
         }
       }
@@ -328,8 +289,7 @@ const SettingsTab = memo(() => {
     className="SettingsTab"
   >
     {actionButtonDraft && <ActionButtonSettingsModal
-      actionButtonConfig={actionButtonDraft}
-      onUpdate={setActionButtonDraft}
+      initialActionButtonConfig={actionButtonDraft}
       onClose={() => setActionButtonDraft(null)}
       onSave={config => {
         saveActionButtonDraft(config)

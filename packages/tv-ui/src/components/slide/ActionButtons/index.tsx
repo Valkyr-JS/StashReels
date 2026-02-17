@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons";
-
+import * as yup from "yup";
 import { useAppStateStore } from "../../../store/appStateStore";
 import ISO6391 from "iso-639-1";
 import * as GQL from "stash-ui/dist/src/core/generated-graphql";
@@ -31,24 +31,117 @@ export type Props = {
   playerRef: React.RefObject<VideoJsPlayer>;
 }
 
+const sharedActionButtonSchema = yup.object({
+  id: yup.string().required(),
+  pinned: yup.boolean().required(),
+})
+
+export const uiVisibilityActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["ui-visibility"]).required(),
+})
+export const settingsActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["settings"]).required(),
+})
+export const showSceneInfoActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["show-scene-info"]).required(),
+})
+export const rateSceneActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["rate-scene"]).required(),
+})
+export const oCounterActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["o-counter"]).required(),
+})
+export const forceLandscapeActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["force-landscape"]).required(),
+})
+export const fullscreenActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["fullscreen"]).required(),
+})
+export const muteActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["mute"]).required(),
+})
+export const letterboxingActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["letterboxing"]).required(),
+})
+export const loopActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["loop"]).required(),
+})
+export const subtitlesActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["subtitles"]).required(),
+})
+export const quickTagActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["quick-tag"]).required(),
+  iconId: yup.string().required(),
+  tagId: yup.string().required(),
+})
+export const editTagsActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["edit-tags"]).required(),
+  pinnedTagIds: yup.array().of(yup.string().required()).required(),
+})
+export const createMarkerActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["create-marker"]).required(),
+})
+export const quickCreateMarkerActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["quick-create-marker"]).required(),
+  iconId: yup.string().required(),
+  title: yup.string(),
+  primaryTagId: yup.string().required(),
+  tagIds: yup.array().of(yup.string().required()).required(),
+})
+
 export type ActionButtonConfig =
-{id: string; pinned: boolean} & (
-  {type: "ui-visibility"}
-    | {type: "settings"}
-    | {type: "show-scene-info"}
-    | {type: "rate-scene"}
-    | {type: "o-counter"}
-    | {type: "force-landscape"}
-    | {type: "fullscreen"}
-    | {type: "mute"}
-    | {type: "letterboxing"}
-    | {type: "loop"}
-    | {type: "subtitles"}
-    | {type: "quick-tag"; iconId: ActionButtonIcons; tagId: string }
-    | {type: "edit-tags"; pinnedTagIds: string[] }
-    | {type: "create-marker"}
-    | {type: "quick-create-marker"; iconId: ActionButtonIcons; title: string, primaryTagId: string, tagIds: string[] }
-  )
+  | yup.InferType<typeof uiVisibilityActionButtonSchema>
+  | yup.InferType<typeof settingsActionButtonSchema>
+  | yup.InferType<typeof showSceneInfoActionButtonSchema>
+  | yup.InferType<typeof rateSceneActionButtonSchema>
+  | yup.InferType<typeof oCounterActionButtonSchema>
+  | yup.InferType<typeof forceLandscapeActionButtonSchema>
+  | yup.InferType<typeof fullscreenActionButtonSchema>
+  | yup.InferType<typeof muteActionButtonSchema>
+  | yup.InferType<typeof letterboxingActionButtonSchema>
+  | yup.InferType<typeof loopActionButtonSchema>
+  | yup.InferType<typeof subtitlesActionButtonSchema>
+  | yup.InferType<typeof quickTagActionButtonSchema>
+  | yup.InferType<typeof editTagsActionButtonSchema>
+  | yup.InferType<typeof createMarkerActionButtonSchema>
+  | yup.InferType<typeof quickCreateMarkerActionButtonSchema>;
+
+export const createNewActionButtonConfig = (type: ActionButtonConfig["type"]): ActionButtonConfig => {
+  const sharedDefaults = {
+    id: `${Date.now()}-${Math.random().toString().slice(2)}` ,
+    pinned: false
+  }
+  switch (type) {
+    case "edit-tags":
+      return {
+        ...sharedDefaults,
+        type,
+        pinnedTagIds: [],
+      }
+    case "quick-tag":
+      return {
+        ...sharedDefaults,
+        type,
+        iconId: "add-tag",
+        tagId: "",
+      }
+    case "quick-create-marker":
+      return {
+        ...sharedDefaults,
+          type,
+          iconId: "add-marker",
+          title: "",
+          primaryTagId: "",
+          tagIds: [],
+      }
+    default:
+      return {
+        ...sharedDefaults,
+          type,
+      }
+  }
+}
+
 
 export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playerRef}: Props) {
   const {

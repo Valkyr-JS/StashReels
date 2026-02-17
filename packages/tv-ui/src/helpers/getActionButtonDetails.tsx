@@ -483,9 +483,10 @@ export function getActionButtonDetails(config: ActionButtonConfig, options?: { t
       }
     }
   };
-  if ('iconId' in config && config.iconId && actionButtonIcons[config.iconId]) {
-    details.activeIcon = actionButtonIcons[config.iconId].active;
-    details.inactiveIcon = actionButtonIcons[config.iconId].inactive;
+  if ('iconId' in config && config.iconId && config.iconId in actionButtonIcons) {
+    const iconDetails = actionButtonIcons[config.iconId as ActionButtonIcons]
+    details.activeIcon = iconDetails.active;
+    details.inactiveIcon = iconDetails.inactive;
   }
   if (config.type === "quick-tag") {
     if (options?.tagName) {
