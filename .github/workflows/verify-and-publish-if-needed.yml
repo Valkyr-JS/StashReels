@@ -1,0 +1,86 @@
+name: Verify and publish if needed
+
+on:
+  push:
+  pull_request: # We also run on PRs to verify the commit messages of all commits in the PR
+  workflow_call:
+
+jobs:
+  lint:
+    name: Verify and publish if needed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Used by "Validate PR commits with commitlint" step below
+          path: stash-tv
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      - name: Print versions
+        run: |
+          git --version
+          node --version
+          npm --version
+          npx commitlint --version
+
+      - name: Install project packages
+        working-directory: stash-tv
+        run: |
+          yarn install
+          yarn --cwd packages/stash-ui setup
+
+      - name: Validate current commit (last commit) with commitlint
+        if: github.event_name == 'push'
+        working-directory: stash-tv
+        run: npx commitlint --last --verbose
+
+      - name: Validate PR commits with commitlint
+        if: github.event_name == 'pull_request'
+        working-directory: stash-tv
+        run: npx commitlint --from ${{ github.event.pull_request.head.sha }}~${{ github.event.pull_request.commits }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+      - name: Build project
+        working-directory: stash-tv
+        run: yarn build
+
+      # We check types after building because GraphQL related types are generated during build
+      - name: TypeScript check
+        working-directory: stash-tv
+        run: tsc --noEmit
+
+      - name: Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main')
+        working-directory: stash-tv
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Print publish info
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main')
+        working-directory: stash-tv
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          if [[ ! "$VERSION" == 0.0.0* ]]; then
+            prefix_message="Published new version:"
+            echo -e "### :rocket: $prefix_message \n\`\`\`\n$VERSION\n\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo -e "$prefix_message\n\e[1m$VERSION\e[0m"
+          else
+            message="No publishable changes made since last version"
+            echo "### $message" >> $GITHUB_STEP_SUMMARY
+            echo -e "\e[1m$message\e[0m"
+          fi
+
+      - name: Upload npm logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-logs
+          path: ~/.npm/_logs/*
+          if-no-files-found: ignore
