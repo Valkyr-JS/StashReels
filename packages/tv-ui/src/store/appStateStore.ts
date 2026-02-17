@@ -12,7 +12,6 @@ type AppState = {
   audioMuted: boolean;
   showSubtitles: boolean;
   letterboxing: boolean;
-  forceLandscape: boolean;
   looping: boolean;
   uiVisible: boolean;
   isRandomised: boolean;
@@ -31,6 +30,8 @@ type AppState = {
   leftHandedUi?: boolean;
   actionButtonsConfig: ActionButtonConfig[];
   currentFilterId?: string;
+  // Device specific state
+  forceLandscape: boolean;
   // Non-persistent state
   showSettings: boolean;
   fullscreen: boolean;
@@ -97,6 +98,73 @@ const nonPersistentKeys: (keyof AppState)[] = [
   'fullscreen',
 ]
 
+// Keys that should be stored in localStorage (device-specific)
+const localStorageKeys: (keyof AppState)[] = [
+  'forceLandscape',
+]
+
+// Custom storage that routes keys to different storage backends
+const createHybridStorage = () => {
+  const stashStorage = stashConfigStorage;
+  const browserStorage = localStorage;
+
+  return {
+    getItem: async (name: string) => {
+      // Try to get from both storages and merge
+      const [stashData, localData] = await Promise.all([
+        stashStorage.getItem(name),
+        Promise.resolve(browserStorage.getItem(`${name}-local`))
+      ]);
+
+      if (!stashData && !localData) return null;
+
+      const stashState = stashData ? JSON.parse(stashData).state : {};
+      const localState = localData ? JSON.parse(localData).state : {};
+
+      return JSON.stringify({
+        state: { ...stashState, ...localState },
+        version: stashState?.version ?? localState?.version ?? 0
+      });
+    },
+    setItem: async (name: string, value: string) => {
+      const parsed = JSON.parse(value);
+      const state = parsed.state;
+
+      // Split state into stash and local storage portions
+      const stashState: Record<string, any> = {};
+      const localState: Record<string, any> = {};
+
+      for (const [key, val] of Object.entries(state)) {
+        if (localStorageKeys.includes(key as keyof AppState)) {
+          localState[key] = val;
+        } else if (nonPersistentKeys.includes(key as keyof AppState)) {
+          // Do nothing
+        } else {
+          stashState[key] = val;
+        }
+      }
+
+      // Save to respective storages in parallel
+      const promises: Promise<any>[] = [];
+      if (Object.keys(stashState).length > 0) {
+        promises.push(stashStorage.setItem(name, JSON.stringify({ ...parsed, state: stashState })));
+      }
+      if (Object.keys(localState).length > 0) {
+        promises.push(Promise.resolve(
+          browserStorage.setItem(`${name}-local`, JSON.stringify({ ...parsed, state: localState }))
+        ));
+      }
+      await Promise.all(promises);
+    },
+    removeItem: async (name: string) => {
+      await Promise.all([
+        stashStorage.removeItem(name),
+        Promise.resolve(browserStorage.removeItem(`${name}-local`))
+      ]);
+    }
+  };
+};
+
 export const useAppStateStore = create<AppState & AppAction>()(
   persist(
     (set, get) => ({
@@ -146,11 +214,7 @@ export const useAppStateStore = create<AppState & AppAction>()(
     }),
     {
       name: appStateStorageKey,
-      storage: createJSONStorage(() => stashConfigStorage),
-      partialize: (state) =>
-        Object.fromEntries(
-          Object.entries(state).filter(([key]) => !(nonPersistentKeys as string[]).includes(key)),
-        ),
+      storage: createJSONStorage(() => createHybridStorage()),
       onRehydrateStorage: (state) => {
         return () => state.set("storeLoaded", true)
       }
