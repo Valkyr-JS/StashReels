@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import { ActionButtonConfig } from "../../slide/ActionButtons";
-import { ActionButtonCustomIcons, actionButtonCustomIcons, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
+import { ActionButtonIcons, actionButtonIcons, getActionButtonDetails } from "../../../helpers/getActionButtonDetails";
 import Select from "../Select";
 import { components, MenuListProps, OptionProps, SingleValueProps } from "react-select";
 import { TagSelect, Tag } from "stash-ui/wrappers/components/TagSelect";
 import { TagIdSelect } from "stash-ui/wrappers/components/TagIdSelect";
 import "./ActionButtonSettingsModal.css";
 import { queryFindTagsByIDForSelect } from "stash-ui/dist/src/core/StashService";
+import { MarkerTitleSuggest } from "stash-ui/dist/src/components/Shared/Select";
 import { Form } from "react-bootstrap";
 import { ModalHeaderProps } from "react-bootstrap/esm/ModalHeader";
 import ActionButton from "../../slide/ActionButton";
@@ -49,13 +50,21 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
 
   const ModalHeader = Modal.Header as React.ForwardRefExoticComponent<ModalHeaderProps & React.RefAttributes<HTMLDivElement>>
 
-  const customIcons = Object.entries(actionButtonCustomIcons).map(([key, icon]) => ({
-    value: key as ActionButtonCustomIcons,
-    label: icon
-  }))
+  const customQuickTagIcons = Object.entries(actionButtonIcons)
+    .filter(([key, icon]) => icon.category.includes("tag") || icon.category.includes("general"))
+    .map(([key, icon]) => ({
+      value: key as ActionButtonIcons,
+      label: icon
+    }))
+  const customQuickCreateMarkerIcons = Object.entries(actionButtonIcons)
+    .filter(([key, icon]) => icon.category.includes("marker") || icon.category.includes("general"))
+    .map(([key, icon]) => ({
+      value: key as ActionButtonIcons,
+      label: icon
+    }))
 
   // Custom MenuList component that displays options in a grid
-  const GridMenuList = (props: MenuListProps<typeof customIcons[number]>) => {
+  const GridMenuList = (props: MenuListProps<typeof customQuickTagIcons[number] | typeof customQuickCreateMarkerIcons[number]>) => {
     return (
       <components.MenuList {...props}>
         <div style={{
@@ -71,7 +80,7 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
   };
 
   // Custom Option component for grid items
-  const GridOption = (props: OptionProps<typeof customIcons[number]>) => {
+  const GridOption = (props: OptionProps<typeof customQuickTagIcons[number] | typeof customQuickCreateMarkerIcons[number]>) => {
     return (
       <components.Option {...props}>
         <props.data.label.inactive size="100%" />
@@ -80,7 +89,7 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
   };
 
   // Custom SingleValue component to show selected icon
-  const GridSingleValue = (props: SingleValueProps<typeof customIcons[number]>) => {
+  const GridSingleValue = (props: SingleValueProps<typeof customQuickTagIcons[number] | typeof customQuickCreateMarkerIcons[number]>) => {
     return (
       <components.SingleValue {...props}>
         <div style={{ display: 'flex', alignItems: 'center', margin: '0.5em 0' }}>
@@ -127,14 +136,14 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
           )}
           {actionButtonConfig.type === "quick-tag" && (
             <Form.Group>
-              <label htmlFor="filter">
+              <label htmlFor="button-icon">
                 Action Button Icon
               </label>
-              <Select<typeof customIcons[number]>
-                inputId="filter"
-                value={customIcons.find(icon => icon.value === actionButtonConfig.iconId)}
-                options={customIcons}
-                onChange={(newValue: typeof customIcons[number] | null) => onUpdate({ ...actionButtonConfig, iconId: (newValue && 'value' in newValue) ? newValue.value : "tag" })}
+              <Select<typeof customQuickTagIcons[number]>
+                inputId="button-icon"
+                value={customQuickTagIcons.find(icon => icon.value === actionButtonConfig.iconId)}
+                options={customQuickTagIcons}
+                onChange={(newValue: typeof customQuickTagIcons[number] | null) => onUpdate({ ...actionButtonConfig, iconId: (newValue && 'value' in newValue) ? newValue.value : "tag" })}
                 components={{ MenuList: GridMenuList, Option: GridOption, SingleValue: GridSingleValue }}
               />
             </Form.Group>
@@ -154,6 +163,59 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
               <Form.Text className="text-muted">
                 Pinned tags allow you to quickly add your most used tags.
               </Form.Text>
+            </Form.Group>
+          )}
+          {actionButtonConfig.type === "quick-create-marker" && (
+            <Form.Group>
+              <label htmlFor="title">
+                Title
+              </label>
+              <MarkerTitleSuggest
+                initialMarkerTitle={actionButtonConfig.title}
+                onChange={(v) => onUpdate({ ...actionButtonConfig, title: v })}
+              />
+            </Form.Group>
+          )}
+          {actionButtonConfig.type === "quick-create-marker" && (
+            <Form.Group>
+              <label htmlFor="primary-tag">
+                Primary Tag (required)
+              </label>
+              <TagIdSelect
+                inputId="primary-tag"
+                ids={actionButtonConfig.primaryTagId ? [actionButtonConfig.primaryTagId] : []}
+                onSelect={(tags: Tag[]) => onUpdate({ ...actionButtonConfig, primaryTagId: tags[0]?.id })}
+                isClearable={false}
+                hoverPlacement="right"
+              />
+            </Form.Group>
+          )}
+          {actionButtonConfig.type === "quick-create-marker" && (
+            <Form.Group>
+              <label htmlFor="tags">
+                Tags (optional)
+              </label>
+              <TagIdSelect
+                isMulti
+                inputId="tags"
+                ids={actionButtonConfig.tagIds || []}
+                onSelect={(tags: Tag[]) => onUpdate({ ...actionButtonConfig, tagIds: tags.map(t => t.id) })}
+                hoverPlacement="right"
+              />
+            </Form.Group>
+          )}
+          {actionButtonConfig.type === "quick-create-marker" && (
+            <Form.Group>
+              <label htmlFor="button-icon">
+                Action Button Icon
+              </label>
+              <Select<typeof customQuickCreateMarkerIcons[number]>
+                inputId="button-icon"
+                value={customQuickCreateMarkerIcons.find(icon => icon.value === actionButtonConfig.iconId)}
+                options={customQuickCreateMarkerIcons}
+                onChange={(newValue: typeof customQuickCreateMarkerIcons[number] | null) => onUpdate({ ...actionButtonConfig, iconId: (newValue && 'value' in newValue) ? newValue.value : "tag" })}
+                components={{ MenuList: GridMenuList, Option: GridOption, SingleValue: GridSingleValue }}
+              />
             </Form.Group>
           )}
         </div>

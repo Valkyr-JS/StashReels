@@ -117,11 +117,10 @@ import cx from "classnames";
 import { getLogger } from "@logtape/logtape";
 
 type IconProps = {className?: string, size?: string | number}
-type Icon = React.FunctionComponent<IconProps>
-export type ActionButtonIcon = Icon
+export type ActionButtonIconComponent = React.FunctionComponent<IconProps>
 export type ActionButtonDetails = {
-  activeIcon: Icon;
-  inactiveIcon: Icon;
+  activeIcon: ActionButtonIconComponent;
+  inactiveIcon: ActionButtonIconComponent;
   activeText: string;
   inactiveText: string;
   repeatable?: boolean; // Whether the action can be added to the action stack multiple times
@@ -140,172 +139,226 @@ function renderIcon(Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
   }
 }
 
-export const actionButtonCustomIcons = {
+type ActionButtonIconDetails = {
+  active: ActionButtonIconComponent,
+  inactive: ActionButtonIconComponent,
+  category: ("general" | "tag" | "marker")[]
+}
+
+const _actionButtonIcons = {
   "heart": {
     active: (props: IconProps) => renderIcon(HeartFill, props),
-    inactive: (props: IconProps) => renderIcon(Heart, props)
+    inactive: (props: IconProps) => renderIcon(Heart, props),
+    category: ["general"],
   },
   "bookmark": {
     active: (props: IconProps) => renderIcon(BookmarkFill, props),
-    inactive: (props: IconProps) => renderIcon(Bookmark, props)
+    inactive: (props: IconProps) => renderIcon(Bookmark, props),
+    category: ["general"],
   },
   "pin": {
     active: (props: IconProps) => renderIcon(PinFill, props),
-    inactive: (props: IconProps) => renderIcon(Pin, props)
+    inactive: (props: IconProps) => renderIcon(Pin, props),
+    category: ["general"],
   },
   "list": {
     active: (props: IconProps) => renderIcon(CardList, props),
-    inactive: (props: IconProps) => renderIcon(ListUl, props)
+    inactive: (props: IconProps) => renderIcon(ListUl, props),
+    category: ["general"],
   },
   "star": {
     active: (props: IconProps) => renderIcon(StarFill, props),
-    inactive: (props: IconProps) => renderIcon(Star, props)
+    inactive: (props: IconProps) => renderIcon(Star, props),
+    category: ["general"],
   },
   "add-tag": {
     active: (props: IconProps) => renderIcon(faTag, props),
-    inactive: (props: IconProps) => renderIcon(AddTagOutlineIcon, props)
+    inactive: (props: IconProps) => renderIcon(AddTagOutlineIcon, props),
+    category: ["tag"],
   },
   "tag": {
     active: (props: IconProps) => renderIcon(TagFill, props),
-    inactive: (props: IconProps) => renderIcon(Tag, props)
+    inactive: (props: IconProps) => renderIcon(Tag, props),
+    category: ["tag"],
   },
   "tags": {
     active: (props: IconProps) => renderIcon(TagsFill, props),
-    inactive: (props: IconProps) => renderIcon(Tags, props)
+    inactive: (props: IconProps) => renderIcon(Tags, props),
+    category: ["tag"],
   },
   "thumbs-up": {
     active: (props: IconProps) => renderIcon(HandThumbsUpFill, props),
-    inactive: (props: IconProps) => renderIcon(HandThumbsUp, props)
+    inactive: (props: IconProps) => renderIcon(HandThumbsUp, props),
+    category: ["general"],
   },
   "thumbs-down": {
     active: (props: IconProps) => renderIcon(HandThumbsDownFill, props),
-    inactive: (props: IconProps) => renderIcon(HandThumbsDown, props)
+    inactive: (props: IconProps) => renderIcon(HandThumbsDown, props),
+    category: ["general"],
   },
   "0-circle": {
     active: (props: IconProps) => renderIcon(Icon0CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon0Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon0Circle, props),
+    category: ["general"],
   },
   "1-circle": {
     active: (props: IconProps) => renderIcon(Icon1CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon1Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon1Circle, props),
+    category: ["general"],
   },
   "2-circle": {
     active: (props: IconProps) => renderIcon(Icon2CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon2Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon2Circle, props),
+    category: ["general"],
   },
   "3-circle": {
     active: (props: IconProps) => renderIcon(Icon3CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon3Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon3Circle, props),
+    category: ["general"],
   },
   "4-circle": {
     active: (props: IconProps) => renderIcon(Icon4CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon4Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon4Circle, props),
+    category: ["general"],
   },
   "5-circle": {
     active: (props: IconProps) => renderIcon(Icon5CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon5Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon5Circle, props),
+    category: ["general"],
   },
   "6-circle": {
     active: (props: IconProps) => renderIcon(Icon6CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon6Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon6Circle, props),
+    category: ["general"],
   },
   "7-circle": {
     active: (props: IconProps) => renderIcon(Icon7CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon7Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon7Circle, props),
+    category: ["general"],
   },
   "8-circle": {
     active: (props: IconProps) => renderIcon(Icon8CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon8Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon8Circle, props),
+    category: ["general"],
   },
   "9-circle": {
     active: (props: IconProps) => renderIcon(Icon9CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Icon9Circle, props)
+    inactive: (props: IconProps) => renderIcon(Icon9Circle, props),
+    category: ["general"],
   },
   "archive": {
     active: (props: IconProps) => renderIcon(ArchiveFill, props),
-    inactive: (props: IconProps) => renderIcon(Archive, props)
+    inactive: (props: IconProps) => renderIcon(Archive, props),
+    category: ["general"],
   },
   "backpack": {
     active: (props: IconProps) => renderIcon(Backpack3Fill, props),
-    inactive: (props: IconProps) => renderIcon(Backpack3, props)
+    inactive: (props: IconProps) => renderIcon(Backpack3, props),
+    category: ["general"],
   },
   "bag": {
     active: (props: IconProps) => renderIcon(BagFill, props),
-    inactive: (props: IconProps) => renderIcon(Bag, props)
+    inactive: (props: IconProps) => renderIcon(Bag, props),
+    category: ["general"],
   },
   "basket": {
     active: (props: IconProps) => renderIcon(Basket2Fill, props),
-    inactive: (props: IconProps) => renderIcon(Basket2, props)
+    inactive: (props: IconProps) => renderIcon(Basket2, props),
+    category: ["general"],
   },
   "bell": {
     active: (props: IconProps) => renderIcon(BellFill, props),
-    inactive: (props: IconProps) => renderIcon(Bell, props)
+    inactive: (props: IconProps) => renderIcon(Bell, props),
+    category: ["general"],
   },
   "check": {
     active: (props: IconProps) => renderIcon(CheckCircleFill, props),
-    inactive: (props: IconProps) => renderIcon(CheckCircle, props)
+    inactive: (props: IconProps) => renderIcon(CheckCircle, props),
+    category: ["general"],
   },
   "circle": {
     active: (props: IconProps) => renderIcon(CircleFill, props),
-    inactive: (props: IconProps) => renderIcon(Circle, props)
+    inactive: (props: IconProps) => renderIcon(Circle, props),
+    category: ["general"],
   },
   "clipboard": {
     active: (props: IconProps) => renderIcon(ClipboardFill, props),
-    inactive: (props: IconProps) => renderIcon(Clipboard, props)
+    inactive: (props: IconProps) => renderIcon(Clipboard, props),
+    category: ["general"],
   },
   "clock": {
     active: (props: IconProps) => renderIcon(ClockFill, props),
-    inactive: (props: IconProps) => renderIcon(Clock, props)
+    inactive: (props: IconProps) => renderIcon(Clock, props),
+    category: ["general"],
   },
   "collection": {
     active: (props: IconProps) => renderIcon(CollectionFill, props),
-    inactive: (props: IconProps) => renderIcon(Collection, props)
+    inactive: (props: IconProps) => renderIcon(Collection, props),
+    category: ["general"],
   },
   "collection-play": {
     active: (props: IconProps) => renderIcon(CollectionPlayFill, props),
-    inactive: (props: IconProps) => renderIcon(CollectionPlay, props)
+    inactive: (props: IconProps) => renderIcon(CollectionPlay, props),
+    category: ["general"],
   },
   "droplet": {
     active: (props: IconProps) => renderIcon(DropletFill, props),
-    inactive: (props: IconProps) => renderIcon(Droplet, props)
+    inactive: (props: IconProps) => renderIcon(Droplet, props),
+    category: ["general"],
   },
   "flag": {
     active: (props: IconProps) => renderIcon(FlagFill, props),
-    inactive: (props: IconProps) => renderIcon(Flag, props)
+    inactive: (props: IconProps) => renderIcon(Flag, props),
+    category: ["general"],
   },
   "floppy": {
     active: (props: IconProps) => renderIcon(FloppyFill, props),
-    inactive: (props: IconProps) => renderIcon(Floppy, props)
+    inactive: (props: IconProps) => renderIcon(Floppy, props),
+    category: ["general"],
   },
   "folder": {
     active: (props: IconProps) => renderIcon(FolderFill, props),
-    inactive: (props: IconProps) => renderIcon(Folder, props)
+    inactive: (props: IconProps) => renderIcon(Folder, props),
+    category: ["general"],
   },
   "inbox": {
     active: (props: IconProps) => renderIcon(InboxFill, props),
-    inactive: (props: IconProps) => renderIcon(Inbox, props)
+    inactive: (props: IconProps) => renderIcon(Inbox, props),
+    category: ["general"],
   },
   "lightbulb": {
     active: (props: IconProps) => renderIcon(LightbulbFill, props),
-    inactive: (props: IconProps) => renderIcon(Lightbulb, props)
+    inactive: (props: IconProps) => renderIcon(Lightbulb, props),
+    category: ["general"],
   },
   "lock": {
     active: (props: IconProps) => renderIcon(LockFill, props),
-    inactive: (props: IconProps) => renderIcon(Lock, props)
+    inactive: (props: IconProps) => renderIcon(Lock, props),
+    category: ["general"],
   },
   "suit-club": {
     active: (props: IconProps) => renderIcon(SuitClubFill, props),
-    inactive: (props: IconProps) => renderIcon(SuitClub, props)
+    inactive: (props: IconProps) => renderIcon(SuitClub, props),
+    category: ["general"],
   },
   "telephone": {
     active: (props: IconProps) => renderIcon(TelephoneFill, props),
-    inactive: (props: IconProps) => renderIcon(Telephone, props)
+    inactive: (props: IconProps) => renderIcon(Telephone, props),
+    category: ["general"],
   },
   "trash": {
     active: (props: IconProps) => renderIcon(Trash3Fill, props),
-    inactive: (props: IconProps) => renderIcon(Trash3, props)
+    inactive: (props: IconProps) => renderIcon(Trash3, props),
+    category: ["general"],
   },
-} satisfies Record<string, {active: Icon, inactive: Icon}>
+  "add-marker": {
+    active: (props: IconProps) => renderIcon(faLocationDot, props),
+    inactive: (props: IconProps) => renderIcon(AddMarkerOutlineIcon, props),
+    category: ["marker"],
+  }
+} satisfies Record<string, ActionButtonIconDetails>
+
+export const actionButtonIcons: Record<keyof typeof _actionButtonIcons, ActionButtonIconDetails> = _actionButtonIcons;
 
 export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButtonDetails> = {
   "ui-visibility": {
@@ -375,28 +428,36 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
     inactiveText: "Show subtitles"
   },
   "quick-tag": {
-    activeIcon: actionButtonCustomIcons["add-tag"].active,
-    inactiveIcon: actionButtonCustomIcons["add-tag"].inactive,
+    activeIcon: actionButtonIcons["add-tag"].active,
+    inactiveIcon: actionButtonIcons["add-tag"].inactive,
     activeText: "Remove single tag",
     inactiveText: "Add single tag",
     repeatable: true,
     hasSettings: true,
   },
   "edit-tags": {
-    activeIcon: actionButtonCustomIcons["tags"].active,
-    inactiveIcon: actionButtonCustomIcons["tags"].inactive,
+    activeIcon: actionButtonIcons["tags"].active,
+    inactiveIcon: actionButtonIcons["tags"].inactive,
     activeText: "Edit tags",
     inactiveText: "Edit tags",
     hasSettings: true,
   },
   "create-marker": {
-    activeIcon: (props: IconProps) => renderIcon(faLocationDot, props),
-    inactiveIcon: (props: IconProps) => renderIcon(AddMarkerOutlineIcon, props),
+    activeIcon: actionButtonIcons["add-marker"].active,
+    inactiveIcon: actionButtonIcons["add-marker"].inactive,
     activeText: "Create marker",
     inactiveText: "Create marker",
   },
+  "quick-create-marker": {
+    activeIcon: actionButtonIcons["add-marker"].active,
+    inactiveIcon: actionButtonIcons["add-marker"].inactive,
+    activeText: "Create preset marker",
+    inactiveText: "Create preset marker",
+    hasSettings: true,
+    repeatable: true,
+  },
 }
-export type ActionButtonCustomIcons = keyof typeof actionButtonCustomIcons
+export type ActionButtonIcons = keyof typeof actionButtonIcons
 
 const logger = getLogger(["stash-tv", "getActionButtonDetails"])
 
@@ -422,15 +483,14 @@ export function getActionButtonDetails(config: ActionButtonConfig, options?: { t
       }
     }
   };
-  const customIcon = ('iconId' in config && config.iconId) ? actionButtonCustomIcons[config.iconId] : undefined;
+  if ('iconId' in config && config.iconId && actionButtonIcons[config.iconId]) {
+    details.activeIcon = actionButtonIcons[config.iconId].active;
+    details.inactiveIcon = actionButtonIcons[config.iconId].inactive;
+  }
   if (config.type === "quick-tag") {
     if (options?.tagName) {
       details.activeText = `Remove "${options.tagName}" from scene`
       details.inactiveText = `Add "${options.tagName}" to scene`
-    }
-    if (customIcon) {
-      details.activeIcon = customIcon.active;
-      details.inactiveIcon = customIcon.inactive;
     }
   }
   return details

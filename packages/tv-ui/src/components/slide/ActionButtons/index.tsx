@@ -12,9 +12,9 @@ import useOverflowIndicators from "../../../hooks/useOverflowIndicators";
 import { defaultRatingSystemOptions, RatingSystemType } from "stash-ui/dist/src/utils/rating";
 import { ConfigurationContext } from "stash-ui/dist/src/hooks/Config";
 import { RatingSystem } from "stash-ui/wrappers/components/shared/RatingSystem";
-import { queryFindTagsByIDForSelect, useSceneDecrementO, useSceneIncrementO, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
+import { queryFindTagsByIDForSelect, useSceneDecrementO, useSceneIncrementO, useSceneMarkerCreate, useSceneUpdate } from "stash-ui/dist/src/core/StashService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { getActionButtonDetails, ActionButtonCustomIcons } from "../../../helpers/getActionButtonDetails";
+import { getActionButtonDetails, ActionButtonIcons } from "../../../helpers/getActionButtonDetails";
 import { SceneMarkerForm } from "stash-ui/wrappers/components/SceneMarkerForm";
 import { VideoJsPlayer } from "video.js";
 import { getLogger } from "@logtape/logtape";
@@ -44,9 +44,10 @@ export type ActionButtonConfig =
     | {type: "letterboxing"}
     | {type: "loop"}
     | {type: "subtitles"}
-    | {type: "quick-tag"; iconId: ActionButtonCustomIcons; tagId: string }
+    | {type: "quick-tag"; iconId: ActionButtonIcons; tagId: string }
     | {type: "edit-tags"; pinnedTagIds: string[] }
     | {type: "create-marker"}
+    | {type: "quick-create-marker"; iconId: ActionButtonIcons; title: string, primaryTagId: string, tagIds: string[] }
   )
 
 export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playerRef}: Props) {
@@ -92,6 +93,8 @@ export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playe
         return <EditTagsActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       case "create-marker":
         return <CreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
+      case "quick-create-marker":
+        return <QuickCreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} playerRef={playerRef} />
       default:
         logger.error(`Unknown action button type: ${type}`)
         return <>?</>
@@ -426,5 +429,60 @@ function CreateMarkerActionButton(
       />
     )}
     data-testid="MediaSlide--createMarkerButton"
+  />
+}
+
+function QuickCreateMarkerActionButton(
+  {buttonConfig, mediaItem, playerRef}:
+  {
+    buttonConfig: Extract<ActionButtonConfig, { type: "quick-create-marker" }>,
+    mediaItem: MediaItem,
+    playerRef: React.RefObject<VideoJsPlayer>
+  }
+) {
+  if (mediaItem.entityType !== "scene") return null
+  const scene = mediaItem.entity
+  const existingMarker = useMemo(
+    () => mediaItem.entity.scene_markers
+      .find(m => m.primary_tag.id === buttonConfig.primaryTagId && m.title === buttonConfig.title),
+    [mediaItem.entity.scene_markers, buttonConfig.primaryTagId, buttonConfig.title]
+  )
+
+  const [sceneMarkerCreate] = useSceneMarkerCreate();
+  const handleClick = () => {
+    if (existingMarker) return
+    const currentTime = playerRef.current?.currentTime()
+    if (currentTime === undefined) {
+      logger.error("Player current time is undefined when creating quick marker", {sceneId: scene.id})
+      return
+    }
+    sceneMarkerCreate({
+      variables: {
+        scene_id: scene.id,
+        title: buttonConfig.title ?? "",
+        primary_tag_id: buttonConfig.primaryTagId,
+        tag_ids: buttonConfig.tagIds,
+        seconds: currentTime,
+        end_seconds: null,
+      },
+    });
+  }
+  const renderSidePanel = existingMarker
+    ? ({close}: {close: () => void}) => (
+      <SceneMarkerForm
+        className="action-button-create-marker"
+        sceneID={mediaItem.entity.id}
+        onClose={close}
+        marker={existingMarker}
+      />
+    )
+    : null
+  return <ActionButton
+    {...getActionButtonDetails(buttonConfig).props}
+    className={cx("hide-on-ui-hide")}
+    active={Boolean(existingMarker)}
+    sidePanel={renderSidePanel}
+    onClick={handleClick}
+    data-testid="MediaSlide--quickCreateMarkerButton"
   />
 }

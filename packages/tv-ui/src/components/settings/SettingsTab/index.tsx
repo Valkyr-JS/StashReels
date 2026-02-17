@@ -279,6 +279,15 @@ const SettingsTab = memo(() => {
           iconId: "add-tag",
           tagId: "",
         }
+      } else if (type === "quick-create-marker") {
+        config = {
+          ...configBase,
+          type,
+          iconId: "add-marker",
+          title: "",
+          primaryTagId: "",
+          tagIds: [],
+        }
       } else {
         config = {
           ...configBase,

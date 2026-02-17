@@ -8,7 +8,7 @@ import { useUID } from "react-uid";
 import { OverlayTrigger, Popover } from "react-bootstrap";
 import { create } from "zustand";
 import { useAppStateStore } from "../../../store/appStateStore";
-import { ActionButtonIcon } from "../../../helpers/getActionButtonDetails";
+import { ActionButtonIconComponent } from "../../../helpers/getActionButtonDetails";
 import { OverlayTriggerProps } from "react-bootstrap/esm/OverlayTrigger";
 import { preventMisclickOnMoveModifier } from "../../../helpers/popper-modifiers/preventMisclickOnMove";
 import { preventChildOverflowModifier } from "../../../helpers/popper-modifiers/preventChildOverflow";
@@ -21,9 +21,9 @@ export type SidePanelContent = React.ReactNode | ((props: {isOpen: boolean, clos
 export type Props = {
   /** Indicates if the buttons associated action is active. */
   active: boolean;
-  activeIcon: ActionButtonIcon;
+  activeIcon: ActionButtonIconComponent;
   activeText: string;
-  inactiveIcon: ActionButtonIcon;
+  inactiveIcon: ActionButtonIconComponent;
   inactiveText: string;
   sideInfo?: React.ReactNode;
   sidePanel?: SidePanelContent;
