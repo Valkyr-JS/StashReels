@@ -19,11 +19,12 @@ import { SceneMarkerForm } from "stash-ui/wrappers/components/SceneMarkerForm";
 import { VideoJsPlayer } from "video.js";
 import { getLogger } from "@logtape/logtape";
 import { EditTagSelectionForm, SlimTag } from "../../EditTagSelectionForm";
+import { MediaItem } from "../../../hooks/useMediaItems";
 
 const logger = getLogger(["stash-tv", "ActionButtons"]);
 
 export type Props = {
-  scene: GQL.TvSceneDataFragment;
+  mediaItem: MediaItem;
   sceneInfoOpen: boolean;
   setSceneInfoOpen: (open: boolean) => void;
   playerRef: React.RefObject<VideoJsPlayer>;
@@ -47,12 +48,14 @@ export type ActionButtonConfig =
     | {type: "create-marker"}
   )
 
-export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen, playerRef}: Props) {
+export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playerRef}: Props) {
   const {
     uiVisible,
     leftHandedUi,
     actionButtonsConfig,
   } = useAppStateStore();
+
+  const scene = mediaItem.entityType === "scene" ? mediaItem.entity : mediaItem.entity.scene;
 
   const stackElmRef = useRef<HTMLDivElement>(null);
   const stackScrollClasses = useOverflowIndicators(stackElmRef);
@@ -87,7 +90,7 @@ export function ActionButtons({scene, sceneInfoOpen, setSceneInfoOpen, playerRef
       case "edit-tags":
         return <EditTagsActionButton scene={scene} buttonConfig={buttonConfig} />
       case "create-marker":
-        return <CreateMarkerActionButton scene={scene} buttonConfig={buttonConfig} playerRef={playerRef} />
+        return <CreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       default:
         logger.error(`Unknown action button type: ${type}`)
         return <>?</>
@@ -408,13 +411,13 @@ function EditTagsActionButton(
 }
 
 function CreateMarkerActionButton(
-  {buttonConfig, scene, playerRef}:
+  {buttonConfig, mediaItem}:
   {
     buttonConfig: Extract<ActionButtonConfig, { type: "create-marker" }>,
-    scene: GQL.TvSceneDataFragment,
-    playerRef: React.RefObject<VideoJsPlayer>
+    mediaItem: MediaItem
   }
 ) {
+  if (mediaItem.entityType !== "scene") return null
   return <ActionButton
     {...getActionButtonDetails(buttonConfig).props}
     className={cx("hide-on-ui-hide")}
@@ -422,7 +425,7 @@ function CreateMarkerActionButton(
     sidePanel={({close}) => (
       <SceneMarkerForm
         className="action-button-create-marker"
-        sceneID={scene.id}
+        sceneID={mediaItem.entity.id}
         onClose={close}
         marker={undefined}
       />
