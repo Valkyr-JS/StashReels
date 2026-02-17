@@ -20,7 +20,7 @@ interface IPluginApi {
   Event: {
     addEventListener: (
       event: string,
-      callback: (e: CustomEvent) => void
+      callback: (e: CustomEvent) => void,
     ) => void;
   };
   GQL: {
@@ -92,7 +92,7 @@ interface IPluginApi {
       makePerformerScenesUrl: (
         performer: Partial<Performer>,
         extraPerformer?: ILabeledId,
-        extraCriteria?: Criterion<CriterionValue>[]
+        extraCriteria?: Criterion<CriterionValue>[],
       ) => string;
     };
     loadComponents: any;
@@ -108,14 +108,14 @@ interface StashPluginComponents {
   HoverPopover: (props: IHoverPopover) => React.JSX.Element;
   Icon: (props: IIcon) => FontAwesomeIcon;
   "MainNavBar.MenuItems": (
-    props: React.PropsWithChildren<{}>
+    props: React.PropsWithChildren<{}>,
   ) => React.JSX.Element;
   PerformerDetailsPanel: (props: IPerformerDetailsPanel) => React.JSX.Element;
   "PerformerDetailsPanel.DetailGroup": (
-    props: IPerformerDetailsPanelDetailGroup
+    props: IPerformerDetailsPanelDetailGroup,
   ) => React.JSX.Element;
   PerformerSelect: (
-    props: IFilterProps & IFilterValueProps<Performer>
+    props: IFilterProps & IFilterValueProps<Performer>,
   ) => React.JSX.Element;
   SceneCard: (props: ISceneCardProps) => React.JSX.Element;
   TagSelect: (props: TagSelectProps) => React.JSX.Element;
@@ -130,30 +130,22 @@ interface PatchableComponents {
 interface PatchableComponentsAfter {
   (
     component: "MainNavBar.MenuItems",
-    fn: (props: React.PropsWithChildren<{}>) => React.JSX.Element[]
+    fn: (props: React.PropsWithChildren<{}>) => React.JSX.Element[],
   ): void;
   (
     component: "PerformerDetailsPanel",
-    fn: (props: IPerformerDetailsPanel) => React.JSX.Element[]
+    fn: (props: IPerformerDetailsPanel) => React.JSX.Element[],
   ): void;
   (
     component: "PerformerDetailsPanel.DetailGroup",
-    fn: (props: IPerformerDetailsPanelDetailGroup) => React.JSX.Element[]
+    fn: (props: IPerformerDetailsPanelDetailGroup) => React.JSX.Element[],
   ): void;
 }
 
 interface PatchableComponentsBefore {
   (
     component: "MainNavBar.MenuItems",
-    fn: (props: React.PropsWithChildren<{}>) => React.JSX.Element[]
-  ): void;
-  (
-    component: "PerformerDetailsPanel",
-    fn: (props: IPerformerDetailsPanel) => React.JSX.Element[]
-  ): void;
-  (
-    component: "PerformerDetailsPanel.DetailGroup",
-    fn: (props: IPerformerDetailsPanelDetailGroup) => React.JSX.Element[]
+    fn: (props: React.PropsWithChildren) => [React.PropsWithChildren],
   ): void;
 }
 
@@ -163,64 +155,64 @@ interface PatchableComponentsInstead {
     fn: (
       props: React.PropsWithChildren<{}>,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
   (
     component: "PerformerDetailsPanel",
     fn: (
       props: IPerformerDetailsPanel,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
   (
     component: "PerformerDetailsPanel.DetailGroup",
     fn: (
       props: IPerformerDetailsPanelDetailGroup,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
   (
     component: "SceneCard",
     fn: (
       props: ISceneCardProps,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
   (
     component: "SceneCard.Details",
     fn: (
       props: ISceneCardProps,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
   (
     component: "SceneCard.Image",
     fn: (
       props: ISceneCardProps,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
   (
     component: "SceneCard.Overlays",
     fn: (
       props: ISceneCardProps,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
   (
     component: "SceneCard.Popovers",
     fn: (
       props: ISceneCardProps,
       _: object,
-      Original: React.JSX
-    ) => React.JSX.Element[]
+      Original: React.JSX,
+    ) => React.JSX.Element[],
   ): void;
 }
 
