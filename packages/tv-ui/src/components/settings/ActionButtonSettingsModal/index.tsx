@@ -142,7 +142,7 @@ export const ActionButtonSettingsModal = ({ actionButtonConfig, onUpdate, onClos
           {actionButtonConfig.type === "edit-tags" && (
             <Form.Group>
               <label htmlFor="pinned-tags">
-                Pinned Tags
+                Pinned Tags (optional)
               </label>
               <TagIdSelect
                 isMulti

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons";
 
 import { useAppStateStore } from "../../../store/appStateStore";
@@ -18,8 +18,9 @@ import { getActionButtonDetails, ActionButtonCustomIcons } from "../../../helper
 import { SceneMarkerForm } from "stash-ui/wrappers/components/SceneMarkerForm";
 import { VideoJsPlayer } from "video.js";
 import { getLogger } from "@logtape/logtape";
-import { EditTagSelectionForm, SlimTag } from "../../EditTagSelectionForm";
+import { EditTagSelectionForm } from "../../EditTagSelectionForm";
 import { MediaItem } from "../../../hooks/useMediaItems";
+import { useMediaItemTags } from "../../../hooks/useMediaItemTags";
 
 const logger = getLogger(["stash-tv", "ActionButtons"]);
 
@@ -86,9 +87,9 @@ export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playe
       case "ui-visibility":
         return <UiVisibilityActionButton buttonConfig={buttonConfig} />
       case "quick-tag":
-        return <QuickTagActionButton scene={scene} buttonConfig={buttonConfig} />
+        return <QuickTagActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       case "edit-tags":
-        return <EditTagsActionButton scene={scene} buttonConfig={buttonConfig} />
+        return <EditTagsActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       case "create-marker":
         return <CreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       default:
@@ -334,79 +335,73 @@ function UiVisibilityActionButton({buttonConfig}: {buttonConfig: ActionButtonCon
   />
 }
 
-function QuickTagActionButton({buttonConfig, scene}: {buttonConfig: Extract<ActionButtonConfig, { type: "quick-tag" }>, scene: GQL.TvSceneDataFragment}) {
+function QuickTagActionButton({buttonConfig, mediaItem}: {buttonConfig: Extract<ActionButtonConfig, { type: "quick-tag" }>, mediaItem: MediaItem}) {
   const {tagId} = buttonConfig;
-  const sceneHasTag = useMemo(() => scene.tags.some(t => t.id === tagId), [scene.tags, buttonConfig.tagId])
-  const [updateScene] = useSceneUpdate();
-  function addTag() {
-    if (scene.tags.some(t => t.id === tagId)) return;
-    updateScene({
-      variables: {
-        input: {
-          id: scene.id,
-          tag_ids: [...scene.tags.map(tag => tag.id), tagId]
-        },
-      },
-    });
-  }
-  function removeTag() {
-    if (!scene.tags.some(t => t.id === tagId)) return;
-    updateScene({
-      variables: {
-        input: {
-          id: scene.id,
-          tag_ids: scene.tags.filter(tag => tag.id !== tagId).map(tag => tag.id)
-        },
-      },
-    });
-  }
   const [tagName, setTagName] = useState<string>(`Tag ID: ${buttonConfig.tagId}`);
+  let mediaItemHasTag: boolean
+  let sidePanel: ReactNode = null
+  const {addTag, removeTag} = useMediaItemTags(mediaItem);
+
   useEffect(() => {
     queryFindTagsByIDForSelect([buttonConfig.tagId])
       .then(result => setTagName(result.data.findTags.tags[0]?.name || tagName))
   }, [buttonConfig.tagId])
+
+  if (mediaItem.entityType === "scene") {
+    const scene = mediaItem.entity
+    mediaItemHasTag = useMemo(() => scene.tags.some(t => t.id === tagId), [scene.tags, buttonConfig.tagId])
+  } else if (mediaItem.entityType === "marker") {
+    const marker = mediaItem.entity
+    mediaItemHasTag = useMemo(
+      () => marker.tags.some(t => t.id === tagId) || marker.primary_tag.id === tagId,
+      [marker.tags, buttonConfig.tagId]
+    )
+    sidePanel = marker.primary_tag.id == tagId
+      ? <>
+        Marker's primary tag is "{tagName}" and a markers's primary tag cannot be removed.
+      </>
+      : null;
+  } else {
+    logger.error("QuickTagActionButton rendered for unsupported media item type", {mediaItem})
+    return null
+  }
+
   return <ActionButton
     {...getActionButtonDetails(buttonConfig, {tagName}).props}
-    active={sceneHasTag}
+    active={mediaItemHasTag}
     className={cx("quick-tag", "hide-on-ui-hide")}
     data-testid="MediaSlide--quickTagButton"
-    onClick={() => sceneHasTag ? removeTag() : addTag()}
+    onClick={mediaItemHasTag ? () => removeTag(tagId) : () => addTag(tagId)}
+    sidePanel={sidePanel}
   />
 }
 
 function EditTagsActionButton(
-  {buttonConfig, scene}:
+  {buttonConfig, mediaItem}:
   {
     buttonConfig: Extract<ActionButtonConfig, { type: "edit-tags" }>,
-    scene: GQL.TvSceneDataFragment
+    mediaItem: MediaItem
   }
 ) {
-  const [updateScene] = useSceneUpdate();
-  function setTags(tags: SlimTag[]) {
-    updateScene({
-      variables: {
-        input: {
-          id: scene.id,
-          tag_ids: tags.map(tag => tag.id),
-        },
-      },
-    });
-  }
+  const {tags, primaryTag, setTags} = useMediaItemTags(mediaItem)
 
   return <ActionButton
     {...getActionButtonDetails(buttonConfig).props}
     className={cx("hide-on-ui-hide")}
     active={false}
-    sidePanel={({close}) => (
+    sidePanel={({close}) => <>
       <EditTagSelectionForm
-        initialTags={scene.tags}
+        initialTags={tags}
         pinnedTagIds={buttonConfig.pinnedTagIds}
         save={setTags}
         cancel={close}
       />
-    )}
+      {primaryTag && <div className="primary-tag-note">
+        Marker's primary tag is "{primaryTag.name}".
+      </div>}
+    </>}
     sidePanelClassName="action-button-side-panel-edit-tags"
-    data-testid="MediaSlide--createMarkerButton"
+    data-testid="MediaSlide--editTagsButton"
   />
 }
 

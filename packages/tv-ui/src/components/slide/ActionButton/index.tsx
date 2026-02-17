@@ -57,6 +57,14 @@ const ActionButton = (props: Props) => {
 
   const displayText = active ? activeText : inactiveText
 
+  const getOnClickHandler = (sidePanelClick: (event: React.MouseEvent<HTMLElement>) => void) => {
+    if (displayOnly) return;
+    return (event: React.MouseEvent<HTMLElement>) => {
+      onClick?.()
+      sidePanel && sidePanelClick(event)
+    }
+  }
+
   return (
     <div
       className={cx("ActionButton", className, { active, 'left-handed': leftHandedUi, [`size-${size}`]: size })}
@@ -76,7 +84,7 @@ const ActionButton = (props: Props) => {
             <ButtonElement
               className={cx("button")}
               type="button"
-              onClick={displayOnly ? undefined : onClick || sidePanelClick}
+              onClick={getOnClickHandler(sidePanelClick)}
               ref={ref}
             >
               <Icon />
@@ -123,7 +131,6 @@ const SidePanel = (
       if (timeout) clearTimeout(timeout);
     }
   }, [isOpen])
-  if (!content) return children({onClick: () => {}, ref: null})
 
   const safeInsetPadding = useMemo(() => {
     const style = getComputedStyle(document.documentElement);
@@ -157,6 +164,7 @@ const SidePanel = (
     ref
   })
 
+  if (!content) return children({onClick: () => {}, ref: null})
   return (
     <OverlayTrigger
       trigger="click"

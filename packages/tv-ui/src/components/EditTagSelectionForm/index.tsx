@@ -1,14 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Badge, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import objectHash from "object-hash";
 import { queryFindTagsByIDForSelect } from "stash-ui/dist/src/core/StashService";
 import { Tag } from "stash-ui/dist/src/components/Tags/TagSelect";
 import { getLogger } from "@logtape/logtape";
-import cx from "classnames";
 import "./EditTagSelectionForm.css";
 import { TagSelect } from "stash-ui/wrappers/components/TagSelect";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Tag as TagBadge } from "../tags/tag";
 
 const logger = getLogger(["stash-tv", "EditTagSelectionForm"]);
 
@@ -53,7 +51,6 @@ export function EditTagSelectionForm(
         values={selectedTags}
         onSelect={(tags: Tag[]) => setSelectedTags(tags)}
         hoverPlacement="top"
-        excludeIds={pinnedTagIds}
       />
       <div className="actions">
         <Button
@@ -72,22 +69,15 @@ export function EditTagSelectionForm(
         </Button>
       </div>
     </div>
-    <div className="pinned">
+    {Boolean(nonSelectedPinnedTags.length) && <div className="pinned">
       {nonSelectedPinnedTags.map(tag => (
-        <Button
-          variant="link"
+        <TagBadge
+          tag={tag}
           key={tag.id}
           onClick={() => {setSelectedTags(selectedTags => ([...selectedTags, tag]))}}
-        >
-          <Badge
-            className={cx("tag-item")}
-            variant="secondary"
-          >
-            {tag.name}
-            <FontAwesomeIcon className="add-icon" icon={faPlus} />
-          </Badge>
-        </Button>
+          icon="add"
+        />
       ))}
-    </div>
+    </div>}
   </div>
 }

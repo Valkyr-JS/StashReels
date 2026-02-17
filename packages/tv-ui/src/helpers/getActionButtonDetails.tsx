@@ -377,16 +377,16 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
   "quick-tag": {
     activeIcon: actionButtonCustomIcons["add-tag"].active,
     inactiveIcon: actionButtonCustomIcons["add-tag"].inactive,
-    activeText: "Remove single tag from scene",
-    inactiveText: "Add single tag to scene",
+    activeText: "Remove single tag",
+    inactiveText: "Add single tag",
     repeatable: true,
     hasSettings: true,
   },
   "edit-tags": {
     activeIcon: actionButtonCustomIcons["tags"].active,
     inactiveIcon: actionButtonCustomIcons["tags"].inactive,
-    activeText: "Edit scene tags",
-    inactiveText: "Edit scene tags",
+    activeText: "Edit tags",
+    inactiveText: "Edit tags",
     hasSettings: true,
   },
   "create-marker": {

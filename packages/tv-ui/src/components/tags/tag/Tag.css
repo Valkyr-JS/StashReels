@@ -1,0 +1,27 @@
+.Tag {
+  button& {
+    margin: 0;
+    padding: 0;
+
+    &:hover:not(:disabled) {
+      .add-icon {
+        color: var(--text-color);
+        cursor: pointer;
+      }
+    }
+  }
+
+  &.tag-item:hover {
+    cursor: unset;
+  }
+
+  .add-icon {
+    background: none;
+    border: none;
+    color: var(--body-bg);
+    font-size: 12px;
+    line-height: 1rem;
+    padding: 0 0.2rem 0 0.4rem ;
+    position: relative;
+  }
+}
