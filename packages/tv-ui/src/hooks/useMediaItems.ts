@@ -6,7 +6,7 @@ import { useAppStateStore } from "../store/appStateStore";
 import hashObject from 'object-hash';
 import { getLogger } from "@logtape/logtape";
 
-export const mediaItemsPerPage = 20
+export const mediaItemsPerPage = 10
 
 export type MediaItem = {
   id: string;
