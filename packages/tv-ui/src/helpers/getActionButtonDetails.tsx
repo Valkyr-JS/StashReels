@@ -456,6 +456,12 @@ export const actionButtonsDetails: Record<ActionButtonConfig["type"], ActionButt
     activeText: "Delete scene/marker",
     inactiveText: "Delete scene/marker",
   },
+  "set-organized": {
+    activeIcon: actionButtonIcons["archive"].active,
+    inactiveIcon: actionButtonIcons["archive"].inactive,
+    activeText: "Mark as unorganized",
+    inactiveText: "Mark as organized",
+  },
 }
 export type ActionButtonIcons = keyof typeof actionButtonIcons
 

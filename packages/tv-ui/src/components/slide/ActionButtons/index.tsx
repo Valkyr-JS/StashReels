@@ -92,6 +92,9 @@ export const createMarkerActionButtonSchema = sharedActionButtonSchema.shape({
 export const deleteMediaItemActionButtonSchema = sharedActionButtonSchema.shape({
   type: yup.string().oneOf(["delete-media-item"]).required(),
 })
+export const setOrganizedActionButtonSchema = sharedActionButtonSchema.shape({
+  type: yup.string().oneOf(["set-organized"]).required(),
+})
 
 export type ActionButtonConfig =
   | yup.InferType<typeof uiVisibilityActionButtonSchema>
@@ -109,6 +112,7 @@ export type ActionButtonConfig =
   | yup.InferType<typeof editTagsActionButtonSchema>
   | yup.InferType<typeof createMarkerActionButtonSchema>
   | yup.InferType<typeof deleteMediaItemActionButtonSchema>
+  | yup.InferType<typeof setOrganizedActionButtonSchema>
 
 export const createNewActionButtonConfig = <ButtonType extends ActionButtonConfig["type"]>(
   type: ButtonType,
@@ -197,6 +201,8 @@ export function ActionButtons({mediaItem, sceneInfoOpen, setSceneInfoOpen, playe
         return <CreateMarkerActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} playerRef={playerRef} />
       case "delete-media-item":
         return <DeleteMediaItemActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
+      case "set-organized":
+        return <SetOrganizedActionButton mediaItem={mediaItem} buttonConfig={buttonConfig} />
       default:
         logger.error(`Unknown action button type: ${type}`)
         return <>?</>
@@ -620,4 +626,33 @@ function DeleteMediaItemActionButton(
       onClick={handleClick}
     />
   </>
+}
+
+function SetOrganizedActionButton(
+  {buttonConfig, mediaItem}:
+  {
+    buttonConfig: Extract<ActionButtonConfig, { type: "set-organized" }>,
+    mediaItem: MediaItem
+  }
+) {
+  const [updateScene] = useSceneUpdate();
+  function setOrganized(newOrganized: boolean) {
+    updateScene({
+      variables: {
+        input: {
+          id: scene.id,
+          organized: newOrganized,
+        },
+      },
+    });
+  }
+  if (mediaItem.entityType !== "scene") return null
+  const scene = mediaItem.entity
+  return (
+    <ActionButton
+      {...getActionButtonDetails(buttonConfig).props}
+      active={scene.organized}
+      onClick={() => setOrganized(!scene.organized)}
+    />
+  )
 }
